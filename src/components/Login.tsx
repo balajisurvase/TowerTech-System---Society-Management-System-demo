@@ -58,6 +58,25 @@ export default function Login({ onLogin }: LoginProps) {
     setLoading(true);
 
     try {
+      // 1. Primary: Authenticate via Python Backend API
+      const authResult = await societyService.login(role, loginId, password, societyId);
+      if (authResult?.success && authResult.user) {
+        const u = authResult.user;
+        onLogin({
+          id: u.id || u.admin_id || u.resident_id,
+          admin_id: u.admin_id,
+          resident_id: u.resident_id,
+          name: u.name,
+          email: u.email || '',
+          phone: u.phone || '',
+          role: u.role || role,
+          society_id: u.society_id,
+          flat: u.flat,
+          tower: u.tower
+        });
+        return;
+      }
+
       if (role === 'admin') {
         const { data: adminData, error: adminError } = await supabase
           .from('admin')

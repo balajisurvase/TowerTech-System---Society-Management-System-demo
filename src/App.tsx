@@ -26,15 +26,6 @@ export default function App() {
   const fetchData = async () => {
     setLoading(true);
 
-    if (!isSupabaseConfigured) {
-      setResidents(initialResidents.filter(r => r.resident_id !== 'R081' && r.name.toLowerCase() !== 'dhilipan'));
-      setMaintenance(initialMaintenance);
-      setComplaints(initialComplaints);
-      setBookings(initialBookings);
-      setLoading(false);
-      return;
-    }
-
     try {
       const [resData, mainData, compData, bookingData] = await Promise.all([
         societyService.getResidents(),
@@ -42,6 +33,26 @@ export default function App() {
         societyService.getComplaints(),
         societyService.getBookings()
       ]);
+
+      if (resData && resData.length > 0) {
+        const uniqueResidents = Array.from(new Map(resData.map(r => [r.resident_id, r])).values())
+          .filter(r => r.resident_id !== 'R081' && r.name.toLowerCase() !== 'dhilipan');
+        setResidents(uniqueResidents);
+        setMaintenance(mainData || []);
+        setComplaints(compData || []);
+        setBookings(bookingData || []);
+        setLoading(false);
+        return;
+      }
+
+      if (!isSupabaseConfigured) {
+        setResidents(initialResidents.filter(r => r.resident_id !== 'R081' && r.name.toLowerCase() !== 'dhilipan'));
+        setMaintenance(initialMaintenance);
+        setComplaints(initialComplaints);
+        setBookings(initialBookings);
+        setLoading(false);
+        return;
+      }
       
       const uniqueResidents = Array.from(new Map(resData.map(r => [r.resident_id, r])).values())
         .filter(r => r.resident_id !== 'R081' && r.name.toLowerCase() !== 'dhilipan');

@@ -1,7 +1,6 @@
 import { supabase } from './supabase';
-import { api } from './api';
 import { Resident, MaintenanceRecord, Complaint, Booking, Society, Admin, Amenity, Media } from '../types';
-import { initialResidents, initialMaintenance, initialComplaints, initialBookings, initialAmenities } from '../data';
+import { initialAmenities } from '../data';
 
 // Helper to generate a UUID if needed
 const generateUUID = () => {
@@ -15,25 +14,52 @@ const generateUUID = () => {
   }
 };
 
+// Helper function to query the Python backend REST API
+async function pythonApi<T>(endpoint: string, options?: RequestInit): Promise<T | null> {
+  try {
+    const res = await fetch(endpoint, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...(options?.headers || {}),
+      },
+      ...options,
+    });
+    if (!res.ok) return null;
+    return (await res.json()) as T;
+  } catch {
+    return null;
+  }
+}
+
 export const societyService = {
+  async login(role: 'admin' | 'resident', loginId: string, password: string, societyId?: string) {
+    const pyRes = await pythonApi<{ success: boolean; user?: any; error?: string }>('/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ role, loginId, password, societyId }),
+    });
+    return pyRes;
+  },
+
   async getResidents() {
-    try {
-      const { data, error } = await supabase
-        .from('resident')
-        .select('*')
-        .order('resident_id', { ascending: true });
-      
-      if (error) {
-        return await api.residents.list();
-      }
-      return (data && data.length > 0) ? data as Resident[] : await api.residents.list();
-    } catch (err) {
-      try {
-        return await api.residents.list();
-      } catch {
-        return initialResidents;
-      }
+    // 1. Try Python Backend API first
+    const pyData = await pythonApi<Resident[]>('/api/residents');
+    if (pyData && Array.isArray(pyData) && pyData.length > 0) {
+      return pyData;
     }
+
+    const { data, error } = await supabase
+      .from('resident')
+      .select('*')
+      .order('resident_id', { ascending: true });
+    
+    if (error) {
+      if (error.code === '42P01' || error.code === 'PGRST205') {
+        return [] as Resident[];
+      }
+      console.error('Error fetching residents:', error);
+      throw error;
+    }
+    return data as Resident[];
   },
 
   async getResidentByEmail(email: string) {
@@ -141,23 +167,24 @@ export const societyService = {
   },
 
   async getMaintenance() {
-    try {
-      const { data, error } = await supabase
-        .from('maintenance')
-        .select('*')
-        .order('due_date', { ascending: false });
-      
-      if (error) {
-        return await api.maintenance.list();
-      }
-      return (data && data.length > 0) ? data as MaintenanceRecord[] : await api.maintenance.list();
-    } catch (err) {
-      try {
-        return await api.maintenance.list();
-      } catch {
-        return initialMaintenance;
-      }
+    const pyData = await pythonApi<MaintenanceRecord[]>('/api/maintenance');
+    if (pyData && Array.isArray(pyData) && pyData.length > 0) {
+      return pyData;
     }
+
+    const { data, error } = await supabase
+      .from('maintenance')
+      .select('*')
+      .order('due_date', { ascending: false });
+    
+    if (error) {
+      if (error.code === '42P01' || error.code === 'PGRST205') {
+        return [] as MaintenanceRecord[];
+      }
+      console.error('Error fetching maintenance:', error);
+      throw error;
+    }
+    return data as MaintenanceRecord[];
   },
 
   async updateMaintenanceStatus(maintenance_id: string, status: 'Paid' | 'Unpaid') {
@@ -369,20 +396,27 @@ export const societyService = {
     return data as MaintenanceRecord[];
   },
 
-  async getAmenities(society_id: string = 'GV2026') {
-    try {
-      const { data, error } = await supabase.from('amenities').select('*').eq('society_id', society_id).order('name', { ascending: true });
-      if (error) {
-        return await api.amenities.list(society_id);
+  async getAmenities(society_id: string) {
+    let query = supabase.from('amenities').select('*');
+    
+    // Try with society_id filter first
+    const { data, error } = await query.eq('society_id', society_id).order('name', { ascending: true });
+    
+    if (error) {
+      // If society_id column is missing (42703) or table missing (42P01/PGRST205)
+      if (error.code === '42703' || error.message?.includes('society_id')) {
+        const { data: allData, error: allErr } = await supabase.from('amenities').select('*').order('name', { ascending: true });
+        if (allErr || !allData || allData.length === 0) return initialAmenities.filter(a => a.society_id === society_id);
+        return allData as Amenity[];
       }
-      return (data && data.length > 0) ? data as Amenity[] : await api.amenities.list(society_id);
-    } catch (err) {
-      try {
-        return await api.amenities.list(society_id);
-      } catch {
+      if (error.code === '42P01' || error.code === 'PGRST205') {
         return initialAmenities.filter(a => a.society_id === society_id);
       }
+      console.error('Error fetching amenities:', error);
+      throw error;
     }
+    if (!data || data.length === 0) return initialAmenities.filter(a => a.society_id === society_id);
+    return data as Amenity[];
   },
 
   async updateAmenity(amenity_id: string, updates: Partial<Amenity>) {
@@ -464,26 +498,25 @@ export const societyService = {
   },
 
   async getComplaints() {
-    try {
-      const { data: complaints, error } = await supabase
-        .from('complaint')
-        .select('*')
-        .order('complaint_date', { ascending: false });
-      
-      if (error) {
-        const list = await api.complaints.list();
-        return await this.attachMediaToComplaints(list || []);
-      }
-      const list = (complaints && complaints.length > 0) ? complaints : await api.complaints.list();
-      return await this.attachMediaToComplaints(list || []);
-    } catch (err) {
-      try {
-        const list = await api.complaints.list();
-        return await this.attachMediaToComplaints(list || []);
-      } catch {
-        return initialComplaints;
-      }
+    const pyData = await pythonApi<Complaint[]>('/api/complaints');
+    if (pyData && Array.isArray(pyData) && pyData.length > 0) {
+      return await this.attachMediaToComplaints(pyData);
     }
+
+    const { data: complaints, error } = await supabase
+      .from('complaint')
+      .select('*')
+      .order('complaint_date', { ascending: false });
+    
+    if (error) {
+      if (error.code === '42P01' || error.code === 'PGRST205') {
+        return [] as Complaint[];
+      }
+      console.error('Error fetching complaints:', error);
+      throw error;
+    }
+    
+    return await this.attachMediaToComplaints(complaints || []);
   },
 
   async attachMediaToComplaints(complaints: any[]) {
@@ -596,23 +629,24 @@ export const societyService = {
   },
 
   async getBookings() {
-    try {
-      const { data, error } = await supabase
-        .from('booking')
-        .select('*')
-        .order('booking_date', { ascending: false });
-      
-      if (error) {
-        return await api.bookings.list();
-      }
-      return (data && data.length > 0) ? data as Booking[] : await api.bookings.list();
-    } catch (err) {
-      try {
-        return await api.bookings.list();
-      } catch {
-        return initialBookings;
-      }
+    const pyData = await pythonApi<Booking[]>('/api/bookings');
+    if (pyData && Array.isArray(pyData) && pyData.length > 0) {
+      return pyData;
     }
+
+    const { data, error } = await supabase
+      .from('booking')
+      .select('*')
+      .order('booking_date', { ascending: false });
+    
+    if (error) {
+      if (error.code === '42P01' || error.code === 'PGRST205') {
+        return [] as Booking[];
+      }
+      console.error('Error fetching bookings:', error);
+      return [] as Booking[];
+    }
+    return data as Booking[];
   },
 
   async getResidentBookings(resident_id: string, society_id?: string) {
@@ -878,6 +912,11 @@ export const societyService = {
   },
 
   async deleteAllResidents(society_id: string) {
+    const pyRes = await pythonApi<{ success: boolean }>(`/api/residents/all?society_id=${encodeURIComponent(society_id)}`, {
+      method: 'DELETE',
+    });
+    if (pyRes?.success) return { success: true };
+
     const { error } = await supabase
       .from('resident')
       .delete()
@@ -887,6 +926,11 @@ export const societyService = {
   },
 
   async deleteAllComplaints(society_id: string) {
+    const pyRes = await pythonApi<{ success: boolean }>(`/api/complaints/all?society_id=${encodeURIComponent(society_id)}`, {
+      method: 'DELETE',
+    });
+    if (pyRes?.success) return { success: true };
+
     const { error } = await supabase
       .from('complaint')
       .delete()
@@ -896,6 +940,11 @@ export const societyService = {
   },
 
   async deleteAllBookings(society_id: string) {
+    const pyRes = await pythonApi<{ success: boolean }>(`/api/bookings/all?society_id=${encodeURIComponent(society_id)}`, {
+      method: 'DELETE',
+    });
+    if (pyRes?.success) return { success: true };
+
     const { error } = await supabase
       .from('booking')
       .delete()
@@ -905,6 +954,22 @@ export const societyService = {
   },
 
   async uploadMedia(file: File) {
+    try {
+      const reader = new FileReader();
+      const base64Promise = new Promise<string>((resolve) => {
+        reader.onload = () => resolve(reader.result as string);
+        reader.readAsDataURL(file);
+      });
+      const fileData = await base64Promise;
+      const pyRes = await pythonApi<{ url: string }>('/api/media/upload', {
+        method: 'POST',
+        body: JSON.stringify({ filename: file.name, file: fileData }),
+      });
+      if (pyRes?.url) return pyRes.url;
+    } catch (e) {
+      console.warn('Python media upload fallback:', e);
+    }
+
     const fileName = `${Date.now()}-${file.name}`;
     const filePath = fileName;
 
@@ -926,7 +991,6 @@ export const societyService = {
         }
         
         lastError = uploadError;
-        // If it's not a "Bucket not found" error, don't bother trying other buckets
         if (!uploadError.message?.includes('Bucket not found')) {
           break;
         }
@@ -940,6 +1004,10 @@ export const societyService = {
   },
 
   async seedDatabase(initialResidents: Resident[], initialAdmins: any[], initialMaintenance: MaintenanceRecord[], initialComplaints: Complaint[], initialBookings: Booking[], initialAmenities: Amenity[]) {
+    // 1. Try Python Backend seed
+    const pyRes = await pythonApi<{ success: boolean }>('/api/seed', { method: 'POST' });
+    if (pyRes?.success) return { success: true };
+
     // Seed Residents
     const { error: resError } = await supabase.from('resident').upsert(initialResidents);
     if (resError) throw resError;
