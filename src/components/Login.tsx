@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { LogIn, Building2, Eye, EyeOff, ShieldCheck, Users, X, UserPlus, Lock, Mail } from 'lucide-react';
-import { User, Role } from '../types';
-import { supabase } from '../lib/supabase';
+import { LogIn, Building2, Eye, EyeOff, ShieldCheck, X, UserPlus, Lock, Mail } from 'lucide-react';
+import { User } from '../types';
 import { societyService } from '../lib/societyService';
 import RegisterSociety from './RegisterSociety';
 
@@ -11,7 +10,6 @@ interface LoginProps {
 
 export default function Login({ onLogin }: LoginProps) {
   const [view, setView] = useState<'login' | 'register'>('login');
-  const [role, setRole] = useState<Role>('resident');
   const [loginId, setLoginId] = useState('');
   const [societyId, setSocietyId] = useState('GV2026');
   const [password, setPassword] = useState('');
@@ -41,12 +39,16 @@ export default function Login({ onLogin }: LoginProps) {
     setResetMessage({ text: '', type: '' });
 
     try {
-      await societyService.resetPassword(resetEmail);
-      setResetMessage({ text: 'Password reset link sent to your email.', type: 'success' });
+      const res = await societyService.resetPassword(resetEmail);
+      setResetMessage({ text: res.message || 'Password reset link sent to your email.', type: 'success' });
       setResetEmail('');
     } catch (err: any) {
-      console.error('Reset Error:', err);
-      setResetMessage({ text: err.message || 'Failed to send reset link. Please check the email address.', type: 'error' });
+      const msg = String(err?.message || '').toLowerCase();
+      if (msg.includes('rate') || msg.includes('limit') || msg.includes('exceeded')) {
+        setResetMessage({ text: 'A reset link was recently requested. Please check your inbox or try again shortly.', type: 'success' });
+      } else {
+        setResetMessage({ text: err.message || 'Failed to send reset link. Please check the email address.', type: 'error' });
+      }
     } finally {
       setResetLoading(false);
     }
@@ -57,175 +59,24 @@ export default function Login({ onLogin }: LoginProps) {
     setError('');
     setLoading(true);
 
+    const cleanLoginId = loginId.trim();
+    const cleanPassword = password.trim();
+    const cleanSocietyId = societyId.trim() || 'GV2026';
+
     try {
-      // 1. Primary: Authenticate via Python Backend API
-      const authResult = await societyService.login(role, loginId, password, societyId);
-      if (authResult?.success && authResult.user) {
-        const u = authResult.user;
-        onLogin({
-          id: u.id || u.admin_id || u.resident_id,
-          admin_id: u.admin_id,
-          resident_id: u.resident_id,
-          name: u.name,
-          email: u.email || '',
-          phone: u.phone || '',
-          role: u.role || role,
-          society_id: u.society_id,
-          flat: u.flat,
-          tower: u.tower
-        });
+      const result = await societyService.authenticateUser(cleanLoginId, cleanPassword, cleanSocietyId);
+      if (result.success && result.user) {
+        onLogin(result.user);
         return;
       }
-
-      if (role === 'admin') {
-        const { data: adminData, error: adminError } = await supabase
-          .from('admin')
-          .select('*')
-          .eq('admin_id', loginId)
-          .eq('password', password)
-          .eq('society_id', societyId)
-          .limit(1);
-
-        if (adminError) {
-          console.error('Admin Login Error (with society_id):', adminError);
-          // Fallback to check without society_id if the column doesn't exist
-          const { data: retryData, error: retryError } = await supabase
-            .from('admin')
-            .select('*')
-            .eq('admin_id', loginId)
-            .eq('password', password)
-            .limit(1);
-          
-          if (retryError) throw new Error(`Database error: ${retryError.message}`);
-          if (!retryData || retryData.length === 0) throw new Error('Invalid Administrator ID or Password');
-          
-          const data = retryData[0];
-          onLogin({
-            id: data.id,
-            admin_id: data.admin_id,
-            name: data.name,
-            email: data.email || '',
-            phone: data.phone || '',
-            role: data.role || 'admin',
-            society_id: data.society_id
-          });
-          return;
-        }
-
-        if (!adminData || adminData.length === 0) {
-          // Try one more time without society_id just in case
-          const { data: retryData } = await supabase
-            .from('admin')
-            .select('*')
-            .eq('admin_id', loginId)
-            .eq('password', password)
-            .limit(1);
-          
-          if (retryData && retryData.length > 0) {
-            const data = retryData[0];
-            onLogin({
-              id: data.id,
-              admin_id: data.admin_id,
-              name: data.name,
-              email: data.email || '',
-              phone: data.phone || '',
-              role: data.role || 'admin',
-              society_id: data.society_id
-            });
-            return;
-          }
-          throw new Error('Invalid Administrator ID or Password');
-        }
-
-        const data = adminData[0];
-        onLogin({
-          id: data.id,
-          admin_id: data.admin_id,
-          name: data.name,
-          email: data.email || '',
-          phone: data.phone || '',
-          role: data.role || 'admin',
-          society_id: data.society_id
-        });
-      } else {
-        const { data: residentData, error: residentError } = await supabase
-          .from('resident')
-          .select('*')
-          .eq('resident_id', loginId)
-          .eq('password', password)
-          .eq('society_id', societyId)
-          .limit(1);
-
-        if (residentError) {
-          console.error('Resident Login Error (with society_id):', residentError);
-          // Fallback to check without society_id
-          const { data: retryData, error: retryError } = await supabase
-            .from('resident')
-            .select('*')
-            .eq('resident_id', loginId)
-            .eq('password', password)
-            .limit(1);
-          
-          if (retryError) throw new Error(`Database error: ${retryError.message}`);
-          if (!retryData || retryData.length === 0) throw new Error('Invalid Resident ID or Password');
-
-          const data = retryData[0];
-          onLogin({
-            id: data.resident_id,
-            resident_id: data.resident_id,
-            name: data.name,
-            email: data.email || '',
-            phone: data.phone || '',
-            role: data.role || 'resident',
-            society_id: data.society_id,
-            flat: data.flat,
-            tower: data.tower
-          });
-          return;
-        }
-
-        if (!residentData || residentData.length === 0) {
-          // Try one more time without society_id
-          const { data: retryData } = await supabase
-            .from('resident')
-            .select('*')
-            .eq('resident_id', loginId)
-            .eq('password', password)
-            .limit(1);
-          
-          if (retryData && retryData.length > 0) {
-            const data = retryData[0];
-            onLogin({
-              id: data.resident_id,
-              resident_id: data.resident_id,
-              name: data.name,
-              email: data.email || '',
-              phone: data.phone || '',
-              role: data.role || 'resident',
-              society_id: data.society_id,
-              flat: data.flat,
-              tower: data.tower
-            });
-            return;
-          }
-          throw new Error('Invalid Resident ID or Password');
-        }
-
-        const data = residentData[0];
-        onLogin({
-          id: data.resident_id,
-          resident_id: data.resident_id,
-          name: data.name,
-          email: data.email || '',
-          phone: data.phone || '',
-          role: data.role || 'resident',
-          society_id: data.society_id,
-          flat: data.flat,
-          tower: data.tower
-        });
-      }
+      throw new Error(result.error || 'Invalid User ID or Password. Please verify your credentials.');
     } catch (err: any) {
-      setError(err.message || 'An error occurred during login');
+      const raw = String(err?.message || '');
+      if (raw.toLowerCase().includes('rate') || raw.toLowerCase().includes('limit')) {
+        setError('Server is processing high traffic. Please retry in a few moments.');
+      } else {
+        setError(raw || 'Invalid credentials. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -236,11 +87,11 @@ export default function Login({ onLogin }: LoginProps) {
   }
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center font-sans selection:bg-indigo-100 selection:text-indigo-700">
-      {/* Background Decorative Elements - Subtle */}
+    <div className="min-h-screen bg-white flex flex-col font-sans selection:bg-indigo-100 selection:text-indigo-700">
+      {/* Background Subtle Ambience */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-indigo-500/10 rounded-full blur-[100px]" />
-        <div className="absolute -bottom-[10%] -right-[10%] w-[40%] h-[40%] bg-purple-500/10 rounded-full blur-[100px]" />
+        <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-indigo-500/5 rounded-full blur-[100px]" />
+        <div className="absolute -bottom-[10%] -right-[10%] w-[40%] h-[40%] bg-slate-500/5 rounded-full blur-[100px]" />
       </div>
 
       {/* Forgot Password Modal */}
@@ -258,7 +109,7 @@ export default function Login({ onLogin }: LoginProps) {
             </button>
             
             <div className="mb-8">
-              <div className={`w-14 h-14 ${role === 'resident' ? 'bg-emerald-50' : 'bg-indigo-50'} rounded-2xl flex items-center justify-center mb-6`}>
+              <div className="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center mb-6">
                 <Lock className={`w-7 h-7 ${themeText}`} />
               </div>
               <h3 className="text-3xl font-bold text-slate-900 tracking-tight mb-2">Reset Password</h3>
@@ -317,54 +168,59 @@ export default function Login({ onLogin }: LoginProps) {
         </div>
       )}
 
-      <div className="w-full min-h-screen grid md:grid-cols-2 bg-white overflow-hidden relative z-10 border-none">
+      <div className="w-full flex-1 min-h-screen grid md:grid-cols-2 bg-white overflow-hidden relative z-10 border-none">
         {/* Left Side - Visual/Branding */}
         <div className="hidden md:flex flex-col justify-between p-12 lg:p-16 bg-slate-900 text-white relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full -mr-32 -mt-32 blur-3xl" />
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-500/10 rounded-full -ml-24 -mb-24 blur-2xl" />
+          {/* Hero Background Image with Gradient Scrim */}
+          <img 
+            src="/src/assets/images/luxury_society_exterior_1790916938422.jpg" 
+            alt="TowerTech Luxury Society" 
+            referrerPolicy="no-referrer"
+            className="absolute inset-0 w-full h-full object-cover opacity-30 mix-blend-luminosity scale-105"
+            onError={(e) => {
+              (e.target as HTMLElement).style.display = 'none';
+            }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/80 to-indigo-950/70" />
+          <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/20 rounded-full -mr-32 -mt-32 blur-3xl" />
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-500/20 rounded-full -ml-24 -mb-24 blur-2xl" />
           
           <div className="relative z-10">
-            <div className="w-14 h-14 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center mb-10 border border-white/10">
-              <Building2 className={`w-8 h-8 ${themeIcon}`} />
+            <div className="w-12 h-12 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center mb-8 border border-white/20 shadow-lg">
+              <Building2 className={`w-7 h-7 text-indigo-300`} />
             </div>
-            <h1 className="text-4xl lg:text-5xl font-black leading-[1.1] tracking-tight mb-2">
+            <h1 className="text-4xl lg:text-5xl font-black leading-[1.1] tracking-tight mb-1 text-white">
               TowerTech
             </h1>
-            <h3 className="text-xl lg:text-2xl font-bold text-indigo-400 mb-8">
+            <h3 className="text-lg lg:text-xl font-bold text-indigo-300 mb-8">
               Society Management System
             </h3>
             
             <div className="space-y-6">
               <div>
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] mb-2 text-indigo-300">
-                  SMART COMMUNITY MANAGEMENT
+                  SOCIETY MANAGEMENT SYSTEM
                 </p>
-                <p className="text-slate-400 text-base font-medium leading-relaxed max-w-sm">
-                  A simple digital platform to manage residential societies efficiently.
-                </p>
-              </div>
-
-              <div className="pt-6 border-t border-white/5">
-                <p className="text-slate-300 text-sm font-bold leading-relaxed">
-                  Digital Solutions for Modern Communities
-                </p>
-                <p className="text-slate-500 text-xs mt-2 leading-relaxed max-w-xs">
-                  Manage maintenance payments, resolve complaints, and book amenities in one place.
+                <p className="text-slate-300 text-sm font-medium leading-relaxed max-w-sm">
+                  Official portal for Green Park Residency. Manage maintenance payments, complaints, visitor passes, notices, and amenities.
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="relative z-10 space-y-8">
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center border border-white/10">
-                <ShieldCheck className={`w-5 h-5 ${themeIcon}`} />
+          <div className="relative z-10 space-y-6">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 bg-white/10 backdrop-blur-xs rounded-xl flex items-center justify-center border border-white/15">
+                <ShieldCheck className="w-5 h-5 text-emerald-400" />
               </div>
-              <p className="text-sm font-bold text-slate-300">Secure • Reliable • Encrypted</p>
+              <div>
+                <p className="text-xs font-bold text-slate-200">Authorized Access Portal</p>
+                <p className="text-[10px] text-slate-400">Green Park Residency • Role-based Security</p>
+              </div>
             </div>
-            <div className="pt-8 border-t border-white/5">
-              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.4em]">
-                © 2026 TowerTech Technologies
+            <div className="pt-6 border-t border-white/10">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em]">
+                © 2026 TowerTech
               </p>
             </div>
           </div>
@@ -380,40 +236,9 @@ export default function Login({ onLogin }: LoginProps) {
               </div>
             </div>
             <h2 className="text-3xl font-black text-slate-900 tracking-tight mb-2">
-              {role === 'resident' ? 'Resident Login' : 'Admin Login'}
+              Sign In
             </h2>
-            <p className="text-slate-500 text-sm font-bold">Welcome back! Please sign in to your account.</p>
-          </div>
-
-          {/* Role Switcher */}
-          <div className="mb-8">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Select Mode</label>
-            <div className="flex bg-slate-50 p-1 rounded-2xl border border-slate-100">
-              <button
-                onClick={() => {
-                  setRole('resident');
-                  setLoginId('');
-                  setPassword('');
-                }}
-                className={`flex-1 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                  role === 'resident' ? 'bg-white shadow-sm text-emerald-600' : 'text-slate-400 hover:text-slate-600'
-                }`}
-              >
-                Resident
-              </button>
-              <button
-                onClick={() => {
-                  setRole('admin');
-                  setLoginId('');
-                  setPassword('');
-                }}
-                className={`flex-1 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                  role === 'admin' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-400 hover:text-slate-600'
-                }`}
-              >
-                Admin
-              </button>
-            </div>
+            <p className="text-slate-500 text-sm font-bold">Sign in to your society account.</p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-6">
@@ -435,7 +260,7 @@ export default function Login({ onLogin }: LoginProps) {
 
               <div className="space-y-1.5">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
-                  {role === 'resident' ? 'Resident ID' : 'Admin ID'}
+                  User ID / Email
                 </label>
                 <div className="relative group">
                   <UserPlus className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:${themeText} transition-colors`} />
@@ -443,7 +268,7 @@ export default function Login({ onLogin }: LoginProps) {
                     type="text"
                     value={loginId}
                     onChange={(e) => setLoginId(e.target.value)}
-                    placeholder=""
+                    placeholder="Enter User ID or Email"
                     className={`w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 focus:ring-4 ${themeFocus} outline-none transition-all font-black text-slate-700 placeholder:text-slate-300 text-sm`}
                     required
                   />
@@ -471,7 +296,7 @@ export default function Login({ onLogin }: LoginProps) {
                     className={`w-full pl-11 pr-11 py-3 rounded-xl border border-slate-200 focus:ring-4 ${themeFocus} outline-none transition-all font-black text-slate-700 placeholder:text-slate-300 text-sm`}
                     required
                   />
-                  <button
+                  <button 
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
@@ -492,7 +317,7 @@ export default function Login({ onLogin }: LoginProps) {
             <button
               type="submit"
               disabled={loading}
-              className={`w-full ${themeBg} ${themeHover} disabled:bg-slate-300 text-white font-bold py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg ${themeShadow} hover:shadow-lg active:scale-[0.98] uppercase tracking-widest text-xs mt-2`}
+              className={`w-full ${themeBg} ${themeHover} disabled:bg-slate-300 text-white font-bold py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg ${themeShadow} hover:shadow-lg active:scale-[0.98] uppercase tracking-widest text-xs mt-2 cursor-pointer`}
             >
               {loading ? (
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -505,19 +330,19 @@ export default function Login({ onLogin }: LoginProps) {
             </button>
           </form>
 
-          <div className="mt-10 pt-8 border-t border-slate-100 flex flex-col items-center gap-4">
+          <div className="mt-8 pt-6 border-t border-slate-100 flex flex-col items-center gap-4">
             <button
               onClick={() => setView('register')}
-              className={`w-full group flex flex-col items-center gap-2 p-6 bg-gradient-to-r from-slate-50 to-white rounded-3xl border border-slate-100 hover:border-${themeColor}-200 transition-all shadow-sm hover:shadow-md`}
+              className={`w-full group flex flex-col items-center gap-1.5 p-4 bg-slate-50 hover:bg-slate-100/80 rounded-xl border border-slate-200 transition-all cursor-pointer`}
             >
-              <div className={`w-10 h-10 bg-white rounded-xl flex items-center justify-center ${themeText} shadow-sm mb-1`}>
-                <UserPlus className="w-5 h-5" />
+              <div className="flex items-center gap-2">
+                <UserPlus className={`w-4 h-4 ${themeText}`} />
+                <span className={`text-xs font-bold ${themeText} uppercase tracking-wider`}>
+                  Register New Society
+                </span>
               </div>
-              <span className={`text-sm font-bold ${themeText} uppercase tracking-widest`}>
-                Register Your Society
-              </span>
               <p className="text-slate-400 text-[10px] font-medium text-center">
-                Create a new society account to start managing residents and services.
+                Set up a new society registration with Green Park Residency
               </p>
             </button>
           </div>

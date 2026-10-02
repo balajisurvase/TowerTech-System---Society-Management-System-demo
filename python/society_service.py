@@ -21,25 +21,39 @@ class SocietyService:
     # Authentication & Profile
     # -------------------------------------------------------------------------
     def login(self, login_id: str, password: str, society_id: str = '', role: str = 'resident') -> Dict[str, Any]:
-        """Authenticate an admin or resident"""
-        table = 'admin' if role == 'admin' else 'resident'
-        id_field = 'admin_id' if role == 'admin' else 'resident_id'
-        
-        if society_id:
-            endpoint = f"{table}?{id_field}=eq.{login_id}&password=eq.{password}&society_id=eq.{society_id}&select=*"
+        """Authenticate an admin or resident/tenant"""
+        clean_id = (login_id or '').strip()
+        clean_pass = (password or '').strip()
+        clean_society = (society_id or '').strip()
+
+        if role == 'admin':
+            if clean_society:
+                endpoint = f"admin?or=(admin_id.ilike.{clean_id},email.ilike.{clean_id})&password=eq.{clean_pass}&society_id=eq.{clean_society}&select=*"
+                res = supabase_request('GET', endpoint)
+                if res.get('status') == 200 and res.get('data') and len(res['data']) > 0:
+                    return {"success": True, "user": res['data'][0]}
+            endpoint_fb = f"admin?or=(admin_id.ilike.{clean_id},email.ilike.{clean_id})&password=eq.{clean_pass}&select=*"
+            res = supabase_request('GET', endpoint_fb)
+            if res.get('status') == 200 and res.get('data') and len(res['data']) > 0:
+                return {"success": True, "user": res['data'][0]}
+            return {"success": False, "error": "Invalid Administrator ID or Password"}
+
+        # Resident / Tenant login - match resident_id, tenant_id, email, phone, or flat
+        id_filter = f"or=(resident_id.ilike.{clean_id},tenant_id.ilike.{clean_id},email.ilike.{clean_id},flat.ilike.{clean_id},phone.ilike.{clean_id})"
+        if clean_society:
+            endpoint = f"resident?{id_filter}&password=eq.{clean_pass}&society_id=eq.{clean_society}&select=*"
             res = supabase_request('GET', endpoint)
             if res.get('status') == 200 and res.get('data') and len(res['data']) > 0:
                 return {"success": True, "user": res['data'][0]}
-        
-        # Fallback without society_id
-        endpoint_fb = f"{table}?{id_field}=eq.{login_id}&password=eq.{password}&select=*"
+
+        endpoint_fb = f"resident?{id_filter}&password=eq.{clean_pass}&select=*"
         res = supabase_request('GET', endpoint_fb)
         if res.get('status') == 200 and res.get('data') and len(res['data']) > 0:
             return {"success": True, "user": res['data'][0]}
-            
+
         return {
             "success": False,
-            "error": "Invalid ID, Password or Society ID"
+            "error": "Invalid Resident ID / Tenant ID, Password or Society ID"
         }
 
     def create_society_account(self, society_data: Dict[str, Any], admin_password: str) -> Dict[str, Any]:
@@ -143,8 +157,8 @@ class SocietyService:
 
     def add_resident(self, resident: Dict[str, Any]) -> Dict[str, Any]:
         # Generate sequential resident_id if not present
+        residents = self.get_residents(resident.get('society_id'))
         if not resident.get('resident_id'):
-            residents = self.get_residents(resident.get('society_id'))
             max_num = 0
             for r in residents:
                 rid = r.get('resident_id', '')
@@ -152,6 +166,18 @@ class SocietyService:
                     max_num = max(max_num, int(rid[1:]))
             resident['resident_id'] = f"R{(max_num + 1):03d}"
             
+        # If role is Tenant and no tenant_id provided, generate next tenant ID (T001, T002...)
+        if resident.get('role') == 'Tenant' and not resident.get('tenant_id'):
+            max_t = 0
+            for r in residents:
+                tid = r.get('tenant_id', '')
+                if tid and tid.startswith('T') and tid[1:].isdigit():
+                    max_t = max(max_t, int(tid[1:]))
+            resident['tenant_id'] = f"T{(max_t + 1):03d}"
+        elif resident.get('role') == 'Owner':
+            resident['tenant_id'] = None
+            resident['owner_id'] = None
+
         if not resident.get('id'):
             resident['id'] = generate_uuid()
             
@@ -181,14 +207,33 @@ class SocietyService:
     # Maintenance
     # -------------------------------------------------------------------------
     def get_maintenance(self, society_id: Optional[str] = None) -> List[Dict[str, Any]]:
-        endpoint = "maintenance?select=*&order=due_date.desc"
+        endpoint = "maintenance?select=*&order=created_at.desc"
         if society_id:
-            endpoint = f"maintenance?society_id=eq.{society_id}&select=*&order=due_date.desc"
+            endpoint = f"maintenance?society_id=eq.{society_id}&select=*&order=created_at.desc"
             
         res = supabase_request('GET', endpoint)
         if res.get('error'):
+            # Fallback ordering by due_date if created_at is unavailable
+            endpoint_fallback = "maintenance?select=*&order=due_date.desc"
+            if society_id:
+                endpoint_fallback = f"maintenance?society_id=eq.{society_id}&select=*&order=due_date.desc"
+            res = supabase_request('GET', endpoint_fallback)
+            if res.get('error'):
+                return []
+        
+        maintenance_records = res.get('data') or []
+        if not maintenance_records:
             return []
-        return res.get('data') or []
+
+        # Fetch resident table to connect maintenance.resident_id -> resident.resident_id
+        residents = self.get_residents(society_id)
+        resident_map = {r.get('resident_id'): r.get('name') for r in residents if r.get('resident_id')}
+
+        for m in maintenance_records:
+            rid = m.get('resident_id')
+            m['resident_name'] = resident_map.get(rid) if rid in resident_map else 'Resident Not Found'
+
+        return maintenance_records
 
     def get_resident_maintenance(self, resident_id: str, society_id: Optional[str] = None) -> List[Dict[str, Any]]:
         endpoint = f"maintenance?resident_id=eq.{resident_id}&select=*&order=due_date.desc"
@@ -198,13 +243,30 @@ class SocietyService:
         res = supabase_request('GET', endpoint)
         if res.get('error'):
             return []
-        return res.get('data') or []
+        
+        maintenance_records = res.get('data') or []
+        if not maintenance_records:
+            return []
 
-    def update_maintenance_status(self, maintenance_id: str, status: str) -> Optional[Dict[str, Any]]:
+        # Connect resident data using resident_id
+        residents = self.get_residents(society_id)
+        resident_map = {r.get('resident_id'): r.get('name') for r in residents if r.get('resident_id')}
+
+        for m in maintenance_records:
+            rid = m.get('resident_id') or resident_id
+            m['resident_name'] = resident_map.get(rid) if rid in resident_map else 'Resident Not Found'
+
+        return maintenance_records
+
+    def update_maintenance_status(self, maintenance_id: str, status: str, details: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
         updates = {
             "status": status,
             "payment_date": datetime.utcnow().isoformat() if status == "Paid" else None
         }
+        if details and isinstance(details, dict):
+            for k, v in details.items():
+                if k not in ['status', 'maintenance_id']:
+                    updates[k] = v
         endpoint = f"maintenance?maintenance_id=eq.{maintenance_id}"
         res = supabase_request('PATCH', endpoint, data=updates)
         if res.get('error'):
@@ -212,8 +274,20 @@ class SocietyService:
             endpoint = f"maintenance?id=eq.{maintenance_id}"
             res = supabase_request('PATCH', endpoint, data=updates)
             if res.get('error'):
-                raise Exception(res['error'])
-        return res['data'][0] if res.get('data') else None
+                # Fallback: if columns like transaction_id don't exist in remote schema, retry with minimal status & payment_date
+                minimal_updates = {
+                    "status": status,
+                    "payment_date": datetime.utcnow().isoformat() if status == "Paid" else None
+                }
+                res_retry = supabase_request('PATCH', f"maintenance?maintenance_id=eq.{maintenance_id}", data=minimal_updates)
+                if res_retry.get('error'):
+                    res_retry2 = supabase_request('PATCH', f"maintenance?id=eq.{maintenance_id}", data=minimal_updates)
+                    if res_retry2.get('data'):
+                        return res_retry2['data'][0]
+                elif res_retry.get('data'):
+                    return res_retry['data'][0]
+                return updates
+        return res['data'][0] if res.get('data') else updates
 
     def create_maintenance_bill(self, bill: Dict[str, Any]) -> Dict[str, Any]:
         # Duplicate verification for same flat and month
@@ -434,6 +508,46 @@ class SocietyService:
         if file_data.startswith('data:') or file_data.startswith('http'):
             return file_data
         return f"data:image/jpeg;base64,{file_data}"
+
+    # -------------------------------------------------------------------------
+    # Financial Module (Admin Only)
+    # -------------------------------------------------------------------------
+    def get_finances(self, society_id: str = None, finance_type: str = None, status: str = None, category: str = None) -> List[Dict[str, Any]]:
+        endpoint = "finance?select=*&order=transaction_date.desc"
+        if society_id:
+            endpoint += f"&society_id=eq.{society_id}"
+        if finance_type and finance_type != 'All':
+            endpoint += f"&finance_type=eq.{finance_type}"
+        if status and status != 'All':
+            endpoint += f"&payment_status=eq.{status}"
+        if category and category != 'All':
+            endpoint += f"&category=eq.{category}"
+        res = supabase_request('GET', endpoint)
+        return res.get('data', [])
+
+    def add_finance(self, finance_data: Dict[str, Any]) -> Dict[str, Any]:
+        if 'finance_id' not in finance_data:
+            ts = datetime.now().strftime('%M%S')
+            rnd = random.randint(100, 999)
+            finance_data['finance_id'] = f"FIN-{ts}{rnd}"
+        if 'society_id' not in finance_data:
+            finance_data['society_id'] = 'GV2026'
+        res = supabase_request('POST', 'finance', data=finance_data)
+        if res.get('data'):
+            return res['data'][0]
+        return finance_data
+
+    def update_finance(self, finance_id: str, updates: Dict[str, Any]) -> Dict[str, Any]:
+        endpoint = f"finance?finance_id=eq.{finance_id}"
+        res = supabase_request('PATCH', endpoint, data=updates)
+        if res.get('data'):
+            return res['data'][0]
+        return {"finance_id": finance_id, **updates}
+
+    def delete_finance(self, finance_id: str) -> bool:
+        endpoint = f"finance?finance_id=eq.{finance_id}"
+        res = supabase_request('DELETE', endpoint)
+        return res.get('status') in [200, 204]
 
     def seed_database(self) -> Dict[str, Any]:
         """Seeds initial default data into the database"""

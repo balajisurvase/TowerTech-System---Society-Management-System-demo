@@ -1,0 +1,18 @@
+{
+  "lint": {
+    "exclude": [
+      "src/",
+      "dist/",
+      "node_modules/",
+      "vite.config.ts"
+    ]
+  },
+  "fmt": {
+    "exclude": [
+      "src/",
+      "dist/",
+      "node_modules/",
+      "vite.config.ts"
+    ]
+  }
+}

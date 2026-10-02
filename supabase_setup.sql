@@ -24,9 +24,19 @@ CREATE TABLE IF NOT EXISTS resident (
     email TEXT,
     phone TEXT,
     password TEXT NOT NULL,
+    role VARCHAR(20) DEFAULT 'Owner' NOT NULL,
+    owner_id TEXT,
+    status VARCHAR(20) DEFAULT 'Active' NOT NULL,
     society_id TEXT DEFAULT 'GV2026',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- Migration for existing resident records:
+ALTER TABLE resident ADD COLUMN IF NOT EXISTS role VARCHAR(20) DEFAULT 'Owner';
+ALTER TABLE resident ADD COLUMN IF NOT EXISTS owner_id TEXT;
+ALTER TABLE resident ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'Active';
+UPDATE resident SET role = 'Owner' WHERE role IS NULL OR role = '';
+UPDATE resident SET status = 'Active' WHERE status IS NULL OR status = '';
 
 -- 3. Maintenance Table
 CREATE TABLE IF NOT EXISTS maintenance (

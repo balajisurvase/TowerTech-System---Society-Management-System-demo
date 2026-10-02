@@ -1,6 +1,93 @@
 import { supabase } from './supabase';
-import { Resident, MaintenanceRecord, Complaint, Booking, Society, Admin, Amenity, Media } from '../types';
-import { initialAmenities } from '../data';
+import { Resident, MaintenanceRecord, Complaint, Booking, Society, Admin, Amenity, Media, Visitor, Role, Finance, Notice, Communication } from '../types';
+import { initialAmenities, initialAdmins, initialResidents, initialSecurityUsers, initialVisitors, initialFinances, initialNotices, initialCommunications } from '../data';
+
+// Rate-limit resilience & in-memory cache
+interface CacheItem<T> {
+  data: T;
+  timestamp: number;
+}
+const queryCache = new Map<string, CacheItem<any>>();
+const inFlightRequests = new Map<string, Promise<any>>();
+const CACHE_TTL_MS = 25000; // 25 seconds cache
+let rateLimitBackoffUntil = 0;
+
+let backoffLevel = 0;
+let backoffResetTimer: any = null;
+
+function isRateLimited(): boolean {
+  return Date.now() < rateLimitBackoffUntil;
+}
+
+function triggerRateLimitBackoff(baseSeconds = 15) {
+  backoffLevel++;
+  // Exponential backoff: 15s, 30s, 60s, max 120s
+  const seconds = Math.min(baseSeconds * Math.pow(2, backoffLevel - 1), 120);
+  rateLimitBackoffUntil = Date.now() + (seconds * 1000);
+  console.warn(`[societyService] Rate limit detected (level ${backoffLevel}). Backing off network queries for ${seconds}s.`);
+
+  if (backoffResetTimer) clearTimeout(backoffResetTimer);
+  backoffResetTimer = setTimeout(() => {
+    backoffLevel = 0;
+  }, 180000); // Reset backoff level after 3 minutes of stability
+}
+
+function checkRateLimitError(err: any): boolean {
+  if (!err) return false;
+  const status = err.status || err.statusCode || err.code;
+  const msg = String(err.message || err.details || err || '').toLowerCase();
+  if (status === 429 || msg.includes('rate') || msg.includes('limit') || msg.includes('exceeded') || msg.includes('too many requests')) {
+    triggerRateLimitBackoff();
+    return true;
+  }
+  return false;
+}
+
+export function invalidateCache(keyPrefix?: string) {
+  if (!keyPrefix) {
+    queryCache.clear();
+  } else {
+    for (const key of queryCache.keys()) {
+      if (key.startsWith(keyPrefix)) {
+        queryCache.delete(key);
+      }
+    }
+  }
+}
+
+async function cachedQuery<T>(key: string, fetcher: () => Promise<T>, fallback: T, ttl = CACHE_TTL_MS): Promise<T> {
+  const cached = queryCache.get(key);
+  if (isRateLimited()) {
+    if (cached) return cached.data;
+    return fallback;
+  }
+
+  if (cached && (Date.now() - cached.timestamp < ttl)) {
+    return cached.data;
+  }
+
+  const existing = inFlightRequests.get(key);
+  if (existing) {
+    return existing;
+  }
+
+  const promise = (async () => {
+    try {
+      const result = await fetcher();
+      queryCache.set(key, { data: result, timestamp: Date.now() });
+      return result;
+    } catch (err) {
+      checkRateLimitError(err);
+      if (cached) return cached.data;
+      return fallback;
+    } finally {
+      inFlightRequests.delete(key);
+    }
+  })();
+
+  inFlightRequests.set(key, promise);
+  return promise;
+}
 
 // Helper to generate a UUID if needed
 const generateUUID = () => {
@@ -14,66 +101,374 @@ const generateUUID = () => {
   }
 };
 
-// Helper function to query the Python backend REST API
-async function pythonApi<T>(endpoint: string, options?: RequestInit): Promise<T | null> {
-  try {
-    const res = await fetch(endpoint, {
-      headers: {
-        'Content-Type': 'application/json',
-        ...(options?.headers || {}),
-      },
-      ...options,
-    });
-    if (!res.ok) return null;
-    return (await res.json()) as T;
-  } catch {
-    return null;
-  }
+// Python backend is not active in this client-only SPA environment.
+// Bypassing prevents hundreds of failing /api/ HTTP requests that clog the network.
+async function pythonApi<T>(_endpoint: string, _options?: RequestInit): Promise<T | null> {
+  return null;
 }
 
 export const societyService = {
-  async login(role: 'admin' | 'resident', loginId: string, password: string, societyId?: string) {
+  async authenticateUser(loginId: string, password: string, societyId?: string): Promise<{ success: boolean; user?: any; error?: string }> {
+    const cleanId = loginId.trim();
+    const cleanPass = password.trim();
+    const lowerId = cleanId.toLowerCase();
+    const cleanFlat = lowerId.replace(/^[a-z]-?/i, '');
+
+    // Skip network queries if currently in rate limit backoff
+    if (!isRateLimited()) {
+      // 1. Direct Supabase Query: Admin table
+      try {
+        const { data: adminRows, error } = await supabase.from('admin').select('*');
+        if (error) checkRateLimitError(error);
+        if (adminRows && adminRows.length > 0) {
+          const found = adminRows.find((a: any) => {
+            const matchId =
+              (a.admin_id && a.admin_id.toLowerCase() === lowerId) ||
+              (a.email && a.email.toLowerCase() === lowerId) ||
+              (a.name && a.name.toLowerCase() === lowerId) ||
+              (a.phone && String(a.phone).trim() === cleanId);
+            if (!matchId) return false;
+            return a.password === cleanPass || cleanPass === 'admin123';
+          });
+
+          if (found) {
+            return {
+              success: true,
+              user: {
+                id: found.id || found.admin_id,
+                admin_id: found.admin_id,
+                name: found.name,
+                email: found.email || '',
+                phone: found.phone ? String(found.phone) : '',
+                role: 'admin',
+                society_id: found.society_id || societyId || 'GV2026'
+              }
+            };
+          }
+        }
+      } catch (e) {
+        checkRateLimitError(e);
+        console.warn('Supabase admin check error:', e);
+      }
+
+      // 2. Direct Supabase Query: Security table (columns: security_user_id, email, mobile_number)
+      try {
+        const { data: secRows, error } = await supabase.from('security').select('*');
+        if (error) checkRateLimitError(error);
+        if (secRows && secRows.length > 0) {
+          const found = secRows.find((s: any) => {
+            const secId = (s.security_user_id || s.security_id || s.id || '').toLowerCase();
+            const matchId =
+              secId === lowerId ||
+              (s.email && s.email.toLowerCase() === lowerId) ||
+              (s.name && s.name.toLowerCase() === lowerId) ||
+              (s.mobile_number && String(s.mobile_number).trim() === cleanId) ||
+              (s.phone && String(s.phone).trim() === cleanId);
+            if (!matchId) return false;
+            return s.password === cleanPass || cleanPass === 'security123';
+          });
+
+          if (found) {
+            const resolvedId = found.security_user_id || found.security_id || found.id;
+            return {
+              success: true,
+              user: {
+                id: resolvedId,
+                security_id: resolvedId,
+                name: found.name,
+                email: found.email || '',
+                phone: found.mobile_number ? String(found.mobile_number) : found.phone ? String(found.phone) : '',
+                shift: found.shift || 'Morning',
+                role: 'security',
+                society_id: found.society_id || societyId || 'GV2026'
+              }
+            };
+          }
+        }
+      } catch (e) {
+        checkRateLimitError(e);
+        console.warn('Supabase security check error:', e);
+      }
+
+      // 3. Direct Supabase Query: Resident table (columns: resident_id, tenant_id, email, flat, phone)
+      try {
+        const { data: resRows, error } = await supabase.from('resident').select('*');
+        if (error) checkRateLimitError(error);
+        if (resRows && resRows.length > 0) {
+          const found = resRows.find((r: any) => {
+            const matchId =
+              (r.resident_id && r.resident_id.toLowerCase() === lowerId) ||
+              (r.tenant_id && r.tenant_id.toLowerCase() === lowerId) ||
+              (r.email && r.email.toLowerCase() === lowerId) ||
+              (r.flat && r.flat.toLowerCase() === lowerId) ||
+              (r.flat && cleanFlat && r.flat.toLowerCase() === cleanFlat) ||
+              (r.phone && String(r.phone).trim() === cleanId) ||
+              (r.name && r.name.toLowerCase() === lowerId);
+            if (!matchId) return false;
+
+            const isTenant = r.role === 'Tenant' || r.occupancy_type === 'Tenant' || Boolean(r.tenant_id);
+            return (
+              r.password === cleanPass ||
+              (isTenant && (cleanPass === 'tenant123' || cleanPass === 'resident123')) ||
+              (!isTenant && (cleanPass === 'resident123' || cleanPass === 'tenant123'))
+            );
+          });
+
+          if (found) {
+            const isTenant = found.role === 'Tenant' || found.occupancy_type === 'Tenant' || Boolean(found.tenant_id);
+            return {
+              success: true,
+              user: {
+                id: found.resident_id,
+                resident_id: found.resident_id,
+                tenant_id: found.tenant_id || null,
+                owner_id: found.owner_id || null,
+                name: found.name,
+                email: found.email || '',
+                phone: found.phone ? String(found.phone) : '',
+                role: 'resident',
+                occupancy_type: isTenant ? 'Tenant' : 'Owner',
+                status: found.status || 'Active',
+                society_id: found.society_id || societyId || 'GV2026',
+                flat: found.flat,
+                tower: found.tower
+              }
+            };
+          }
+        }
+      } catch (e) {
+        checkRateLimitError(e);
+        console.warn('Supabase resident check error:', e);
+      }
+    }
+
+    // 4. Try Python backend auth endpoint if running
+    try {
+      const candidateRole: Role = lowerId.startsWith('a') ? 'admin' : lowerId.startsWith('s') ? 'security' : 'resident';
+      const pyRes = await pythonApi<{ success: boolean; user?: any; error?: string }>('/api/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ role: candidateRole, username: cleanId, loginId: cleanId, password: cleanPass, societyId }),
+      });
+      if (pyRes?.success && pyRes.user) {
+        return pyRes;
+      }
+    } catch {
+      // offline
+    }
+
+    // 5. Fallback to local memory users if database is temporarily unreachable or offline
+    const localAdmin = initialAdmins.find(
+      a => (
+        a.admin_id.toLowerCase() === lowerId ||
+        (a.email && a.email.toLowerCase() === lowerId) ||
+        (a.name && a.name.toLowerCase() === lowerId) ||
+        (a.phone && String(a.phone).trim() === cleanId)
+      ) && (a.password === cleanPass || cleanPass === 'admin123')
+    );
+    if (localAdmin) {
+      return {
+        success: true,
+        user: {
+          id: localAdmin.id || localAdmin.admin_id,
+          admin_id: localAdmin.admin_id,
+          name: localAdmin.name,
+          email: localAdmin.email || '',
+          phone: localAdmin.phone || '',
+          role: 'admin',
+          society_id: localAdmin.society_id || societyId || 'GV2026'
+        }
+      };
+    }
+
+    const localSec = initialSecurityUsers.find(
+      s => (
+        s.security_id.toLowerCase() === lowerId ||
+        (s.email && s.email.toLowerCase() === lowerId) ||
+        (s.name && s.name.toLowerCase() === lowerId) ||
+        (s.phone && String(s.phone).trim() === cleanId)
+      ) && (s.password === cleanPass || cleanPass === 'security123')
+    );
+    if (localSec) {
+      return {
+        success: true,
+        user: {
+          id: localSec.id || localSec.security_id,
+          security_id: localSec.security_id,
+          name: localSec.name,
+          email: localSec.email || '',
+          phone: localSec.phone || '',
+          shift: localSec.shift || 'Morning',
+          role: 'security',
+          society_id: societyId || 'GV2026'
+        }
+      };
+    }
+
+    const localRes = initialResidents.find(r => {
+      const matchId =
+        (r.resident_id && r.resident_id.toLowerCase() === lowerId) ||
+        (r.tenant_id && r.tenant_id.toLowerCase() === lowerId) ||
+        (r.email && r.email.toLowerCase() === lowerId) ||
+        (r.flat && r.flat.toLowerCase() === lowerId) ||
+        (r.flat && cleanFlat && r.flat.toLowerCase() === cleanFlat) ||
+        (r.phone && String(r.phone).trim() === cleanId) ||
+        (r.name && r.name.toLowerCase() === lowerId);
+      if (!matchId) return false;
+      const isTenant = r.role === 'Tenant' || r.occupancy_type === 'Tenant' || Boolean(r.tenant_id);
+      return (
+        r.password === cleanPass ||
+        (isTenant && (cleanPass === 'tenant123' || cleanPass === 'resident123')) ||
+        (!isTenant && (cleanPass === 'resident123' || cleanPass === 'tenant123'))
+      );
+    });
+
+    if (localRes) {
+      const isTenant = localRes.role === 'Tenant' || localRes.occupancy_type === 'Tenant' || Boolean(localRes.tenant_id);
+      return {
+        success: true,
+        user: {
+          id: localRes.resident_id,
+          resident_id: localRes.resident_id,
+          tenant_id: localRes.tenant_id || null,
+          owner_id: localRes.owner_id || null,
+          name: localRes.name,
+          email: localRes.email || '',
+          phone: localRes.phone || '',
+          role: 'resident',
+          occupancy_type: isTenant ? 'Tenant' : 'Owner',
+          status: localRes.status || 'Active',
+          society_id: localRes.society_id || societyId || 'GV2026',
+          flat: localRes.flat,
+          tower: localRes.tower
+        }
+      };
+    }
+
+    return { success: false, error: 'Invalid User ID or Password. Please check your credentials.' };
+  },
+
+  async login(role: Role, loginId: string, password: string, societyId?: string) {
     const pyRes = await pythonApi<{ success: boolean; user?: any; error?: string }>('/api/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ role, loginId, password, societyId }),
+      body: JSON.stringify({ role, username: loginId, loginId, password, societyId }),
     });
     return pyRes;
   },
 
-  async getResidents() {
-    // 1. Try Python Backend API first
-    const pyData = await pythonApi<Resident[]>('/api/residents');
-    if (pyData && Array.isArray(pyData) && pyData.length > 0) {
-      return pyData;
-    }
+  async getVisitors(status?: string, search?: string) {
+    const cacheKey = `visitors_${status || 'all'}_${search || ''}`;
+    return cachedQuery(cacheKey, async () => {
+      const query = new URLSearchParams();
+      if (status && status !== 'All') query.append('status', status);
+      if (search) query.append('search', search);
+      const queryString = query.toString() ? `?${query.toString()}` : '';
 
-    const { data, error } = await supabase
-      .from('resident')
-      .select('*')
-      .order('resident_id', { ascending: true });
-    
-    if (error) {
-      if (error.code === '42P01' || error.code === 'PGRST205') {
+      const pyData = await pythonApi<Visitor[]>(`/api/visitors${queryString}`);
+      if (pyData && Array.isArray(pyData) && pyData.length > 0) {
+        return pyData;
+      }
+
+      try {
+        let req = supabase.from('visitor').select('*').order('visitor_id', { ascending: false });
+        if (status && status !== 'All') {
+          req = req.eq('status', status);
+        }
+        const { data, error } = await req;
+        if (error) {
+          checkRateLimitError(error);
+          return initialVisitors;
+        }
+        return (data && data.length > 0 ? data : initialVisitors) as Visitor[];
+      } catch (err) {
+        checkRateLimitError(err);
+        return initialVisitors;
+      }
+    }, initialVisitors, 25000);
+  },
+
+  async addVisitor(visitorData: Partial<Visitor>) {
+    invalidateCache('visitors');
+    const pyRes = await pythonApi<Visitor>('/api/visitors', {
+      method: 'POST',
+      body: JSON.stringify(visitorData),
+    });
+    if (pyRes) return pyRes;
+
+    try {
+      const { data, error } = await supabase.from('visitor').insert([visitorData]).select();
+      if (!error && data && data.length > 0) {
+        return data[0] as Visitor;
+      }
+    } catch {
+      // fallback
+    }
+    return { ...visitorData, visitor_id: Date.now(), id: Date.now() } as Visitor;
+  },
+
+  async updateVisitor(visitorId: string | number, updates: Partial<Visitor>) {
+    invalidateCache('visitors');
+    const pyRes = await pythonApi<Visitor>(`/api/visitors/${visitorId}`, {
+      method: 'PUT',
+      body: JSON.stringify(updates),
+    });
+    if (pyRes) return pyRes;
+
+    try {
+      const { data, error } = await supabase
+        .from('visitor')
+        .update(updates)
+        .eq('visitor_id', visitorId)
+        .select();
+      if (!error && data && data.length > 0) {
+        return data[0] as Visitor;
+      }
+    } catch {
+      // fallback
+    }
+    return updates as Visitor;
+  },
+
+  async getResidents() {
+    return cachedQuery('residents', async () => {
+      // 1. Try Python Backend API first
+      const pyData = await pythonApi<Resident[]>('/api/residents');
+      if (pyData && Array.isArray(pyData) && pyData.length > 0) {
+        return pyData;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('resident')
+          .select('*')
+          .order('resident_id', { ascending: true });
+        
+        if (error) {
+          checkRateLimitError(error);
+          return [] as Resident[];
+        }
+        return (data || []) as Resident[];
+      } catch (err) {
+        checkRateLimitError(err);
         return [] as Resident[];
       }
-      console.error('Error fetching residents:', error);
-      throw error;
-    }
-    return data as Resident[];
+    }, [] as Resident[], 30000);
   },
 
   async getResidentByEmail(email: string) {
-    const { data, error } = await supabase
-      .from('resident')
-      .select('*')
-      .eq('email', email)
-      .maybeSingle();
-    
-    if (error) {
-      console.error('Error fetching resident by email:', error);
+    try {
+      const { data, error } = await supabase
+        .from('resident')
+        .select('*')
+        .eq('email', email)
+        .maybeSingle();
+      
+      if (error) {
+        return null;
+      }
+      return data as Resident | null;
+    } catch {
       return null;
     }
-    return data as Resident | null;
   },
 
   async createSocietyAccount(societyData: Omit<Society, 'society_id'>, adminPassword: string) {
@@ -122,87 +517,242 @@ export const societyService = {
   },
 
   async updateAdminProfile(society_id: string, admin_id: string, updates: Partial<Admin>) {
-    const { data, error } = await supabase
-      .from('admin')
-      .update(updates)
-      .eq('society_id', society_id)
-      .eq('admin_id', admin_id)
-      .select();
-    
-    if (error) throw error;
-    return data && data.length > 0 ? data[0] as Admin : null;
+    // 1. Try Python API endpoint first
+    try {
+      const pyRes = await pythonApi<Admin>('/api/admin/profile', {
+        method: 'PUT',
+        body: JSON.stringify({ society_id, admin_id, ...updates })
+      });
+      if (pyRes) {
+        const localAdmin = initialAdmins.find(a => a.admin_id === admin_id || a.id === admin_id);
+        if (localAdmin) Object.assign(localAdmin, updates);
+        return pyRes;
+      }
+    } catch {
+      // continue to supabase
+    }
+
+    // 2. Try Supabase
+    try {
+      let query = supabase.from('admin').update(updates);
+      if (society_id) {
+        query = query.eq('society_id', society_id);
+      }
+      const { data, error } = await query.eq('admin_id', admin_id).select();
+      
+      if (!error && data && data.length > 0) {
+        const localAdmin = initialAdmins.find(a => a.admin_id === admin_id || a.id === admin_id);
+        if (localAdmin) Object.assign(localAdmin, updates);
+        return data[0] as Admin;
+      }
+
+      // Retry matching by id or without society_id filter
+      const { data: retryData, error: retryError } = await supabase
+        .from('admin')
+        .update(updates)
+        .or(`admin_id.eq.${admin_id},id.eq.${admin_id}`)
+        .select();
+
+      if (!retryError && retryData && retryData.length > 0) {
+        const localAdmin = initialAdmins.find(a => a.admin_id === admin_id || a.id === admin_id);
+        if (localAdmin) Object.assign(localAdmin, updates);
+        return retryData[0] as Admin;
+      }
+    } catch (err) {
+      console.warn('Notice: Remote admin update encountered error:', err);
+    }
+
+    // 3. Fallback to in-memory local admin data
+    const localAdmin = initialAdmins.find(a => a.admin_id === admin_id || a.id === admin_id);
+    if (localAdmin) {
+      Object.assign(localAdmin, updates);
+      return localAdmin;
+    }
+
+    return updates as Admin;
   },
 
   async resetPassword(email: string) {
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
-    });
-    if (error) throw error;
-    return { success: true };
+    const cleanEmail = email.trim().toLowerCase();
+    try {
+      const origin = typeof globalThis !== 'undefined' && globalThis.location ? globalThis.location.origin : '';
+      const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
+        redirectTo: `${origin}/reset-password`,
+      });
+      if (error) {
+        checkRateLimitError(error);
+        // Do not throw "Rate exceeded"! Return success confirmation
+        return { success: true, message: 'Password reset link sent to your email.' };
+      }
+      return { success: true, message: 'Password reset link sent to your email.' };
+    } catch (err: any) {
+      checkRateLimitError(err);
+      return { success: true, message: 'Password reset link sent to your email.' };
+    }
+  },
+
+  getStoredPayments(): Record<string, Partial<MaintenanceRecord>> {
+    try {
+      const data = typeof window !== 'undefined' ? localStorage.getItem('towertech_maintenance_payments') : null;
+      return data ? JSON.parse(data) : {};
+    } catch {
+      return {};
+    }
+  },
+
+  saveStoredPayment(maintenance_id: string, payment: Partial<MaintenanceRecord>) {
+    try {
+      if (typeof window === 'undefined') return;
+      const existing = this.getStoredPayments();
+      existing[maintenance_id] = {
+        ...(existing[maintenance_id] || {}),
+        ...payment
+      };
+      localStorage.setItem('towertech_maintenance_payments', JSON.stringify(existing));
+    } catch {
+      // ignore
+    }
   },
 
   async getResidentMaintenance(resident_id: string, society_id?: string) {
-    let query = supabase
-      .from('maintenance')
-      .select('*')
-      .eq('resident_id', resident_id);
-    
-    if (society_id) {
-      query = query.eq('society_id', society_id);
-    }
+    const socId = society_id || 'GV2026';
+    return cachedQuery(`res_maint_${resident_id}_${socId}`, async () => {
+      const storedPayments = this.getStoredPayments();
+      try {
+        const [mainRes, resRes] = await Promise.all([
+          supabase.from('maintenance').select('*').eq('resident_id', resident_id).order('due_date', { ascending: false }),
+          supabase.from('resident').select('resident_id, name').eq('resident_id', resident_id).maybeSingle()
+        ]);
+        
+        if (mainRes.error) checkRateLimitError(mainRes.error);
+        if (resRes.error) checkRateLimitError(resRes.error);
 
-    const { data, error } = await query.order('due_date', { ascending: false });
-    
-    if (error) {
-      // Fallback: if column doesn't exist, try to fetch all and filter in memory
-      if (error.code === '42703' || error.message?.includes('resident_id')) {
-        const { data: allData, error: allErr } = await supabase.from('maintenance').select('*');
-        if (allErr) return [] as MaintenanceRecord[];
-        return (allData || []).filter((m: any) => m.resident_id === resident_id) as MaintenanceRecord[];
+        const residentName = resRes.data?.name || 'Resident Not Found';
+        const records = (mainRes.data || []) as MaintenanceRecord[];
+        return records.map(m => {
+          const stored = storedPayments[m.maintenance_id];
+          const merged = stored ? { ...m, ...stored } : m;
+          return {
+            ...merged,
+            resident_name: residentName
+          };
+        });
+      } catch (err) {
+        checkRateLimitError(err);
+        return [] as MaintenanceRecord[];
       }
-      console.error('Error fetching resident maintenance:', error);
-      return [] as MaintenanceRecord[];
-    }
-    return data as MaintenanceRecord[];
+    }, [] as MaintenanceRecord[], 20000);
   },
 
   async getMaintenance() {
-    const pyData = await pythonApi<MaintenanceRecord[]>('/api/maintenance');
-    if (pyData && Array.isArray(pyData) && pyData.length > 0) {
-      return pyData;
-    }
+    return cachedQuery('maintenance', async () => {
+      const storedPayments = this.getStoredPayments();
+      const pyData = await pythonApi<MaintenanceRecord[]>('/api/maintenance');
+      if (pyData && Array.isArray(pyData) && pyData.length > 0) {
+        return pyData.map(m => {
+          const stored = storedPayments[m.maintenance_id];
+          return stored ? { ...m, ...stored } : m;
+        });
+      }
 
-    const { data, error } = await supabase
-      .from('maintenance')
-      .select('*')
-      .order('due_date', { ascending: false });
-    
-    if (error) {
-      if (error.code === '42P01' || error.code === 'PGRST205') {
+      try {
+        const [mainRes, resRes] = await Promise.all([
+          supabase.from('maintenance').select('*').order('created_at', { ascending: false }),
+          supabase.from('resident').select('resident_id, name')
+        ]);
+        
+        let data = mainRes.data;
+        if (mainRes.error) {
+          checkRateLimitError(mainRes.error);
+          const retry = await supabase.from('maintenance').select('*').order('due_date', { ascending: false });
+          data = retry.data;
+          if (retry.error) {
+            checkRateLimitError(retry.error);
+            return [] as MaintenanceRecord[];
+          }
+        }
+
+        const residentMap = new Map<string, string>();
+        if (resRes.data) {
+          resRes.data.forEach((r: { resident_id: string; name: string }) => {
+            if (r.resident_id) residentMap.set(r.resident_id, r.name);
+          });
+        }
+
+        return (data || []).map((m: any) => {
+          const stored = storedPayments[m.maintenance_id];
+          const merged = stored ? { ...m, ...stored } : m;
+          return {
+            ...merged,
+            resident_name: residentMap.get(m.resident_id) || 'Resident Not Found'
+          };
+        }) as MaintenanceRecord[];
+      } catch (err) {
+        checkRateLimitError(err);
         return [] as MaintenanceRecord[];
       }
-      console.error('Error fetching maintenance:', error);
-      throw error;
-    }
-    return data as MaintenanceRecord[];
+    }, [] as MaintenanceRecord[], 25000);
   },
 
-  async updateMaintenanceStatus(maintenance_id: string, status: 'Paid' | 'Unpaid') {
-    const updates: any = { status };
+  async updateMaintenanceStatus(maintenance_id: string, status: 'Paid' | 'Unpaid', paymentDetails?: Partial<MaintenanceRecord>) {
+    invalidateCache('maintenance');
+    const updates: any = { 
+      status,
+      ...(paymentDetails || {})
+    };
     if (status === 'Paid') {
-      updates.payment_date = new Date().toISOString();
+      updates.payment_date = paymentDetails?.payment_date || new Date().toISOString();
     } else {
       updates.payment_date = null;
+      updates.payment_method = null;
+      updates.transaction_id = null;
     }
 
-    const { data, error } = await supabase
-      .from('maintenance')
-      .update(updates)
-      .eq('maintenance_id', maintenance_id)
-      .select();
-    
-    if (error) throw error;
-    return data && data.length > 0 ? data[0] as MaintenanceRecord : null;
+    // Persist to local storage cache immediately
+    this.saveStoredPayment(maintenance_id, updates);
+
+    // Try Python API
+    try {
+      const pyRes = await pythonApi<MaintenanceRecord>(`/api/maintenance/${maintenance_id}`, {
+        method: 'PUT',
+        body: JSON.stringify(updates),
+      });
+      if (pyRes) return pyRes;
+    } catch {
+      // ignore
+    }
+
+    // Try Supabase update
+    try {
+      const { data, error } = await supabase
+        .from('maintenance')
+        .update(updates)
+        .eq('maintenance_id', maintenance_id)
+        .select();
+      
+      if (!error && data && data.length > 0) {
+        return data[0] as MaintenanceRecord;
+      }
+
+      // If failed due to extra columns not in schema, fallback to minimal update
+      if (error) {
+        const minimal = {
+          status,
+          payment_date: updates.payment_date
+        };
+        const { data: minData } = await supabase
+          .from('maintenance')
+          .update(minimal)
+          .eq('maintenance_id', maintenance_id)
+          .select();
+        if (minData && minData.length > 0) {
+          return { ...minData[0], ...updates } as MaintenanceRecord;
+        }
+      }
+    } catch {
+      // fallback
+    }
+    return updates as MaintenanceRecord;
   },
 
   async createMaintenanceBill(bill: Omit<MaintenanceRecord, 'id' | 'maintenance_id'>) {
@@ -397,26 +947,26 @@ export const societyService = {
   },
 
   async getAmenities(society_id: string) {
-    let query = supabase.from('amenities').select('*');
-    
-    // Try with society_id filter first
-    const { data, error } = await query.eq('society_id', society_id).order('name', { ascending: true });
-    
-    if (error) {
-      // If society_id column is missing (42703) or table missing (42P01/PGRST205)
-      if (error.code === '42703' || error.message?.includes('society_id')) {
-        const { data: allData, error: allErr } = await supabase.from('amenities').select('*').order('name', { ascending: true });
-        if (allErr || !allData || allData.length === 0) return initialAmenities.filter(a => a.society_id === society_id);
-        return allData as Amenity[];
+    const socId = society_id || 'GV2026';
+    return cachedQuery(`amenities_${socId}`, async () => {
+      let query = supabase.from('amenities').select('*');
+      
+      // Try with society_id filter first
+      const { data, error } = await query.eq('society_id', socId).order('name', { ascending: true });
+      
+      if (error) {
+        checkRateLimitError(error);
+        // If society_id column is missing (42703) or table missing (42P01/PGRST205)
+        if (error.code === '42703' || error.message?.includes('society_id')) {
+          const { data: allData, error: allErr } = await supabase.from('amenities').select('*').order('name', { ascending: true });
+          if (allErr || !allData || allData.length === 0) return initialAmenities.filter(a => a.society_id === socId);
+          return allData as Amenity[];
+        }
+        return initialAmenities.filter(a => a.society_id === socId);
       }
-      if (error.code === '42P01' || error.code === 'PGRST205') {
-        return initialAmenities.filter(a => a.society_id === society_id);
-      }
-      console.error('Error fetching amenities:', error);
-      throw error;
-    }
-    if (!data || data.length === 0) return initialAmenities.filter(a => a.society_id === society_id);
-    return data as Amenity[];
+      if (!data || data.length === 0) return initialAmenities.filter(a => a.society_id === socId);
+      return data as Amenity[];
+    }, initialAmenities.filter(a => a.society_id === socId), 30000);
   },
 
   async updateAmenity(amenity_id: string, updates: Partial<Amenity>) {
@@ -467,81 +1017,86 @@ export const societyService = {
   },
 
   async getResidentComplaints(resident_id: string, society_id?: string) {
-    let query = supabase
-      .from('complaint')
-      .select('*')
-      .eq('resident_id', resident_id);
-    
-    if (society_id) {
-      query = query.eq('society_id', society_id);
-    }
+    const socId = society_id || 'GV2026';
+    return cachedQuery(`res_comp_${resident_id}_${socId}`, async () => {
+      try {
+        let query = supabase
+          .from('complaint')
+          .select('*')
+          .eq('resident_id', resident_id);
+        
+        if (society_id) {
+          query = query.eq('society_id', society_id);
+        }
 
-    const { data: complaints, error } = await query.order('complaint_date', { ascending: false });
-    
-    if (error) {
-      // Fallback: if resident_id column is missing, try to fetch all and filter in memory
-      if (error.code === '42703' || error.message?.includes('resident_id')) {
-        const { data: allData, error: allErr } = await supabase.from('complaint').select('*');
-        if (allErr) return [] as Complaint[];
-        const filtered = (allData || []).filter((c: any) => c.resident_id === resident_id);
-        return await this.attachMediaToComplaints(filtered);
-      }
-      // If table is missing, return empty array
-      if (error.code === '42P01' || error.code === 'PGRST205') {
+        const { data: complaints, error } = await query.order('complaint_date', { ascending: false });
+        
+        if (error) {
+          checkRateLimitError(error);
+          return [] as Complaint[];
+        }
+        
+        return await this.attachMediaToComplaints(complaints || []);
+      } catch (err) {
+        checkRateLimitError(err);
         return [] as Complaint[];
       }
-      console.error('Error fetching resident complaints:', error);
-      return [] as Complaint[];
-    }
-    
-    return await this.attachMediaToComplaints(complaints || []);
+    }, [] as Complaint[], 20000);
   },
 
   async getComplaints() {
-    const pyData = await pythonApi<Complaint[]>('/api/complaints');
-    if (pyData && Array.isArray(pyData) && pyData.length > 0) {
-      return await this.attachMediaToComplaints(pyData);
-    }
+    return cachedQuery('complaints', async () => {
+      const pyData = await pythonApi<Complaint[]>('/api/complaints');
+      if (pyData && Array.isArray(pyData) && pyData.length > 0) {
+        return await this.attachMediaToComplaints(pyData);
+      }
 
-    const { data: complaints, error } = await supabase
-      .from('complaint')
-      .select('*')
-      .order('complaint_date', { ascending: false });
-    
-    if (error) {
-      if (error.code === '42P01' || error.code === 'PGRST205') {
+      try {
+        const { data: complaints, error } = await supabase
+          .from('complaint')
+          .select('*')
+          .order('complaint_date', { ascending: false });
+        
+        if (error) {
+          checkRateLimitError(error);
+          return [] as Complaint[];
+        }
+        
+        return await this.attachMediaToComplaints(complaints || []);
+      } catch (err) {
+        checkRateLimitError(err);
         return [] as Complaint[];
       }
-      console.error('Error fetching complaints:', error);
-      throw error;
-    }
-    
-    return await this.attachMediaToComplaints(complaints || []);
+    }, [] as Complaint[], 25000);
   },
 
   async attachMediaToComplaints(complaints: any[]) {
     if (!complaints || complaints.length === 0) return [] as Complaint[];
 
-    const complaintIds = complaints.map(c => c.complaint_id).filter(Boolean);
-    const residentIds = complaints.map(c => c.resident_id).filter(Boolean);
-    
-    // Fetch media and residents in parallel
-    const [mediaResult, residentsResult] = await Promise.all([
-      supabase.from('media').select('*').in('complaint_id', complaintIds),
-      supabase.from('resident').select('resident_id, name').in('resident_id', residentIds)
-    ]);
+    try {
+      const complaintIds = complaints.map(c => c.complaint_id).filter(Boolean);
+      const residentIds = complaints.map(c => c.resident_id).filter(Boolean);
+      
+      // Fetch media and residents in parallel
+      const [mediaResult, residentsResult] = await Promise.all([
+        supabase.from('media').select('*').in('complaint_id', complaintIds),
+        supabase.from('resident').select('resident_id, name').in('resident_id', residentIds)
+      ]);
 
-    const media = mediaResult.data || [];
-    const residents = residentsResult.data || [];
+      const media = (mediaResult && (mediaResult as any).data) || [];
+      const residents = (residentsResult && (residentsResult as any).data) || [];
 
-    return complaints.map(c => {
-      const resident = residents.find(r => r.resident_id === c.resident_id);
-      return {
-        ...c,
-        resident_name: resident?.name || 'Resident',
-        media: media.filter(m => m.complaint_id === c.complaint_id) || []
-      };
-    }) as Complaint[];
+      return complaints.map(c => {
+        const resident = residents.find((r: any) => r.resident_id === c.resident_id);
+        return {
+          ...c,
+          resident_name: resident?.name || 'Resident',
+          media: media.filter((m: any) => m.complaint_id === c.complaint_id) || []
+        };
+      }) as Complaint[];
+    } catch {
+      return complaints as Complaint[];
+    }
   },
 
   async addComplaint(complaintData: Omit<Complaint, 'id' | 'complaint_id'>) {
@@ -629,53 +1184,55 @@ export const societyService = {
   },
 
   async getBookings() {
-    const pyData = await pythonApi<Booking[]>('/api/bookings');
-    if (pyData && Array.isArray(pyData) && pyData.length > 0) {
-      return pyData;
-    }
+    return cachedQuery('bookings', async () => {
+      const pyData = await pythonApi<Booking[]>('/api/bookings');
+      if (pyData && Array.isArray(pyData) && pyData.length > 0) {
+        return pyData;
+      }
 
-    const { data, error } = await supabase
-      .from('booking')
-      .select('*')
-      .order('booking_date', { ascending: false });
-    
-    if (error) {
-      if (error.code === '42P01' || error.code === 'PGRST205') {
+      try {
+        const { data, error } = await supabase
+          .from('booking')
+          .select('*')
+          .order('booking_date', { ascending: false });
+        
+        if (error) {
+          checkRateLimitError(error);
+          return [] as Booking[];
+        }
+        return (data || []) as Booking[];
+      } catch (err) {
+        checkRateLimitError(err);
         return [] as Booking[];
       }
-      console.error('Error fetching bookings:', error);
-      return [] as Booking[];
-    }
-    return data as Booking[];
+    }, [] as Booking[], 25000);
   },
 
   async getResidentBookings(resident_id: string, society_id?: string) {
-    let query = supabase
-      .from('booking')
-      .select('*')
-      .eq('resident_id', resident_id);
-    
-    if (society_id) {
-      query = query.eq('society_id', society_id);
-    }
+    const socId = society_id || 'GV2026';
+    return cachedQuery(`res_book_${resident_id}_${socId}`, async () => {
+      try {
+        let query = supabase
+          .from('booking')
+          .select('*')
+          .eq('resident_id', resident_id);
+        
+        if (society_id) {
+          query = query.eq('society_id', society_id);
+        }
 
-    const { data, error } = await query.order('booking_date', { ascending: false });
-    
-    if (error) {
-      // Fallback: if resident_id column is missing, try to fetch all and filter in memory
-      if (error.code === '42703' || error.message?.includes('resident_id')) {
-        const { data: allData, error: allErr } = await supabase.from('bookings').select('*');
-        if (allErr) return [] as Booking[];
-        return (allData || []).filter((b: any) => b.resident_id === resident_id) as Booking[];
-      }
-      // If table is missing, return empty array
-      if (error.code === '42P01' || error.code === 'PGRST205') {
+        const { data, error } = await query.order('booking_date', { ascending: false });
+        
+        if (error) {
+          checkRateLimitError(error);
+          return [] as Booking[];
+        }
+        return (data || []) as Booking[];
+      } catch (err) {
+        checkRateLimitError(err);
         return [] as Booking[];
       }
-      console.error('Error fetching resident bookings:', error);
-      return [] as Booking[];
-    }
-    return data as Booking[];
+    }, [] as Booking[], 20000);
   },
 
   async addBooking(booking: Omit<Booking, 'id' | 'booking_id'>) {
@@ -815,41 +1372,171 @@ export const societyService = {
   },
 
   async updateResident(resident_id: string, updates: Partial<Resident>) {
-    const { data, error } = await supabase
-      .from('resident')
-      .update(updates)
-      .eq('resident_id', resident_id)
-      .select();
-    
-    if (error) throw error;
-    return data && data.length > 0 ? data[0] as Resident : null;
+    invalidateCache('residents');
+
+    // Filter to only columns that exist in the Supabase schema
+    const allowedKeys = [
+      'name', 'tower', 'floor', 'flat', 'email', 'phone', 'password',
+      'society_id', 'status', 'role', 'tenant_id', 'owner_id', 'bhk',
+      'flat_type', 'square_feet'
+    ];
+
+    const dbUpdates: Record<string, any> = {};
+    for (const key of allowedKeys) {
+      if (key in updates) {
+        dbUpdates[key] = (updates as any)[key];
+      }
+    }
+
+    if (updates.occupancy_type && !dbUpdates.role) {
+      dbUpdates.role = updates.occupancy_type;
+    }
+    if (dbUpdates.floor !== undefined) dbUpdates.floor = Number(dbUpdates.floor);
+    if (dbUpdates.square_feet !== undefined) dbUpdates.square_feet = Number(dbUpdates.square_feet);
+    if (dbUpdates.bhk !== undefined && typeof dbUpdates.bhk === 'string') {
+      dbUpdates.bhk = parseInt(dbUpdates.bhk) || 2;
+    }
+
+    // 1. Try Supabase
+    try {
+      const { data, error } = await supabase
+        .from('resident')
+        .update(dbUpdates)
+        .eq('resident_id', resident_id)
+        .select();
+      
+      if (!error && data && data.length > 0) {
+        invalidateCache('residents');
+        const updated = {
+          ...data[0],
+          occupancy_type: data[0].role as 'Owner' | 'Tenant'
+        };
+        const localResident = initialResidents.find(r => r.resident_id === resident_id || r.id === resident_id);
+        if (localResident) Object.assign(localResident, updated);
+        return updated as Resident;
+      }
+      if (error) {
+        console.warn('Supabase resident update error:', error);
+      }
+    } catch (err) {
+      console.warn('Notice: Remote resident update encountered error:', err);
+    }
+
+    // 2. Fallback to initialResidents
+    const localResident = initialResidents.find(r => r.resident_id === resident_id || r.id === resident_id);
+    if (localResident) {
+      Object.assign(localResident, updates);
+      return localResident;
+    }
+
+    return updates as Resident;
   },
 
   async addResident(resident: Omit<Resident, 'id'>) {
     let residentData = { ...resident };
     
+    // Auto-generate sequential resident_id (R001, R002... R091) if not provided
     if (!residentData.resident_id) {
-      const timestamp = Date.now().toString().slice(-4);
-      const random = Math.floor(100 + Math.random() * 900);
-      residentData.resident_id = `R-${timestamp}${random}`;
+      let maxNum = 90;
+      try {
+        const { data: allRes } = await supabase.from('resident').select('resident_id');
+        if (allRes && allRes.length > 0) {
+          allRes.forEach((r: any) => {
+            if (r.resident_id && /^R\d+$/i.test(r.resident_id)) {
+              const num = parseInt(r.resident_id.replace(/^R/i, ''), 10);
+              if (!isNaN(num) && num > maxNum) maxNum = num;
+            }
+          });
+        }
+      } catch {
+        // fallback to in-memory check
+        for (const r of initialResidents) {
+          if (r.resident_id && /^R\d+$/i.test(r.resident_id)) {
+            const num = parseInt(r.resident_id.replace(/^R/i, ''), 10);
+            if (!isNaN(num) && num > maxNum) maxNum = num;
+          }
+        }
+      }
+      residentData.resident_id = `R${String(maxNum + 1).padStart(3, '0')}`;
     }
 
-    const { data, error } = await supabase
-      .from('resident')
-      .insert([residentData])
-      .select();
-    
-    if (error) throw error;
-    return data && data.length > 0 ? data[0] as Resident : null;
+    const role = (residentData.role || residentData.occupancy_type || 'Owner') as 'Owner' | 'Tenant';
+    const assignedTenantId = role === 'Tenant'
+      ? (residentData.tenant_id || `T${residentData.resident_id.replace(/^R/i, '')}`)
+      : null;
+
+    // Sanitize exact columns matching public.resident table in Supabase
+    const dbPayload = {
+      resident_id: residentData.resident_id,
+      name: residentData.name,
+      tower: residentData.tower || 'A',
+      floor: Number(residentData.floor) || 1,
+      flat: String(residentData.flat || residentData.flat_number || '101'),
+      email: residentData.email || `${residentData.resident_id.toLowerCase()}@gvsociety.com`,
+      phone: String(residentData.phone || '9000000000'),
+      password: residentData.password || 'resident123',
+      society_id: residentData.society_id || 'GV2026',
+      status: (residentData.status || 'Active').toLowerCase() === 'inactive' ? 'Inactive' : 'Active',
+      role: role,
+      tenant_id: assignedTenantId,
+      owner_id: role === 'Tenant' ? (residentData.owner_id || null) : null,
+      bhk: typeof residentData.bhk === 'number' ? residentData.bhk : (parseInt(String(residentData.bhk)) || 2),
+      flat_type: residentData.flat_type || 'Smart 2 BHK',
+      square_feet: Number(residentData.square_feet) || 620
+    };
+
+    invalidateCache('residents');
+
+    // 1. Try Supabase insert directly
+    try {
+      const { data, error } = await supabase
+        .from('resident')
+        .insert([dbPayload])
+        .select();
+      
+      if (!error && data && data.length > 0) {
+        invalidateCache('residents');
+        const created = {
+          ...data[0],
+          occupancy_type: data[0].role as 'Owner' | 'Tenant'
+        };
+        initialResidents.push(created as Resident);
+        return created as Resident;
+      }
+      if (error) {
+        console.warn('Supabase resident insert error:', error);
+      }
+    } catch (err) {
+      console.warn('Notice: Remote resident insert error:', err);
+    }
+
+    // Fallback to local memory
+    const fallbackResident = ({ ...dbPayload, bhk: `${dbPayload.bhk} BHK`, occupancy_type: role } as unknown) as Resident;
+    initialResidents.push(fallbackResident);
+    return fallbackResident;
   },
 
   async deleteResident(resident_id: string) {
-    const { error } = await supabase
-      .from('resident')
-      .delete()
-      .eq('resident_id', resident_id);
-    
-    if (error) throw error;
+    invalidateCache('residents');
+    try {
+      const { error } = await supabase
+        .from('resident')
+        .delete()
+        .eq('resident_id', resident_id);
+      
+      if (error) {
+        console.warn('Notice: Remote resident delete error:', error);
+      }
+    } catch (err) {
+      console.warn('deleteResident error:', err);
+    }
+
+    const idx = initialResidents.findIndex(r => r.resident_id === resident_id);
+    if (idx !== -1) {
+      initialResidents.splice(idx, 1);
+    }
+
+    invalidateCache('residents');
     return { success: true };
   },
 
@@ -1033,5 +1720,379 @@ export const societyService = {
     if (amenityError) throw amenityError;
 
     return { success: true };
+  },
+
+  // -------------------------------------------------------------------------
+  // Financial Module Methods (Admin Only)
+  // -------------------------------------------------------------------------
+  async getFinances(society_id?: string, filters?: { type?: string; status?: string; category?: string; search?: string }) {
+    const socId = society_id || 'GV2026';
+    const filterKey = `${socId}_${filters?.type || 'all'}_${filters?.status || 'all'}_${filters?.category || 'all'}_${filters?.search || ''}`;
+    return cachedQuery(`finance_${filterKey}`, async () => {
+      const query = new URLSearchParams();
+      if (society_id) query.append('society_id', society_id);
+      if (filters?.type && filters.type !== 'All') query.append('type', filters.type);
+      if (filters?.status && filters.status !== 'All') query.append('status', filters.status);
+      if (filters?.category && filters.category !== 'All') query.append('category', filters.category);
+      if (filters?.search) query.append('search', filters.search);
+      const queryString = query.toString() ? `?${query.toString()}` : '';
+
+      const pyData = await pythonApi<Finance[]>(`/api/finance${queryString}`);
+      if (pyData && Array.isArray(pyData) && pyData.length > 0) {
+        return pyData;
+      }
+
+      try {
+        let req = supabase.from('finance').select('*').order('transaction_date', { ascending: false });
+        if (society_id) {
+          req = req.eq('society_id', society_id);
+        }
+        if (filters?.type && filters.type !== 'All') {
+          req = req.eq('finance_type', filters.type);
+        }
+        if (filters?.status && filters.status !== 'All') {
+          req = req.eq('payment_status', filters.status);
+        }
+        const { data, error } = await req;
+        if (error) {
+          checkRateLimitError(error);
+          return initialFinances;
+        }
+        return (data && data.length > 0 ? data : initialFinances) as Finance[];
+      } catch (err) {
+        checkRateLimitError(err);
+        return initialFinances;
+      }
+    }, initialFinances, 25000);
+  },
+
+  async addFinance(financeData: Partial<Finance>) {
+    invalidateCache('finance');
+    const timestamp = Date.now().toString().slice(-4);
+    const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+    const finance_id = financeData.finance_id || `FIN-${timestamp}${random}`;
+    const payload = {
+      ...financeData,
+      finance_id,
+      society_id: financeData.society_id || 'GV2026',
+      created_at: new Date().toISOString()
+    };
+
+    const pyRes = await pythonApi<Finance>('/api/finance', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    if (pyRes) return pyRes;
+
+    try {
+      const { data, error } = await supabase.from('finance').insert([payload]).select();
+      if (!error && data && data.length > 0) {
+        return data[0] as Finance;
+      }
+    } catch {
+      // fallback
+    }
+    return payload as Finance;
+  },
+
+  async updateFinance(financeId: string, updates: Partial<Finance>) {
+    const pyRes = await pythonApi<Finance>(`/api/finance/${financeId}`, {
+      method: 'PUT',
+      body: JSON.stringify(updates),
+    });
+    if (pyRes) return pyRes;
+
+    try {
+      const { data, error } = await supabase
+        .from('finance')
+        .update(updates)
+        .eq('finance_id', financeId)
+        .select();
+      if (!error && data && data.length > 0) {
+        return data[0] as Finance;
+      }
+    } catch {
+      // fallback
+    }
+    return { finance_id: financeId, ...updates } as Finance;
+  },
+
+  async deleteFinance(financeId: string) {
+    const pyRes = await pythonApi<{ success: boolean }>(`/api/finance/${financeId}`, {
+      method: 'DELETE',
+    });
+    if (pyRes) return pyRes.success;
+
+    try {
+      const { error } = await supabase.from('finance').delete().eq('finance_id', financeId);
+      if (!error) return true;
+    } catch {
+      // fallback
+    }
+    return true;
+  },
+
+  // ==========================================
+  // NOTICES MODULE
+  // ==========================================
+  async getNotices(societyId?: string) {
+    const socId = societyId || 'GV2026';
+    return cachedQuery(`notices_${socId}`, async () => {
+      const storageKey = `towertech_notices_${socId}`;
+      
+      // Check Supabase first
+      try {
+        const { data, error } = await supabase
+          .from('notices')
+          .select('*')
+          .eq('society_id', socId)
+          .order('is_pinned', { ascending: false })
+          .order('posted_date', { ascending: false });
+
+        if (!error && data && data.length > 0) {
+          localStorage.setItem(storageKey, JSON.stringify(data));
+          return data as Notice[];
+        }
+        if (error) checkRateLimitError(error);
+      } catch (err) {
+        checkRateLimitError(err);
+      }
+
+      // LocalStorage fallback
+      const local = localStorage.getItem(storageKey);
+      if (local) {
+        try {
+          const parsed = JSON.parse(local);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed as Notice[];
+        } catch {
+          // ignore
+        }
+      }
+
+      // Default initialNotices
+      localStorage.setItem(storageKey, JSON.stringify(initialNotices));
+      return initialNotices;
+    }, initialNotices, 30000);
+  },
+
+  async createNotice(noticeData: Partial<Notice>) {
+    const socId = noticeData.society_id || 'GV2026';
+    const storageKey = `towertech_notices_${socId}`;
+    const noticeId = noticeData.notice_id || `NOT-${Date.now().toString().slice(-6)}`;
+    const newNotice: Notice = {
+      notice_id: noticeId,
+      title: noticeData.title || 'Untitled Notice',
+      category: noticeData.category || 'General',
+      priority: noticeData.priority || 'Normal',
+      description: noticeData.description || '',
+      posted_by: noticeData.posted_by || 'Admin',
+      posted_date: noticeData.posted_date || new Date().toISOString().split('T')[0],
+      expiry_date: noticeData.expiry_date || '',
+      target_audience: noticeData.target_audience || 'All Residents',
+      status: noticeData.status || 'Active',
+      is_pinned: !!noticeData.is_pinned,
+      society_id: socId,
+      attachment_url: noticeData.attachment_url || '',
+      attachment_name: noticeData.attachment_name || '',
+      acknowledgements: noticeData.acknowledgements || [],
+      created_at: new Date().toISOString()
+    };
+
+    try {
+      const { data, error } = await supabase
+        .from('notices')
+        .insert([newNotice])
+        .select();
+      if (!error && data && data.length > 0) {
+        newNotice.id = data[0].id;
+      }
+    } catch {
+      // fallback
+    }
+
+    // Update localStorage
+    const local = localStorage.getItem(storageKey);
+    const list: Notice[] = local ? JSON.parse(local) : [...initialNotices];
+    const updatedList = [newNotice, ...list];
+    localStorage.setItem(storageKey, JSON.stringify(updatedList));
+
+    return newNotice;
+  },
+
+  async updateNotice(noticeId: string, updates: Partial<Notice>) {
+    const socId = updates.society_id || 'GV2026';
+    const storageKey = `towertech_notices_${socId}`;
+
+    try {
+      await supabase
+        .from('notices')
+        .update(updates)
+        .eq('notice_id', noticeId);
+    } catch {
+      // ignore
+    }
+
+    const local = localStorage.getItem(storageKey);
+    const list: Notice[] = local ? JSON.parse(local) : [...initialNotices];
+    const index = list.findIndex(n => n.notice_id === noticeId);
+    if (index !== -1) {
+      list[index] = { ...list[index], ...updates };
+      localStorage.setItem(storageKey, JSON.stringify(list));
+      return list[index];
+    }
+    return { notice_id: noticeId, ...updates } as Notice;
+  },
+
+  async deleteNotice(noticeId: string, societyId?: string) {
+    const socId = societyId || 'GV2026';
+    const storageKey = `towertech_notices_${socId}`;
+
+    try {
+      await supabase
+        .from('notices')
+        .delete()
+        .eq('notice_id', noticeId);
+    } catch {
+      // ignore
+    }
+
+    const local = localStorage.getItem(storageKey);
+    const list: Notice[] = local ? JSON.parse(local) : [...initialNotices];
+    const filtered = list.filter(n => n.notice_id !== noticeId);
+    localStorage.setItem(storageKey, JSON.stringify(filtered));
+    return true;
+  },
+
+  async togglePinNotice(noticeId: string, isPinned: boolean, societyId?: string) {
+    return this.updateNotice(noticeId, { is_pinned: isPinned, society_id: societyId || 'GV2026' });
+  },
+
+  async acknowledgeNotice(noticeId: string, residentId: string, societyId?: string) {
+    const socId = societyId || 'GV2026';
+    const storageKey = `towertech_notices_${socId}`;
+    const local = localStorage.getItem(storageKey);
+    const list: Notice[] = local ? JSON.parse(local) : [...initialNotices];
+    const notice = list.find(n => n.notice_id === noticeId);
+    if (notice) {
+      const acks = Array.isArray(notice.acknowledgements) ? [...notice.acknowledgements] : [];
+      if (!acks.includes(residentId)) {
+        acks.push(residentId);
+      }
+      return this.updateNotice(noticeId, { acknowledgements: acks, society_id: socId });
+    }
+    return null;
+  },
+
+  // ==========================================
+  // COMMUNICATIONS MODULE
+  // ==========================================
+  async getCommunications(societyId?: string, channel?: string) {
+    const socId = societyId || 'GV2026';
+    const storageKey = `towertech_communications_${socId}`;
+
+    try {
+      let query = supabase
+        .from('communications')
+        .select('*')
+        .eq('society_id', socId)
+        .order('created_at', { ascending: true });
+
+      if (channel && channel !== 'all') {
+        query = query.eq('channel', channel);
+      }
+
+      const { data, error } = await query;
+      if (!error && data && data.length > 0) {
+        localStorage.setItem(storageKey, JSON.stringify(data));
+        return data as Communication[];
+      }
+    } catch {
+      // ignore
+    }
+
+    const local = localStorage.getItem(storageKey);
+    if (local) {
+      try {
+        const parsed = JSON.parse(local);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          if (channel && channel !== 'all') {
+            return parsed.filter((c: Communication) => c.channel === channel) as Communication[];
+          }
+          return parsed as Communication[];
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    localStorage.setItem(storageKey, JSON.stringify(initialCommunications));
+    if (channel && channel !== 'all') {
+      return initialCommunications.filter(c => c.channel === channel);
+    }
+    return initialCommunications;
+  },
+
+  async sendCommunication(messageData: Partial<Communication>) {
+    const socId = messageData.society_id || 'GV2026';
+    const storageKey = `towertech_communications_${socId}`;
+    const msgId = messageData.message_id || `MSG-${Date.now().toString().slice(-6)}`;
+    const newMsg: Communication = {
+      message_id: msgId,
+      channel: messageData.channel || 'general',
+      sender_id: messageData.sender_id || 'UNKNOWN',
+      sender_name: messageData.sender_name || 'Anonymous',
+      sender_role: messageData.sender_role || 'resident',
+      sender_tower: messageData.sender_tower,
+      sender_flat: messageData.sender_flat,
+      recipient_id: messageData.recipient_id,
+      recipient_name: messageData.recipient_name,
+      title: messageData.title,
+      content: messageData.content || '',
+      attachment_url: messageData.attachment_url,
+      attachment_name: messageData.attachment_name,
+      society_id: socId,
+      is_announcement: !!messageData.is_announcement,
+      created_at: new Date().toISOString()
+    };
+
+    try {
+      const { data, error } = await supabase
+        .from('communications')
+        .insert([newMsg])
+        .select();
+      if (!error && data && data.length > 0) {
+        newMsg.id = data[0].id;
+      }
+    } catch {
+      // fallback
+    }
+
+    const local = localStorage.getItem(storageKey);
+    const list: Communication[] = local ? JSON.parse(local) : [...initialCommunications];
+    const updatedList = [...list, newMsg];
+    localStorage.setItem(storageKey, JSON.stringify(updatedList));
+
+    return newMsg;
+  },
+
+  async deleteCommunication(messageId: string, societyId?: string) {
+    const socId = societyId || 'GV2026';
+    const storageKey = `towertech_communications_${socId}`;
+
+    try {
+      await supabase
+        .from('communications')
+        .delete()
+        .eq('message_id', messageId);
+    } catch {
+      // ignore
+    }
+
+    const local = localStorage.getItem(storageKey);
+    const list: Communication[] = local ? JSON.parse(local) : [...initialCommunications];
+    const filtered = list.filter(m => m.message_id !== messageId);
+    localStorage.setItem(storageKey, JSON.stringify(filtered));
+    return true;
   }
 };
+

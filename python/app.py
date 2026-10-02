@@ -59,7 +59,7 @@ try:
             return jsonify({"success": service.delete_maintenance_record(maintenance_id)})
         data = request.get_json(force=True) or {}
         status = data.get('status', 'Paid')
-        return jsonify(service.update_maintenance_status(maintenance_id, status))
+        return jsonify(service.update_maintenance_status(maintenance_id, status, data))
 
     # Complaints
     @app.route('/api/complaints', methods=['GET', 'POST'])
@@ -115,6 +115,25 @@ try:
             return jsonify({"success": service.delete_amenity(amenity_id)})
         data = request.get_json(force=True) or {}
         return jsonify(service.update_amenity(amenity_id, data))
+
+    # Finance (Admin Only)
+    @app.route('/api/finance', methods=['GET', 'POST'])
+    def finance():
+        if request.method == 'GET':
+            society_id = request.args.get('society_id')
+            finance_type = request.args.get('type')
+            status = request.args.get('status')
+            category = request.args.get('category')
+            return jsonify(service.get_finances(society_id, finance_type, status, category))
+        data = request.get_json(force=True) or {}
+        return jsonify(service.add_finance(data)), 201
+
+    @app.route('/api/finance/<finance_id>', methods=['PUT', 'PATCH', 'DELETE'])
+    def finance_detail(finance_id):
+        if request.method == 'DELETE':
+            return jsonify({"success": service.delete_finance(finance_id)})
+        data = request.get_json(force=True) or {}
+        return jsonify(service.update_finance(finance_id, data))
 
     # Auth
     @app.route('/api/auth/login', methods=['POST'])

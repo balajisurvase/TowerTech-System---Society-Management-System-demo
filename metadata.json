@@ -1,6 +1,6 @@
 {
   "name": "TowerTech-Society final project 001",
-  "description": "A comprehensive society management system with admin and resident dashboards for tracking maintenance, complaints, and notices.",
+  "description": "A comprehensive society management system with admin, resident, and security dashboards for tracking maintenance, complaints, bookings, and visitor management.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

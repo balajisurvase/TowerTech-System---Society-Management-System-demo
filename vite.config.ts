@@ -16,7 +16,7 @@ export default defineConfig(({mode}) => {
       },
     },
     server: {
-      hmr: process.env.DISABLE_HMR !== 'true',
+      hmr: (typeof process !== 'undefined' && process.env?.DISABLE_HMR ? process.env.DISABLE_HMR : env.DISABLE_HMR) !== 'true',
     },
   };
 });

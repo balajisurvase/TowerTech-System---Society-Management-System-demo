@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
 import { 
   Users, 
   CreditCard, 
@@ -35,11 +35,14 @@ import {
   RefreshCw,
   Ban
 } from 'lucide-react';
-import { User, Resident, MaintenanceRecord, Complaint, Booking, Amenity } from '../types';
+import { User, Resident, MaintenanceRecord, Complaint, Booking, Amenity, Admin } from '../types';
 import { societyService } from '../lib/societyService';
 import { isSupabaseConfigured } from '../lib/supabase';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import FinanceDashboard from './FinanceDashboard';
+import NoticeBoard from './NoticeBoard';
+import CommunicationCenter from './CommunicationCenter';
 import { 
   BarChart, 
   Bar, 
@@ -61,6 +64,7 @@ interface AdminDashboardProps {
   complaints: Complaint[];
   bookings: Booking[];
   onRefresh: () => void;
+  onUserUpdate?: (updatedUser: Partial<User>) => void;
 }
 
 export default function AdminDashboard({ 
@@ -71,7 +75,8 @@ export default function AdminDashboard({
   maintenance, 
   complaints, 
   bookings,
-  onRefresh 
+  onRefresh,
+  onUserUpdate 
 }: AdminDashboardProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [updating, setUpdating] = useState<string | null>(null);
@@ -127,6 +132,7 @@ export default function AdminDashboard({
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [complaintToComment, setComplaintToComment] = useState<{ id: string, status: 'Pending' | 'Done' | 'Rejected' | 'Process' } | null>(null);
   const [adminComment, setAdminComment] = useState('');
+  const [selectedResidentDetails, setSelectedResidentDetails] = useState<Resident | null>(null);
   const [bookingEditData, setBookingEditData] = useState({
     start_time: '',
     end_time: ''
@@ -140,13 +146,41 @@ export default function AdminDashboard({
     phone: '',
     email: '',
     password: '',
-    status: 'Active' as 'Active' | 'Inactive'
+    role: 'Owner' as 'Owner' | 'Tenant',
+    occupancy_type: 'Owner' as 'Owner' | 'Tenant',
+    tenant_id: '' as string | null,
+    owner_id: '' as string | null,
+    status: 'Active' as 'Active' | 'Inactive',
+    bhk: '2 BHK',
+    flat_type: 'Smart 2 BHK',
+    square_feet: 620
   });
+
+  const [calcMethod, setCalcMethod] = useState<'Flat/BHK Maintenance' | 'Square Foot Maintenance'>('Square Foot Maintenance');
+  const [flatTypeRates, setFlatTypeRates] = useState<Record<string, number>>({
+    'Smart 1 BHK': 2500,
+    'Smart 2 BHK': 3200,
+    'Premium 2 BHK': 4000,
+    'Premium 3 BHK': 5000
+  });
+  const [sqftRate, setSqftRate] = useState<number>(5);
+
+  const getNextTenantId = () => {
+    let maxT = 0;
+    (residents || []).forEach(r => {
+      const tid = r.tenant_id;
+      if (tid && /^T\d+$/i.test(tid)) {
+        const num = parseInt(tid.replace(/^T/i, ''), 10);
+        if (!isNaN(num) && num > maxT) maxT = num;
+      }
+    });
+    return `T${String(maxT + 1).padStart(3, '0')}`;
+  };
   const [billFormData, setBillFormData] = useState({
     resident_id: 'all',
     month: baseDate.toLocaleString('default', { month: 'long' }),
     year: baseDate.getFullYear().toString(),
-    amount: 2500,
+    amount: 3100,
     due_date: new Date(new Date().setDate(new Date().getDate() + 15)).toISOString().split('T')[0],
     description: 'Monthly Maintenance'
   });
@@ -164,10 +198,11 @@ export default function AdminDashboard({
       const data = await societyService.getAmenities(user.society_id);
       setAmenities(data);
       setDbError(null);
-    } catch (error: any) {
+    } catch (error: unknown) {
       // PGRST205: PostgREST error for table not found in schema cache
       // 42P01: Postgres error for table not found
-      if (error.code === '42P01' || error.code === 'PGRST205') {
+      const errCode = (error as { code?: string })?.code;
+      if (errCode === '42P01' || errCode === 'PGRST205') {
         setDbError('The "amenities" table is missing from your database.');
       } else {
         console.error('Error fetching amenities:', error);
@@ -218,7 +253,7 @@ export default function AdminDashboard({
     return diff < 24 * 60 * 60 * 1000; // 24 hours
   };
 
-  const handleUpdateProfile = async (e: React.FormEvent) => {
+  const handleUpdateProfile = async (e: FormEvent) => {
     e.preventDefault();
     setUpdating('profile');
     try {
@@ -226,8 +261,9 @@ export default function AdminDashboard({
       toast.success('Profile updated successfully');
       setShowEditProfileModal(false);
       onRefresh();
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to update profile');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to update profile';
+      toast.error(msg);
     } finally {
       setUpdating(null);
     }
@@ -250,7 +286,7 @@ export default function AdminDashboard({
       const ampm = h >= 12 ? 'PM' : 'AM';
       const h12 = h % 12 || 12;
       return `${h12.toString().padStart(2, '0')}:${minutes} ${ampm}`;
-    } catch (e) {
+    } catch {
       return time;
     }
   };
@@ -260,21 +296,23 @@ export default function AdminDashboard({
     try {
       await societyService.updateMaintenanceStatus(maintenanceId, status);
       onRefresh();
-    } catch (error: any) {
-      toast.error('Update failed: ' + error.message);
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      toast.error('Update failed: ' + msg);
     } finally {
       setUpdating(null);
     }
   };
 
   const handleDeleteMaintenance = async (maintenanceId: string) => {
-    if (!window.confirm('Are you sure you want to delete this maintenance record?')) return;
+    if (!globalThis.confirm?.('Are you sure you want to delete this maintenance record?')) return;
     setUpdating(maintenanceId);
     try {
       await societyService.deleteMaintenanceRecord(maintenanceId);
       onRefresh();
-    } catch (error: any) {
-      toast.error('Delete failed: ' + error.message);
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      toast.error('Delete failed: ' + msg);
     } finally {
       setUpdating(null);
     }
@@ -283,13 +321,14 @@ export default function AdminDashboard({
   const handleUpdateComplaintStatus = async (complaintId: string, status: 'Pending' | 'Done' | 'Rejected' | 'Process', comment?: string) => {
     setUpdating(complaintId);
     try {
-      await societyService.updateComplaintStatus(complaintId, status as any, comment);
+      await societyService.updateComplaintStatus(complaintId, status, comment);
       setComplaintToComment(null);
       setAdminComment('');
       onRefresh();
       toast.success(`Complaint marked as ${status}`);
-    } catch (error: any) {
-      toast.error('Update failed: ' + error.message);
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      toast.error('Update failed: ' + msg);
     } finally {
       setUpdating(null);
     }
@@ -304,14 +343,15 @@ export default function AdminDashboard({
       await societyService.updateBookingStatus(bookingId, status, comment);
       onRefresh();
       toast.success(`Booking ${status}`);
-    } catch (error: any) {
-      toast.error('Update failed: ' + error.message);
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      toast.error('Update failed: ' + msg);
     } finally {
       setUpdating(null);
     }
   };
 
-  const handleUpdateBookingTimes = async (e: React.FormEvent) => {
+  const handleUpdateBookingTimes = async (e: FormEvent) => {
     e.preventDefault();
     if (!editingBooking) return;
 
@@ -324,59 +364,63 @@ export default function AdminDashboard({
       toast.success('Booking times updated successfully!');
       setShowBookingEditModal(false);
       onRefresh();
-    } catch (error: any) {
-      toast.error('Update failed: ' + error.message);
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      toast.error('Update failed: ' + msg);
     } finally {
       setUpdating(null);
     }
   };
 
   const handleDeleteBooking = async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this booking?')) return;
+    if (!globalThis.confirm?.('Are you sure you want to delete this booking?')) return;
     
     setUpdating(id);
     try {
       await societyService.deleteBooking(id);
       toast.success(`Booking ${id} deleted successfully`);
       onRefresh();
-    } catch (error: any) {
-      toast.error('Delete failed: ' + error.message);
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      toast.error('Delete failed: ' + msg);
     } finally {
       setUpdating(null);
     }
   };
 
   const handleDeleteResident = async (residentId: string) => {
-    if (!window.confirm('Are you sure you want to delete this resident?')) return;
+    if (!globalThis.confirm?.('Are you sure you want to delete this resident?')) return;
     
     setUpdating(residentId);
     try {
       await societyService.deleteResident(residentId);
       toast.success(`Resident ${residentId} deleted successfully`);
       onRefresh();
-    } catch (error: any) {
-      toast.error('Delete failed: ' + error.message);
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      toast.error('Delete failed: ' + msg);
     } finally {
       setUpdating(null);
     }
   };
 
   const handleDeleteComplaint = async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this complaint?')) return;
+    if (!globalThis.confirm?.('Are you sure you want to delete this complaint?')) return;
     
     setUpdating(id);
     try {
       await societyService.deleteComplaint(id);
       toast.success(`Complaint ${id} deleted successfully`);
       onRefresh();
-    } catch (error: any) {
-      toast.error('Delete failed: ' + error.message);
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      toast.error('Delete failed: ' + msg);
     } finally {
       setUpdating(null);
     }
   };
 
-  const handleChangePassword = async (e: React.FormEvent) => {
+  const handleChangePassword = async (e: FormEvent) => {
     e.preventDefault();
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       toast.error('New passwords do not match');
@@ -393,77 +437,103 @@ export default function AdminDashboard({
       toast.success('Password changed successfully');
       setShowChangePasswordModal(false);
       setPasswordData({ oldPassword: '', newPassword: '', confirmPassword: '' });
-    } catch (error: any) {
-      toast.error('Failed to change password: ' + error.message);
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      toast.error('Failed to change password: ' + msg);
     } finally {
       setUpdating(null);
     }
   };
 
   const handleDeleteAllResidents = async () => {
-    if (!window.confirm('CRITICAL: Are you sure you want to delete ALL residents? This cannot be undone.')) return;
+    if (!globalThis.confirm?.('CRITICAL: Are you sure you want to delete ALL residents? This cannot be undone.')) return;
     setUpdating('delete-all');
     try {
       await societyService.deleteAllResidents(user.society_id!);
       toast.success('All residents deleted successfully');
       onRefresh();
-    } catch (error: any) {
-      toast.error('Delete failed: ' + error.message);
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      toast.error('Delete failed: ' + msg);
     } finally {
       setUpdating(null);
     }
   };
 
   const handleDeleteAllComplaints = async () => {
-    if (!window.confirm('CRITICAL: Are you sure you want to delete ALL complaints? This cannot be undone.')) return;
+    if (!globalThis.confirm?.('CRITICAL: Are you sure you want to delete ALL complaints? This cannot be undone.')) return;
     setUpdating('delete-all');
     try {
       await societyService.deleteAllComplaints(user.society_id!);
       toast.success('All complaints deleted successfully');
       onRefresh();
-    } catch (error: any) {
-      toast.error('Delete failed: ' + error.message);
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      toast.error('Delete failed: ' + msg);
     } finally {
       setUpdating(null);
     }
   };
 
   const handleDeleteAllBookings = async () => {
-    if (!window.confirm('CRITICAL: Are you sure you want to delete ALL bookings? This cannot be undone.')) return;
+    if (!globalThis.confirm?.('CRITICAL: Are you sure you want to delete ALL bookings? This cannot be undone.')) return;
     setUpdating('delete-all');
     try {
       await societyService.deleteAllBookings(user.society_id!);
       toast.success('All bookings deleted successfully');
       onRefresh();
-    } catch (error: any) {
-      toast.error('Delete failed: ' + error.message);
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      toast.error('Delete failed: ' + msg);
     } finally {
       setUpdating(null);
     }
   };
 
-  const handleUpdateResident = async (e: React.FormEvent) => {
+  const handleUpdateResident = async (e: FormEvent) => {
     e.preventDefault();
     
+    // Validation
+    const role = (residentEditData.role || residentEditData.occupancy_type || 'Owner') as 'Owner' | 'Tenant';
+    if (role === 'Tenant' && !residentEditData.owner_id) {
+      toast.error('Please select a valid owner for this tenant.');
+      return;
+    }
+
+    // Do NOT generate a new tenant ID when editing an existing tenant (Requirement 12)
+    const assignedTenantId = role === 'Tenant'
+      ? (editingResident?.tenant_id || residentEditData.tenant_id || getNextTenantId())
+      : null;
+
+    const payload: Partial<Resident> = {
+      ...residentEditData,
+      role: role,
+      occupancy_type: role,
+      tenant_id: assignedTenantId,
+      owner_id: role === 'Owner' ? null : (residentEditData.owner_id || null),
+      status: residentEditData.status || 'Active'
+    };
+
     setUpdating('updating-resident');
     try {
       if (editingResident) {
-        await societyService.updateResident(editingResident.resident_id, residentEditData);
+        await societyService.updateResident(editingResident.resident_id, payload);
         toast.success('Resident profile updated successfully!');
       } else {
-        await societyService.addResident({ ...residentEditData, society_id: user.society_id });
-        toast.success('Resident added successfully!');
+        await societyService.addResident({ ...payload, society_id: user.society_id } as any);
+        toast.success(`${role} added successfully!`);
       }
       setShowEditResidentModal(false);
       onRefresh();
-    } catch (error: any) {
-      toast.error('Operation failed: ' + error.message);
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      toast.error('Operation failed: ' + msg);
     } finally {
       setUpdating(null);
     }
   };
 
-  const handleCreateMaintenanceBill = async (e: React.FormEvent) => {
+  const handleCreateMaintenanceBill = async (e: FormEvent) => {
     e.preventDefault();
     
     if (residents.length === 0) {
@@ -475,6 +545,17 @@ export default function AdminDashboard({
     try {
       const fullMonth = `${billFormData.month} ${billFormData.year}`;
       
+      const getResidentBillAmount = (r: Resident) => {
+        const flatType = r.flat_type || (r.bhk ? (r.bhk === '1 BHK' ? 'Smart 1 BHK' : r.bhk === '3 BHK' ? 'Premium 3 BHK' : 'Smart 2 BHK') : 'Smart 2 BHK');
+        const sqft = r.square_feet || (flatType === 'Smart 1 BHK' ? 520 : flatType === 'Premium 2 BHK' ? 720 : flatType === 'Premium 3 BHK' ? 920 : 620);
+        
+        if (calcMethod === 'Square Foot Maintenance') {
+          return Math.round(sqft * (sqftRate || 5));
+        } else {
+          return flatTypeRates[flatType] || flatTypeRates['Smart 2 BHK'] || 3200;
+        }
+      };
+
       let targetResidents = [];
       if (billFormData.resident_id === 'all') {
         targetResidents = residents;
@@ -484,14 +565,14 @@ export default function AdminDashboard({
       }
 
       if (targetResidents.length > 0) {
-        // Generate bills for multiple residents using bulk insert
+        // Generate bills for multiple residents using bulk insert with calculated amounts
         const bills = targetResidents.map(resident => ({
           resident_id: resident.resident_id,
           resident_name: resident.name,
           flat_no: resident.flat,
           tower: resident.tower,
           month: fullMonth,
-          amount: billFormData.amount,
+          amount: getResidentBillAmount(resident),
           status: 'Unpaid' as const,
           due_date: billFormData.due_date,
           society_id: user.society_id,
@@ -506,13 +587,15 @@ export default function AdminDashboard({
         const resident = residents.find(r => r.resident_id === billFormData.resident_id);
         if (!resident) throw new Error('Resident not found');
 
+        const finalAmount = billFormData.amount || getResidentBillAmount(resident);
+
         await societyService.createMaintenanceBill({
           resident_id: resident.resident_id,
           resident_name: resident.name,
           flat_no: resident.flat,
           tower: resident.tower,
           month: fullMonth,
-          amount: billFormData.amount,
+          amount: finalAmount,
           status: 'Unpaid',
           due_date: billFormData.due_date,
           society_id: user.society_id,
@@ -525,14 +608,15 @@ export default function AdminDashboard({
       setShowBillForm(false);
       setShowBillSuccessModal(true);
       onRefresh();
-    } catch (error: any) {
-      toast.error('Failed to generate bill(s): ' + error.message);
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      toast.error('Failed to generate bill(s): ' + msg);
     } finally {
       setUpdating(null);
     }
   };
 
-  const handleAddAmenity = async (e: React.FormEvent) => {
+  const handleAddAmenity = async (e: FormEvent) => {
     e.preventDefault();
     setUpdating('adding-amenity');
     try {
@@ -573,8 +657,9 @@ export default function AdminDashboard({
         facilities: ''
       });
       fetchAmenities();
-    } catch (error: any) {
-      toast.error('Failed to update amenity: ' + error.message);
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      toast.error('Failed to update amenity: ' + msg);
     } finally {
       setUpdating(null);
     }
@@ -685,29 +770,80 @@ export default function AdminDashboard({
     confirmPassword: ''
   });
   const [profileFormData, setProfileFormData] = useState({
-    name: 'Manasi Pawar',
-    phone: '9876543210',
-    email: 'admin@gvsociety.com',
+    name: user?.name || '',
+    phone: user?.phone || '',
+    email: user?.email || '',
     password: '',
     confirmPassword: ''
   });
 
   useEffect(() => {
-    window.scrollTo(0, 0);
+    if (user) {
+      setProfileFormData(prev => ({
+        ...prev,
+        name: String(user.name || ''),
+        phone: String(user.phone || ''),
+        email: String(user.email || ''),
+      }));
+    }
+  }, [user?.name, user?.phone, user?.email, user?.admin_id, user?.id]);
+
+  useEffect(() => {
+    globalThis.scrollTo?.(0, 0);
   }, [activeTab]);
 
-  const handleProfileUpdate = async (e: React.FormEvent) => {
+  const handleProfileUpdate = async (e: FormEvent) => {
     e.preventDefault();
-    if (!isSupabaseConfigured) {
-      toast.error('Cannot update profile in Prototype Mode. Please configure Supabase.');
+    const nameStr = String(profileFormData.name || '').trim();
+    const phoneStr = String(profileFormData.phone || '').trim();
+    const emailStr = String(profileFormData.email || '').trim();
+
+    if (!nameStr) {
+      toast.error('Name is required');
       return;
     }
     if (profileFormData.password && profileFormData.password !== profileFormData.confirmPassword) {
       toast.error('Passwords do not match');
       return;
     }
-    toast.success('Profile updated successfully');
-    setShowProfileModal(false);
+    if (profileFormData.password && profileFormData.password.length < 6) {
+      toast.error('Password must be at least 6 characters');
+      return;
+    }
+
+    setUpdating('updating-profile');
+    try {
+      const updates: Partial<Admin> = {
+        name: nameStr,
+        phone: phoneStr,
+        email: emailStr,
+      };
+      if (profileFormData.password) {
+        updates.password = profileFormData.password;
+      }
+
+      const societyId = user.society_id || 'GV2026';
+      const adminId = user.admin_id || user.id || 'A001';
+      await societyService.updateAdminProfile(societyId, adminId, updates);
+
+      toast.success('Profile updated successfully');
+      setShowProfileModal(false);
+
+      if (onUserUpdate) {
+        onUserUpdate({
+          name: updates.name,
+          phone: updates.phone,
+          email: updates.email
+        });
+      }
+
+      onRefresh();
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      toast.error('Failed to update profile: ' + msg);
+    } finally {
+      setUpdating(null);
+    }
   };
 
   // Notification logic removed as per user request
@@ -852,34 +988,34 @@ export default function AdminDashboard({
           </div>
         );
 
-      case 'residents':
+      case 'residents': {
         const towers = Array.from(new Set(residents.map(r => r.tower))).sort();
         const floors = Array.from(new Set(residents.map(r => r.floor.toString()))).sort((a, b) => parseInt(a) - parseInt(b));
         const flats = Array.from(new Set(residents.map(r => r.flat))).sort();
 
         return (
-          <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
-            <div className="p-6 border-b border-slate-100 space-y-6 bg-slate-50/50 shrink-0">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="bg-white rounded-2xl shadow-xs border border-slate-200 overflow-hidden flex flex-col w-full">
+            <div className="p-4 sm:p-5 border-b border-slate-100 space-y-3 bg-slate-50/50 shrink-0">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
                 <div>
-                  <h3 className="text-xl font-extrabold text-slate-900 tracking-tight">Resident Directory</h3>
-                  <p className="text-xs font-medium text-slate-500 mt-1">Manage and view all registered society members.</p>
+                  <h3 className="text-lg font-bold text-slate-900 tracking-tight">Resident Directory</h3>
+                  <p className="text-xs text-slate-500">Manage and view all registered society members.</p>
                 </div>
-                <div className="relative w-full md:w-80">
-                  <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <div className="relative w-full md:w-72">
+                  <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input
                     type="text"
                     placeholder="Search by ID, Name, or Flat..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all w-full text-sm font-medium shadow-sm"
+                    className="pl-9 pr-3 py-1.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all w-full text-xs font-medium bg-white"
                   />
                 </div>
               </div>
               
-              <div className="flex flex-wrap items-center gap-4">
-                <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-sm">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tower</span>
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-xl border border-slate-200 shadow-xs">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tower</span>
                   <select 
                     value={residentTowerFilter}
                     onChange={(e) => setResidentTowerFilter(e.target.value)}
@@ -890,8 +1026,8 @@ export default function AdminDashboard({
                   </select>
                 </div>
                 
-                <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-sm">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Floor</span>
+                <div className="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-xl border border-slate-200 shadow-xs">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Floor</span>
                   <select 
                     value={residentFloorFilter}
                     onChange={(e) => setResidentFloorFilter(e.target.value)}
@@ -902,8 +1038,8 @@ export default function AdminDashboard({
                   </select>
                 </div>
 
-                <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-sm">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Flat</span>
+                <div className="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-xl border border-slate-200 shadow-xs">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Flat</span>
                   <select 
                     value={residentFlatFilter}
                     onChange={(e) => setResidentFlatFilter(e.target.value)}
@@ -914,142 +1050,225 @@ export default function AdminDashboard({
                   </select>
                 </div>
 
-                <div className="ml-auto flex items-center gap-4">
+                <div className="ml-auto flex items-center gap-2">
                   <button 
                     onClick={() => {
                       setEditingResident(null);
                       setResidentEditData({
                         resident_id: '',
                         name: '',
-                        tower: '',
-                        floor: 0,
-                        flat: '',
+                        tower: 'A',
+                        floor: 1,
+                        flat: '101',
                         phone: '',
                         email: '',
-                        password: '',
-                        status: 'Active'
+                        password: 'resident123',
+                        role: 'Owner',
+                        occupancy_type: 'Owner',
+                        tenant_id: null,
+                        owner_id: null,
+                        status: 'Active',
+                        bhk: '2 BHK',
+                        flat_type: 'Smart 2 BHK',
+                        square_feet: 620
                       });
                       setShowEditResidentModal(true);
                     }}
-                    className="px-4 py-2 bg-indigo-600 text-white text-[10px] font-black rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 flex items-center gap-2 uppercase tracking-widest"
+                    className="px-3 py-1.5 bg-indigo-600 text-white text-[10px] font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-xs flex items-center gap-1.5 uppercase tracking-wider"
                   >
-                    <UserPlus className="w-4 h-4" />
+                    <UserPlus className="w-3.5 h-3.5" />
                     Add Resident
                   </button>
                   <button 
                     onClick={handleDeleteAllResidents}
-                    className="px-4 py-2 bg-rose-50 text-rose-600 text-[10px] font-black rounded-xl hover:bg-rose-100 transition-all border border-rose-100 flex items-center gap-2 uppercase tracking-widest"
+                    className="px-2.5 py-1.5 bg-rose-50 text-rose-600 text-[10px] font-bold rounded-xl hover:bg-rose-100 transition-all border border-rose-100 flex items-center gap-1 uppercase tracking-wider"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-3.5 h-3.5" />
                     Delete All
                   </button>
-                  <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-xl uppercase tracking-widest border border-indigo-100">
+                  <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-xl uppercase tracking-wider border border-indigo-100">
                     Total: {filteredResidents.length}
                   </span>
                 </div>
               </div>
             </div>
 
-            <div className="flex-1 overflow-auto custom-scrollbar">
+            <div className="w-full overflow-hidden">
               <table className="w-full text-left border-collapse">
-                <thead className="bg-slate-50 sticky top-0 z-10 border-b border-slate-100">
-                  <tr className="text-slate-400 text-[9px] font-black uppercase tracking-widest">
-                    <th className="px-6 py-3">#</th>
-                    <th className="px-6 py-3">Name</th>
-                    <th className="px-6 py-3">Floor</th>
-                    <th className="px-6 py-3">Tower</th>
-                    <th className="px-6 py-3">Flat</th>
-                    <th className="px-6 py-3">Contact</th>
-                    <th className="px-6 py-3 text-right">Actions</th>
+                <thead className="bg-slate-50 border-b border-slate-200">
+                  <tr className="text-slate-500 text-[10px] font-bold uppercase tracking-wider">
+                    <th className="px-2.5 py-2.5 whitespace-nowrap">Resident ID</th>
+                    <th className="px-2.5 py-2.5">Name</th>
+                    <th className="px-2.5 py-2.5">Email</th>
+                    <th className="px-2 py-2.5 text-center whitespace-nowrap">Tower</th>
+                    <th className="px-2 py-2.5 text-center whitespace-nowrap">Floor</th>
+                    <th className="px-2 py-2.5 text-center whitespace-nowrap">Flat</th>
+                    <th className="px-2.5 py-2.5 whitespace-nowrap">BHK / Flat Type</th>
+                    <th className="px-2 py-2.5 whitespace-nowrap">Role</th>
+                    <th className="px-2 py-2.5 whitespace-nowrap">Status</th>
+                    <th className="px-2.5 py-2.5 text-right whitespace-nowrap">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-50">
-                  {filteredResidents.map((r, index) => (
-                    <tr key={r.resident_id} className="hover:bg-slate-50/80 transition-colors group text-[11px]">
-                      <td className="px-6 py-3 font-bold text-slate-400">{index + 1}</td>
-                      <td className="px-6 py-3">
-                        <div className="flex items-center gap-2">
-                          <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-[10px]">
-                            {r.name.charAt(0)}
+                <tbody className="divide-y divide-slate-100 text-xs">
+                  {filteredResidents.map((r) => {
+                    const residentRole = (r.role || r.occupancy_type || 'Owner') as 'Owner' | 'Tenant';
+                    const isOwner = residentRole === 'Owner';
+                    const flatType = r.flat_type || (r.bhk ? (r.bhk === '1 BHK' ? 'Smart 1 BHK' : r.bhk === '3 BHK' ? 'Premium 3 BHK' : 'Smart 2 BHK') : 'Smart 2 BHK');
+
+                    return (
+                      <tr 
+                        key={r.resident_id} 
+                        className={`transition-colors group ${
+                          !isOwner 
+                            ? 'bg-purple-50/30 hover:bg-purple-50/60' 
+                            : 'hover:bg-slate-50/80'
+                        }`}
+                      >
+                        {/* 1. Resident ID */}
+                        <td className="px-2.5 py-2 whitespace-nowrap font-mono font-bold text-slate-800 text-[11px]">
+                          {r.resident_id}
+                        </td>
+
+                        {/* 2. Name */}
+                        <td className="px-2.5 py-2">
+                          <div className="flex items-center gap-2">
+                            {r.profile_photo || (r as any).avatar ? (
+                              <img 
+                                src={r.profile_photo || (r as any).avatar} 
+                                alt={r.name} 
+                                className={`w-6 h-6 rounded-full object-cover border shrink-0 ${!isOwner ? 'border-purple-400' : 'border-amber-400'}`} 
+                              />
+                            ) : (
+                              <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-[10px] border shrink-0 ${
+                                !isOwner ? 'bg-purple-600 text-white border-purple-700' : 'bg-amber-100 text-amber-800 border-amber-300'
+                              }`}>
+                                {r.name ? r.name.charAt(0).toUpperCase() : 'R'}
+                              </div>
+                            )}
+                            <span className={`font-bold truncate max-w-[120px] ${!isOwner ? 'text-purple-950' : 'text-slate-800'}`}>{r.name}</span>
                           </div>
-                          <span className="font-bold text-slate-800">{r.name}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-3">
-                        <span className="text-[10px] font-black bg-emerald-50 text-emerald-700 px-2 py-1 rounded-lg uppercase tracking-wider border border-emerald-100">Floor {r.floor}</span>
-                      </td>
-                      <td className="px-6 py-3">
-                        <span className="text-[10px] font-black bg-indigo-50 text-indigo-700 px-2 py-1 rounded-lg uppercase tracking-wider border border-indigo-100">Tower {r.tower}</span>
-                      </td>
-                      <td className="px-6 py-3 font-bold text-slate-700">{r.flat}</td>
-                      <td className="px-6 py-3">
-                        <div className="space-y-0.5">
-                          <p className="font-medium text-slate-600">{r.email}</p>
-                          <p className="text-[9px] font-bold text-slate-400">{r.phone}</p>
-                        </div>
-                      </td>
-                      <td className="px-6 py-3 text-right">
-                        <div className="flex items-center justify-end gap-2">
+                        </td>
+
+                        {/* 3. Email */}
+                        <td className="px-2.5 py-2 font-medium text-slate-500 text-[11px] truncate max-w-[140px]">
+                          {r.email || '—'}
+                        </td>
+
+                        {/* 4. Tower */}
+                        <td className="px-2 py-2 text-center whitespace-nowrap font-semibold text-slate-700">{r.tower}</td>
+
+                        {/* 5. Floor */}
+                        <td className="px-2 py-2 text-center whitespace-nowrap font-semibold text-slate-700">{r.floor ?? '—'}</td>
+
+                        {/* 6. Flat */}
+                        <td className="px-2 py-2 text-center whitespace-nowrap font-bold text-slate-800">{r.flat}</td>
+
+                        {/* 7. BHK / Flat Type */}
+                        <td className="px-2.5 py-2 whitespace-nowrap">
+                          <span className="font-semibold text-slate-800 bg-slate-100 px-2 py-0.5 rounded text-[10px] inline-block border border-slate-200">
+                            {flatType}
+                          </span>
+                        </td>
+
+                        {/* 8. Role */}
+                        <td className="px-2 py-2 whitespace-nowrap">
+                          <span className={`text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider inline-block ${
+                            isOwner
+                              ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                              : 'bg-purple-600 text-white'
+                          }`}>
+                            {residentRole}
+                          </span>
+                        </td>
+
+                        {/* 9. Status */}
+                        <td className="px-2 py-2 whitespace-nowrap">
                           <button 
                             onClick={async () => {
                               const newStatus = r.status === 'Inactive' ? 'Active' : 'Inactive';
                               setUpdating(r.resident_id);
                               try {
                                 await societyService.updateResident(r.resident_id, { status: newStatus });
-                                toast.success(`Resident marked as ${newStatus}`);
+                                toast.success(`${isOwner ? 'Owner' : 'Tenant'} marked as ${newStatus}`);
                                 onRefresh();
-                              } catch (err: any) {
-                                toast.error('Failed to update status: ' + err.message);
+                              } catch (err: unknown) {
+                                const msg = err instanceof Error ? err.message : String(err);
+                                toast.error('Failed to update status: ' + msg);
                               } finally {
                                 setUpdating(null);
                               }
                             }}
-                            className={`px-2 py-0.5 text-[9px] font-black rounded uppercase tracking-wider border transition-colors ${
+                            className={`px-2 py-0.5 text-[9px] font-bold rounded uppercase tracking-wider border transition-colors ${
                               r.status === 'Inactive' 
-                                ? 'bg-rose-50 text-rose-600 border-rose-100 hover:bg-rose-100' 
-                                : 'bg-emerald-50 text-emerald-700 border-emerald-100 hover:bg-emerald-100'
+                                ? 'bg-rose-50 text-rose-600 border-rose-200 hover:bg-rose-100' 
+                                : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
                             }`}
+                            title="Click to toggle status"
                           >
                             {r.status || 'Active'}
                           </button>
-                          <button 
-                            onClick={() => {
-                              setEditingResident(r);
-                              setResidentEditData({
-                                resident_id: r.resident_id,
-                                name: r.name,
-                                tower: r.tower,
-                                floor: r.floor,
-                                flat: r.flat,
-                                phone: r.phone,
-                                email: r.email,
-                                password: r.password || '',
-                                status: r.status || 'Active'
-                              });
-                              setShowEditResidentModal(true);
-                            }}
-                            className="p-1 text-indigo-600 hover:bg-indigo-50 rounded-lg border border-indigo-100"
-                            title="Edit Profile"
-                          >
-                            <Edit className="w-3 h-3" />
-                          </button>
-                          <button 
-                            onClick={() => handleDeleteResident(r.resident_id)}
-                            className="p-1 text-rose-600 hover:bg-rose-50 rounded-lg border border-rose-100"
-                            title="Delete Resident"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+
+                        {/* 10. Actions */}
+                        <td className="px-2.5 py-2 text-right whitespace-nowrap">
+                          <div className="flex items-center justify-end gap-1.5">
+                            <button
+                              onClick={() => setSelectedResidentDetails(r)}
+                              className="p-1 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded border border-slate-200 transition-colors"
+                              title="View Resident Details"
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                            </button>
+                            <button 
+                              onClick={() => {
+                                setEditingResident(r);
+                                const rRole = (r.role || r.occupancy_type || 'Owner') as 'Owner' | 'Tenant';
+                                const rBhk = r.bhk || '2 BHK';
+                                const rFlatType = r.flat_type || (rBhk === '1 BHK' ? 'Smart 1 BHK' : rBhk === '3 BHK' ? 'Premium 3 BHK' : 'Smart 2 BHK');
+                                const rSqft = r.square_feet || (rFlatType === 'Smart 1 BHK' ? 520 : rFlatType === 'Premium 2 BHK' ? 720 : rFlatType === 'Premium 3 BHK' ? 920 : 620);
+                                setResidentEditData({
+                                  resident_id: r.resident_id,
+                                  name: r.name,
+                                  tower: r.tower,
+                                  floor: r.floor,
+                                  flat: r.flat,
+                                  phone: r.phone,
+                                  email: r.email || '',
+                                  password: r.password || 'resident123',
+                                  role: rRole,
+                                  occupancy_type: rRole,
+                                  tenant_id: r.tenant_id || (rRole === 'Tenant' ? 'T001' : null),
+                                  owner_id: r.owner_id || null,
+                                  status: (r.status || 'Active') as 'Active' | 'Inactive',
+                                  bhk: rBhk,
+                                  flat_type: rFlatType,
+                                  square_feet: rSqft
+                                });
+                                setShowEditResidentModal(true);
+                              }}
+                              className="p-1 text-indigo-600 hover:bg-indigo-50 rounded border border-indigo-100"
+                              title="Edit Profile"
+                            >
+                              <Edit className="w-3.5 h-3.5" />
+                            </button>
+                            <button 
+                              onClick={() => handleDeleteResident(r.resident_id)}
+                              className="p-1 text-rose-600 hover:bg-rose-50 rounded border border-rose-100"
+                              title="Delete Resident"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                   {filteredResidents.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="px-6 py-20 text-center">
+                      <td colSpan={10} className="px-6 py-16 text-center">
                         <div className="flex flex-col items-center justify-center text-slate-400">
-                          <Users className="w-16 h-16 mb-4 opacity-10" />
-                          <p className="text-lg font-medium">No residents found matching your filters</p>
+                          <Users className="w-12 h-12 mb-3 opacity-20" />
+                          <p className="text-sm font-medium">No residents found matching your filters</p>
                         </div>
                       </td>
                     </tr>
@@ -1059,10 +1278,9 @@ export default function AdminDashboard({
             </div>
           </div>
         );
+      }
 
-      case 'maintenance':
-        const maintenanceTowers = Array.from(new Set(maintenance.map(m => m.tower))).sort();
-
+      case 'maintenance': {
         return (
           <div className="flex flex-col gap-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 shrink-0">
@@ -1113,58 +1331,58 @@ export default function AdminDashboard({
             </div>
 
             {/* ERP Maintenance Summary Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 shrink-0">
-              <div className="bg-blue-600 p-5 rounded-2xl border border-blue-700 shadow-lg shadow-blue-100">
-                <p className="text-blue-100 text-[10px] font-black uppercase tracking-widest mb-1">Total Residents</p>
-                <h3 className="text-2xl font-black text-white">{totalResidentsCount}</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 shrink-0">
+              <div className="bg-blue-600 p-3.5 rounded-2xl border border-blue-700 shadow-md shadow-blue-100">
+                <p className="text-blue-100 text-[10px] font-black uppercase tracking-widest mb-0.5">Total Residents</p>
+                <h3 className="text-xl font-black text-white">{totalResidentsCount}</h3>
               </div>
-              <div className="bg-emerald-600 p-5 rounded-2xl border border-emerald-700 shadow-lg shadow-emerald-100">
-                <p className="text-emerald-100 text-[10px] font-black uppercase tracking-widest mb-1">Total Collection</p>
-                <h3 className="text-2xl font-black text-white">₹{totalCollectionAmount.toLocaleString()}</h3>
+              <div className="bg-emerald-600 p-3.5 rounded-2xl border border-emerald-700 shadow-md shadow-emerald-100">
+                <p className="text-emerald-100 text-[10px] font-black uppercase tracking-widest mb-0.5">Total Collection</p>
+                <h3 className="text-xl font-black text-white">₹{totalCollectionAmount.toLocaleString()}</h3>
               </div>
-              <div className="bg-orange-600 p-5 rounded-2xl border border-orange-700 shadow-lg shadow-orange-100">
-                <p className="text-orange-100 text-[10px] font-black uppercase tracking-widest mb-1">Pending Amount</p>
-                <h3 className="text-2xl font-black text-white">₹{totalPendingAmount.toLocaleString()}</h3>
+              <div className="bg-orange-600 p-3.5 rounded-2xl border border-orange-700 shadow-md shadow-orange-100">
+                <p className="text-orange-100 text-[10px] font-black uppercase tracking-widest mb-0.5">Pending Amount</p>
+                <h3 className="text-xl font-black text-white">₹{totalPendingAmount.toLocaleString()}</h3>
               </div>
-              <div className="bg-teal-600 p-5 rounded-2xl border border-teal-700 shadow-lg shadow-teal-100">
-                <p className="text-teal-100 text-[10px] font-black uppercase tracking-widest mb-1">Paid Bills</p>
-                <h3 className="text-2xl font-black text-white">{paidMaintenanceCount}</h3>
+              <div className="bg-teal-600 p-3.5 rounded-2xl border border-teal-700 shadow-md shadow-teal-100">
+                <p className="text-teal-100 text-[10px] font-black uppercase tracking-widest mb-0.5">Paid Bills</p>
+                <h3 className="text-xl font-black text-white">{paidMaintenanceCount}</h3>
               </div>
-              <div className="bg-rose-600 p-5 rounded-2xl border border-rose-700 shadow-lg shadow-rose-100">
-                <p className="text-rose-100 text-[10px] font-black uppercase tracking-widest mb-1">Unpaid Bills</p>
-                <h3 className="text-2xl font-black text-white">{unpaidMaintenanceCount}</h3>
+              <div className="bg-rose-600 p-3.5 rounded-2xl border border-rose-700 shadow-md shadow-rose-100 col-span-2 sm:col-span-1">
+                <p className="text-rose-100 text-[10px] font-black uppercase tracking-widest mb-0.5">Unpaid Bills</p>
+                <h3 className="text-xl font-black text-white">{unpaidMaintenanceCount}</h3>
               </div>
             </div>
 
-            <div className="bg-white rounded-3xl shadow-sm border border-slate-200 flex flex-col">
-              <div className="p-6 border-b border-slate-100 space-y-4 bg-slate-50/50 shrink-0">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div className="flex items-center gap-4 flex-1">
+            <div className="bg-white rounded-2xl shadow-xs border border-slate-200 flex flex-col w-full">
+              <div className="p-4 border-b border-slate-100 space-y-3 bg-slate-50/50 shrink-0">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 flex-1">
                     <div className="relative w-full max-w-xs">
-                      <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                      <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                       <input
                         type="text"
                         placeholder="Search bills..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-9 pr-4 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-emerald-500 text-xs font-bold w-full bg-white"
+                        className="pl-8 pr-3 py-1.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-emerald-500 text-xs font-semibold w-full bg-white"
                       />
                     </div>
                     <button 
                       onClick={() => setShowBillForm(true)}
-                      className="px-4 py-2 bg-emerald-600 text-white text-[10px] font-black rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100 flex items-center gap-2 uppercase tracking-widest shrink-0"
+                      className="px-3 py-1.5 bg-emerald-600 text-white text-[10px] font-bold rounded-xl hover:bg-emerald-700 transition-all shadow-sm flex items-center gap-1.5 uppercase tracking-wider shrink-0"
                     >
-                      <Plus className="w-4 h-4" />
+                      <Plus className="w-3.5 h-3.5" />
                       Generate Bill
                     </button>
                   </div>
-                  <div className="flex flex-wrap items-center gap-3">
-                    <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-sm">
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</span>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-xl border border-slate-200 shadow-xs text-xs">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Status</span>
                       <select 
                         value={maintenanceFilter}
-                        onChange={(e) => setMaintenanceFilter(e.target.value as any)}
-                        className="bg-transparent outline-none text-[10px] font-black text-slate-700 cursor-pointer"
+                        onChange={(e) => setMaintenanceFilter(e.target.value as 'All' | 'Paid' | 'Unpaid')}
+                        className="bg-transparent outline-none text-xs font-bold text-slate-700 cursor-pointer"
                       >
                         <option value="All">All</option>
                         <option value="Paid">Paid</option>
@@ -1172,24 +1390,24 @@ export default function AdminDashboard({
                       </select>
                     </div>
 
-                    <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-sm">
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tower</span>
+                    <div className="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-xl border border-slate-200 shadow-xs text-xs">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tower</span>
                       <select 
                         value={maintenanceTowerFilter}
                         onChange={(e) => setMaintenanceTowerFilter(e.target.value)}
-                        className="bg-transparent outline-none text-[10px] font-black text-slate-700 cursor-pointer"
+                        className="bg-transparent outline-none text-xs font-bold text-slate-700 cursor-pointer"
                       >
                         <option value="All">All</option>
                         {['A', 'B', 'C', 'D', 'E'].map(t => <option key={t} value={t}>Tower {t}</option>)}
                       </select>
                     </div>
 
-                    <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-sm">
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Flat</span>
+                    <div className="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-xl border border-slate-200 shadow-xs text-xs">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Flat</span>
                       <select 
                         value={maintenanceFlatFilter}
                         onChange={(e) => setMaintenanceFlatFilter(e.target.value)}
-                        className="bg-transparent outline-none text-[10px] font-black text-slate-700 cursor-pointer"
+                        className="bg-transparent outline-none text-xs font-bold text-slate-700 cursor-pointer"
                       >
                         <option value="All">All</option>
                         {Array.from(new Set(residents.map(r => r.flat))).sort().map(f => <option key={f} value={f}>{f}</option>)}
@@ -1198,85 +1416,91 @@ export default function AdminDashboard({
                   </div>
                 </div>
               </div>
-              <div className="flex-1 overflow-auto custom-scrollbar">
+              <div className="w-full overflow-hidden">
                 <table className="w-full text-left border-collapse">
-                  <thead className="bg-slate-50 sticky top-0 z-10 border-b border-slate-100">
-                    <tr className="text-slate-400 text-[9px] font-black uppercase tracking-widest">
-                      <th className="px-6 py-3">Bill ID</th>
-                      <th className="px-6 py-3">Resident ID</th>
-                      <th className="px-6 py-3">Tower</th>
-                      <th className="px-6 py-3">Flat</th>
-                      <th className="px-6 py-3">Amount</th>
-                      <th className="px-6 py-3">Payment Date</th>
-                      <th className="px-6 py-3">Status</th>
-                      <th className="px-6 py-3 text-center">Actions</th>
+                  <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 text-[10px] font-bold uppercase tracking-wider">
+                    <tr>
+                      <th className="px-3 py-2.5 whitespace-nowrap">Bill ID</th>
+                      <th className="px-3 py-2.5 whitespace-nowrap">Resident ID</th>
+                      <th className="px-3 py-2.5">Resident Name</th>
+                      <th className="px-3 py-2.5 whitespace-nowrap">Tower</th>
+                      <th className="px-3 py-2.5 whitespace-nowrap">Flat</th>
+                      <th className="px-3 py-2.5 whitespace-nowrap">Amount</th>
+                      <th className="px-3 py-2.5 whitespace-nowrap">Payment Date</th>
+                      <th className="px-3 py-2.5 whitespace-nowrap">Status</th>
+                      <th className="px-3 py-2.5 text-center whitespace-nowrap">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-50">
-                    {filteredMaintenance.map((m, index) => (
-                      <tr key={m.id || m.maintenance_id || `m-${index}`} className={`transition-colors group ${
-                        m.status === 'Paid' ? 'bg-emerald-50/30' : 'bg-rose-50/30'
-                      } hover:bg-indigo-50/40 text-[11px]`}>
-                        <td className="px-6 py-3">
-                          <span className="font-black text-indigo-600 tracking-tight">
+                  <tbody className="divide-y divide-slate-100 text-xs">
+                    {filteredMaintenance.map((m, index) => {
+                      const residentObj = residents.find(r => r.resident_id === m.resident_id);
+                      const displayResidentName = m.resident_name || residentObj?.name || 'Resident Not Found';
+
+                      return (
+                        <tr key={m.id || m.maintenance_id || `m-${index}`} className={`transition-colors group ${
+                          m.status === 'Paid' ? 'bg-emerald-50/20' : 'bg-rose-50/20'
+                        } hover:bg-slate-50/80`}>
+                          <td className="px-3 py-2.5 whitespace-nowrap font-mono font-bold text-indigo-600">
                             {m.maintenance_id}
-                          </span>
-                        </td>
-                        <td className="px-6 py-3">
-                          <p className="font-black text-slate-400">{m.resident_id}</p>
-                        </td>
-                        <td className="px-6 py-3">
-                          <span className="font-black text-slate-600">Tower {m.tower}</span>
-                        </td>
-                        <td className="px-6 py-3">
-                          <span className="font-black text-slate-700">{m.flat_no}</span>
-                        </td>
-                        <td className="px-6 py-3">
-                          <p className="font-black text-slate-900">₹{m.amount.toLocaleString()}</p>
-                        </td>
-                        <td className="px-6 py-3">
-                          <p className="font-bold text-slate-500">
-                            {m.payment_date ? format(new Date(m.payment_date), 'dd MMM yyyy') : '-'}
-                          </p>
-                        </td>
-                        <td className="px-6 py-3">
-                          <span className={`text-[9px] font-black px-2 py-0.5 rounded-lg uppercase tracking-wider flex items-center gap-1.5 w-fit ${
-                            m.status === 'Paid' ? 'bg-emerald-600 text-white' : 
-                            m.status === 'Unpaid' ? 'bg-rose-600 text-white' : 'bg-orange-500 text-white'
-                          }`}>
-                            {m.status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-3">
-                          <div className="flex justify-center gap-2">
-                            <button 
-                              onClick={() => handleUpdateMaintenanceStatus(m.maintenance_id || m.id!, m.status === 'Paid' ? 'Unpaid' : 'Paid')}
-                              disabled={updating === (m.maintenance_id || m.id)}
-                              className={`px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all border ${
-                                m.status === 'Paid' ? 'text-rose-600 border-rose-100 hover:bg-rose-50' : 'text-emerald-600 border-emerald-100 hover:bg-emerald-50'
-                              }`}
-                            >
-                              {m.status === 'Paid' ? 'Unpaid' : 'Paid'}
-                            </button>
-                            <button 
-                              onClick={() => handleDeleteMaintenance(m.maintenance_id || m.id!)}
-                              className="p-1 text-rose-600 hover:bg-rose-50 rounded-lg transition-all border border-rose-100"
-                              title="Delete Record"
-                            >
-                              <Trash2 className="w-3 h-3" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
+                          </td>
+                          <td className="px-3 py-2.5 whitespace-nowrap font-mono text-slate-500 font-bold">
+                            {m.resident_id}
+                          </td>
+                          <td className="px-3 py-2.5 font-bold text-slate-800 truncate max-w-[130px]">
+                            {displayResidentName}
+                          </td>
+                          <td className="px-3 py-2.5 whitespace-nowrap font-semibold text-slate-700">
+                            Tower {m.tower}
+                          </td>
+                          <td className="px-3 py-2.5 whitespace-nowrap font-semibold text-slate-800">
+                            {m.flat_no}
+                          </td>
+                          <td className="px-3 py-2.5 whitespace-nowrap font-mono font-bold text-slate-900">
+                            ₹{m.amount.toLocaleString()}
+                          </td>
+                          <td className="px-3 py-2.5 whitespace-nowrap font-mono text-slate-600">
+                            {m.payment_date ? format(new Date(m.payment_date), 'dd MMM yyyy') : '—'}
+                          </td>
+                          <td className="px-3 py-2.5 whitespace-nowrap">
+                            <span className={`text-[9px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider inline-flex items-center gap-1 ${
+                              m.status === 'Paid' ? 'bg-emerald-600 text-white' : 
+                              m.status === 'Unpaid' ? 'bg-rose-600 text-white' : 'bg-amber-500 text-white'
+                            }`}>
+                              {m.status}
+                            </span>
+                          </td>
+                          <td className="px-3 py-2.5 whitespace-nowrap text-center">
+                            <div className="flex items-center justify-center gap-1.5">
+                              <button 
+                                onClick={() => handleUpdateMaintenanceStatus(m.maintenance_id || m.id!, m.status === 'Paid' ? 'Unpaid' : 'Paid')}
+                                disabled={updating === (m.maintenance_id || m.id)}
+                                className={`px-2 py-1 rounded-md text-[9px] font-bold uppercase tracking-wider transition-all border ${
+                                  m.status === 'Paid' ? 'text-rose-600 border-rose-200 hover:bg-rose-50' : 'text-emerald-600 border-emerald-200 hover:bg-emerald-50'
+                                }`}
+                              >
+                                {m.status === 'Paid' ? 'Mark Unpaid' : 'Mark Paid'}
+                              </button>
+                              <button 
+                                onClick={() => handleDeleteMaintenance(m.maintenance_id || m.id!)}
+                                className="p-1 text-rose-600 hover:bg-rose-50 rounded-md transition-all border border-rose-100"
+                                title="Delete Record"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
             </div>
           </div>
         );
+      }
 
-      case 'complaints':
+      case 'complaints': {
         return (
           <div className="flex flex-col gap-6">
             <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
@@ -1300,7 +1524,7 @@ export default function AdminDashboard({
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-3">Filter</span>
                     <select 
                       value={complaintFilter}
-                      onChange={(e) => setComplaintFilter(e.target.value as any)}
+                      onChange={(e) => setComplaintFilter(e.target.value as 'All' | 'Pending' | 'Process' | 'Done' | 'Rejected')}
                       className="px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest bg-slate-50 outline-none text-slate-600 hover:text-indigo-600 cursor-pointer border border-slate-100"
                     >
                       <option value="All">All Status</option>
@@ -1370,7 +1594,7 @@ export default function AdminDashboard({
                           <span className={`text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider ${
                             c.status === 'Done' || c.status === 'Resolved' ? 'bg-emerald-100 text-emerald-700' : 
                             c.status === 'Pending' ? 'bg-amber-100 text-amber-700' : 
-                            c.status === 'Process' ? 'bg-indigo-100 text-indigo-700' :
+                            c.status === 'Process' ? 'bg-indigo-100 text-indigo-700' : 
                             'bg-rose-100 text-rose-700'
                           }`}>
                             {c.status}
@@ -1441,9 +1665,9 @@ export default function AdminDashboard({
             </div>
           </div>
         );
+      }
 
-
-      case 'bookings':
+      case 'bookings': {
         return (
           <div className="flex flex-col gap-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 shrink-0">
@@ -1466,7 +1690,7 @@ export default function AdminDashboard({
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-3">Filter</span>
                   <select 
                     value={bookingFilter}
-                    onChange={(e) => setBookingFilter(e.target.value as any)}
+                    onChange={(e) => setBookingFilter(e.target.value as 'All' | 'Pending' | 'Approved' | 'Rejected')}
                     className="px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest bg-slate-50 outline-none text-slate-600 hover:text-indigo-600 cursor-pointer border border-slate-100"
                   >
                     <option value="All">All Status</option>
@@ -1613,6 +1837,7 @@ export default function AdminDashboard({
             </div>
           </div>
         );
+      }
 
       case 'profile':
         return (
@@ -1701,6 +1926,34 @@ export default function AdminDashboard({
               </div>
             </div>
           </div>
+        );
+
+      case 'notices':
+        return (
+          <NoticeBoard 
+            user={user}
+            onSwitchTab={(tab) => setActiveTab(tab)}
+            onRefresh={onRefresh}
+          />
+        );
+
+      case 'communication':
+        return (
+          <CommunicationCenter 
+            user={user}
+            onSwitchTab={(tab) => setActiveTab(tab)}
+            onRefresh={onRefresh}
+          />
+        );
+
+      case 'financial':
+        return (
+          <FinanceDashboard 
+            user={user}
+            residents={residents}
+            maintenance={maintenance}
+            onRefresh={onRefresh}
+          />
         );
 
       default:
@@ -1794,26 +2047,169 @@ export default function AdminDashboard({
       {/* Maintenance Bill Form Modal */}
       {showBillForm && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden">
-            <div className="p-6 bg-blue-600 text-white flex justify-between items-center">
+          <div className="bg-white w-full max-w-xl rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+            <div className="p-6 bg-blue-600 text-white flex justify-between items-center shrink-0">
               <div>
                 <h3 className="text-xl font-black">Generate Maintenance Bill</h3>
-                <p className="text-blue-100 text-xs font-medium uppercase tracking-wider">Create a new record for a resident</p>
+                <p className="text-blue-100 text-xs font-medium uppercase tracking-wider">Select calculation method & generate bills</p>
               </div>
               <button onClick={() => setShowBillForm(false)} className="p-2 hover:bg-white/10 rounded-full transition-colors">
                 <X className="w-6 h-6" />
               </button>
             </div>
-            <form onSubmit={handleCreateMaintenanceBill} className="p-6 space-y-4">
+            
+            <form onSubmit={handleCreateMaintenanceBill} className="p-6 space-y-4 overflow-y-auto custom-scrollbar">
+              {/* Calculation Method Selection */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Calculation Method</label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCalcMethod('Flat/BHK Maintenance');
+                      const selRes = residents.find(r => r.resident_id === billFormData.resident_id);
+                      if (selRes) {
+                        const ft = selRes.flat_type || (selRes.bhk === '1 BHK' ? 'Smart 1 BHK' : selRes.bhk === '3 BHK' ? 'Premium 3 BHK' : 'Smart 2 BHK');
+                        setBillFormData(prev => ({ ...prev, amount: flatTypeRates[ft] || 3200 }));
+                      }
+                    }}
+                    className={`p-3 rounded-2xl border text-xs font-black transition-all text-left flex flex-col gap-1 ${
+                      calcMethod === 'Flat/BHK Maintenance'
+                        ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-100'
+                        : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
+                    }`}
+                  >
+                    <span className="uppercase tracking-wider">1. Flat / BHK Maintenance</span>
+                    <span className={`text-[10px] font-normal ${calcMethod === 'Flat/BHK Maintenance' ? 'text-blue-100' : 'text-gray-500'}`}>
+                      Fixed amount per Flat Type
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCalcMethod('Square Foot Maintenance');
+                      const selRes = residents.find(r => r.resident_id === billFormData.resident_id);
+                      if (selRes) {
+                        const ft = selRes.flat_type || (selRes.bhk === '1 BHK' ? 'Smart 1 BHK' : selRes.bhk === '3 BHK' ? 'Premium 3 BHK' : 'Smart 2 BHK');
+                        const sqft = selRes.square_feet || (ft === 'Smart 1 BHK' ? 520 : ft === 'Premium 2 BHK' ? 720 : ft === 'Premium 3 BHK' ? 920 : 620);
+                        setBillFormData(prev => ({ ...prev, amount: Math.round(sqft * sqftRate) }));
+                      }
+                    }}
+                    className={`p-3 rounded-2xl border text-xs font-black transition-all text-left flex flex-col gap-1 ${
+                      calcMethod === 'Square Foot Maintenance'
+                        ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-100'
+                        : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
+                    }`}
+                  >
+                    <span className="uppercase tracking-wider">2. Square Foot Maintenance</span>
+                    <span className={`text-[10px] font-normal ${calcMethod === 'Square Foot Maintenance' ? 'text-blue-100' : 'text-gray-500'}`}>
+                      Area × Rate per sq.ft
+                    </span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Maintenance Rate Configuration */}
+              {calcMethod === 'Flat/BHK Maintenance' ? (
+                <div className="bg-indigo-50/70 p-4 rounded-2xl border border-indigo-100 space-y-3">
+                  <p className="text-[10px] font-black text-indigo-900 uppercase tracking-widest">
+                    Flat/BHK Maintenance Amounts Configuration (₹)
+                  </p>
+                  <div className="grid grid-cols-2 gap-3 text-xs">
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-500 block mb-1">Smart 1 BHK</label>
+                      <input 
+                        type="number"
+                        min="0"
+                        value={flatTypeRates['Smart 1 BHK'] || 2500}
+                        onChange={(e) => setFlatTypeRates({ ...flatTypeRates, 'Smart 1 BHK': parseInt(e.target.value) || 0 })}
+                        className="w-full px-3 py-1.5 rounded-xl border border-indigo-200 font-bold bg-white outline-none focus:ring-2 focus:ring-indigo-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-500 block mb-1">Smart 2 BHK</label>
+                      <input 
+                        type="number"
+                        min="0"
+                        value={flatTypeRates['Smart 2 BHK'] || 3200}
+                        onChange={(e) => setFlatTypeRates({ ...flatTypeRates, 'Smart 2 BHK': parseInt(e.target.value) || 0 })}
+                        className="w-full px-3 py-1.5 rounded-xl border border-indigo-200 font-bold bg-white outline-none focus:ring-2 focus:ring-indigo-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-500 block mb-1">Premium 2 BHK</label>
+                      <input 
+                        type="number"
+                        min="0"
+                        value={flatTypeRates['Premium 2 BHK'] || 4000}
+                        onChange={(e) => setFlatTypeRates({ ...flatTypeRates, 'Premium 2 BHK': parseInt(e.target.value) || 0 })}
+                        className="w-full px-3 py-1.5 rounded-xl border border-indigo-200 font-bold bg-white outline-none focus:ring-2 focus:ring-indigo-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-500 block mb-1">Premium 3 BHK</label>
+                      <input 
+                        type="number"
+                        min="0"
+                        value={flatTypeRates['Premium 3 BHK'] || 5000}
+                        onChange={(e) => setFlatTypeRates({ ...flatTypeRates, 'Premium 3 BHK': parseInt(e.target.value) || 0 })}
+                        className="w-full px-3 py-1.5 rounded-xl border border-indigo-200 font-bold bg-white outline-none focus:ring-2 focus:ring-indigo-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-indigo-50/70 p-4 rounded-2xl border border-indigo-100 space-y-2">
+                  <label className="text-[10px] font-black text-indigo-900 uppercase tracking-widest block">
+                    Square Foot Maintenance Rate (₹ per sq.ft)
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <input 
+                      type="number"
+                      min="1"
+                      step="0.5"
+                      value={sqftRate}
+                      onChange={(e) => {
+                        const newRate = parseFloat(e.target.value) || 0;
+                        setSqftRate(newRate);
+                        const selRes = residents.find(r => r.resident_id === billFormData.resident_id);
+                        if (selRes) {
+                          const ft = selRes.flat_type || (selRes.bhk === '1 BHK' ? 'Smart 1 BHK' : selRes.bhk === '3 BHK' ? 'Premium 3 BHK' : 'Smart 2 BHK');
+                          const sqft = selRes.square_feet || (ft === 'Smart 1 BHK' ? 520 : ft === 'Premium 2 BHK' ? 720 : ft === 'Premium 3 BHK' ? 920 : 620);
+                          setBillFormData(prev => ({ ...prev, amount: Math.round(sqft * newRate) }));
+                        }
+                      }}
+                      className="w-32 px-3 py-2 rounded-xl border border-indigo-200 font-bold bg-white outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                    />
+                    <span className="text-xs font-bold text-indigo-700">₹{sqftRate} / sq.ft</span>
+                  </div>
+                </div>
+              )}
+
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Select Resident / Group / Tower</label>
                 <select 
                   required
                   value={billFormData.resident_id}
-                  onChange={(e) => setBillFormData({ ...billFormData, resident_id: e.target.value })}
+                  onChange={(e) => {
+                    const selId = e.target.value;
+                    const selRes = residents.find(r => r.resident_id === selId);
+                    let newAmount = billFormData.amount;
+                    if (selRes) {
+                      const ft = selRes.flat_type || (selRes.bhk === '1 BHK' ? 'Smart 1 BHK' : selRes.bhk === '3 BHK' ? 'Premium 3 BHK' : 'Smart 2 BHK');
+                      const sqft = selRes.square_feet || (ft === 'Smart 1 BHK' ? 520 : ft === 'Premium 2 BHK' ? 720 : ft === 'Premium 3 BHK' ? 920 : 620);
+                      if (calcMethod === 'Square Foot Maintenance') {
+                        newAmount = Math.round(sqft * sqftRate);
+                      } else {
+                        newAmount = flatTypeRates[ft] || 3200;
+                      }
+                    }
+                    setBillFormData({ ...billFormData, resident_id: selId, amount: newAmount });
+                  }}
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none font-bold"
                 >
-                  <option value="all">All Residents</option>
+                  <option value="all">All Residents ({residents.length})</option>
                   <optgroup label="Towers">
                     <option value="tower-A">All Tower A Residents</option>
                     <option value="tower-B">All Tower B Residents</option>
@@ -1826,13 +2222,37 @@ export default function AdminDashboard({
                       <option value={`tower-${tower}`}>All Tower {tower} Residents</option>
                       {residents.filter(r => r.tower === tower).map(r => (
                         <option key={r.resident_id} value={r.resident_id}>
-                          {r.name} - Flat {r.flat}
+                          {r.resident_id} - {r.name} (Flat {r.flat} • {r.flat_type || 'Smart 2 BHK'})
                         </option>
                       ))}
                     </optgroup>
                   ))}
                 </select>
               </div>
+
+              {/* Resident Calculation Live Preview */}
+              {billFormData.resident_id !== 'all' && !billFormData.resident_id.startsWith('tower-') && (() => {
+                const selRes = residents.find(r => r.resident_id === billFormData.resident_id);
+                if (!selRes) return null;
+                const ft = selRes.flat_type || (selRes.bhk === '1 BHK' ? 'Smart 1 BHK' : selRes.bhk === '3 BHK' ? 'Premium 3 BHK' : 'Smart 2 BHK');
+                const sqft = selRes.square_feet || (ft === 'Smart 1 BHK' ? 520 : ft === 'Premium 2 BHK' ? 720 : ft === 'Premium 3 BHK' ? 920 : 620);
+                const calcAmt = calcMethod === 'Square Foot Maintenance' ? Math.round(sqft * sqftRate) : (flatTypeRates[ft] || 3200);
+
+                return (
+                  <div className="bg-emerald-50/80 p-3.5 rounded-2xl border border-emerald-200 text-emerald-950 space-y-1">
+                    <div className="flex justify-between items-center text-xs font-black">
+                      <span>Resident: {selRes.resident_id} — {selRes.name}</span>
+                      <span className="bg-emerald-200 text-emerald-900 px-2 py-0.5 rounded font-mono text-[10px]">Flat {selRes.flat}</span>
+                    </div>
+                    <div className="text-[11px] font-bold text-emerald-800 flex flex-wrap justify-between gap-2 pt-1 border-t border-emerald-200/80">
+                      <span>Flat Type: {ft}</span>
+                      <span>
+                        Calculation: {calcMethod === 'Square Foot Maintenance' ? `₹${sqftRate}/sq.ft rate applied = ₹${calcAmt.toLocaleString()}` : `Configured Amount = ₹${calcAmt.toLocaleString()}`}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })()}
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -1862,16 +2282,21 @@ export default function AdminDashboard({
                   </select>
                 </div>
               </div>
+              
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Amount (₹)</label>
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                    {billFormData.resident_id === 'all' || billFormData.resident_id.startsWith('tower-') 
+                      ? 'Base / Default Amount (₹)' 
+                      : 'Bill Amount (₹)'}
+                  </label>
                   <input 
                     type="number"
                     required
                     min="1"
                     value={isNaN(billFormData.amount) || billFormData.amount === 0 ? '' : billFormData.amount}
                     onChange={(e) => setBillFormData({ ...billFormData, amount: parseInt(e.target.value) || 0 })}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none font-bold"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none font-bold text-sm"
                   />
                 </div>
                 <div className="space-y-2">
@@ -1881,10 +2306,11 @@ export default function AdminDashboard({
                     required
                     value={billFormData.due_date}
                     onChange={(e) => setBillFormData({ ...billFormData, due_date: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none font-bold"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none font-bold text-sm"
                   />
                 </div>
               </div>
+
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Description</label>
                 <textarea 
@@ -1894,10 +2320,11 @@ export default function AdminDashboard({
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none font-medium text-sm"
                 />
               </div>
+
               <button 
                 type="submit"
                 disabled={updating === 'generating-bill'}
-                className="w-full bg-blue-600 text-white font-black py-4 rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 disabled:opacity-50 flex items-center justify-center gap-2 uppercase tracking-widest text-xs"
+                className="w-full bg-blue-600 text-white font-black py-4 rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 disabled:opacity-50 flex items-center justify-center gap-2 uppercase tracking-widest text-xs mt-2"
               >
                 {updating === 'generating-bill' ? (
                   <>
@@ -1907,7 +2334,7 @@ export default function AdminDashboard({
                 ) : (
                   <>
                     <CreditCard className="w-4 h-4" />
-                    Generate Bill
+                    Generate Maintenance Bill ({calcMethod})
                   </>
                 )}
               </button>
@@ -2159,7 +2586,7 @@ export default function AdminDashboard({
                   <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest">Existing Amenities</h4>
                   <button 
                     onClick={async () => {
-                      if (window.confirm('This will remove all current amenities and set the default ones (Clubhouse, Garden, Community Halls). Continue?')) {
+                      if (globalThis.confirm?.('This will remove all current amenities and set the default ones (Clubhouse, Garden, Community Halls). Continue?')) {
                         setUpdating('resetting-amenities');
                         try {
                           // 1. Delete all current amenities
@@ -2180,8 +2607,9 @@ export default function AdminDashboard({
                           
                           await fetchAmenities();
                           toast.success('Amenities reset to defaults successfully!');
-                        } catch (error: any) {
-                          toast.error('Reset failed: ' + error.message);
+                        } catch (error: unknown) {
+                          const msg = error instanceof Error ? error.message : String(error);
+                          toast.error('Reset failed: ' + msg);
                         } finally {
                           setUpdating(null);
                         }
@@ -2472,106 +2900,309 @@ NOTIFY pgrst, 'reload schema';`);
 
       {/* Edit/Add Resident Modal */}
       {showEditResidentModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden">
-            <div className="p-6 bg-blue-600 text-white flex justify-between items-center">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4">
+          <div className="bg-white w-full max-w-[530px] rounded-2xl shadow-2xl overflow-hidden flex flex-col border border-slate-100 animate-in zoom-in-95 duration-200">
+            <div className="px-5 py-3 bg-blue-600 text-white flex justify-between items-center shrink-0">
               <div>
-                <h3 className="text-xl font-black">{editingResident ? 'Edit Resident Profile' : 'Add New Resident'}</h3>
-                <p className="text-blue-100 text-xs font-medium uppercase tracking-wider">{editingResident ? 'Update resident information' : 'Register a new member'}</p>
+                <h3 className="text-base font-black leading-tight">{editingResident ? 'Edit Resident Profile' : 'Add New Resident'}</h3>
+                <p className="text-blue-100 text-[10px] font-bold uppercase tracking-wider">{editingResident ? 'Update resident credentials & unit details' : 'Register a new member'}</p>
               </div>
-              <button onClick={() => setShowEditResidentModal(false)} className="p-2 hover:bg-white/10 rounded-full transition-colors">
-                <X className="w-6 h-6" />
+              <button onClick={() => setShowEditResidentModal(false)} className="p-1.5 hover:bg-white/10 rounded-full transition-colors text-white">
+                <X className="w-5 h-5" />
               </button>
             </div>
-            <form onSubmit={handleUpdateResident} className="p-6 space-y-4">
-              <div className="space-y-1">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Name</label>
-                <input 
-                  type="text"
-                  required
-                  value={residentEditData.name}
-                  onChange={(e) => setResidentEditData({ ...residentEditData, name: e.target.value })}
-                  className="w-full px-4 py-2 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-blue-500 font-bold text-sm"
-                />
+
+            <form onSubmit={handleUpdateResident} className="px-5 py-3.5 space-y-2.5 text-xs">
+              {/* Row 1: Full Name & Password */}
+              <div className="grid grid-cols-12 gap-2">
+                <div className="col-span-7 space-y-0.5">
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Full Name</label>
+                  <input 
+                    type="text"
+                    required
+                    value={residentEditData.name}
+                    onChange={(e) => setResidentEditData({ ...residentEditData, name: e.target.value })}
+                    className="w-full px-3 py-1.5 rounded-xl border border-slate-200 outline-none focus:ring-1 focus:ring-blue-500 font-bold text-xs bg-slate-50/70"
+                    placeholder="Resident Name"
+                  />
+                </div>
+                <div className="col-span-5 space-y-0.5">
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Password</label>
+                  <div className="relative">
+                    <input 
+                      type={showPassword ? "text" : "password"}
+                      required
+                      value={residentEditData.password}
+                      onChange={(e) => setResidentEditData({ ...residentEditData, password: e.target.value })}
+                      className="w-full px-3 py-1.5 rounded-xl border border-slate-200 outline-none focus:ring-1 focus:ring-blue-500 font-bold text-xs bg-slate-50/70 pr-8"
+                      placeholder="Password"
+                    />
+                    <button 
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    >
+                      {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
+                </div>
               </div>
-              <div className="grid grid-cols-3 gap-4">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Tower</label>
+
+              {/* Row 2: Tower, Floor & Flat */}
+              <div className="grid grid-cols-3 gap-2">
+                <div className="space-y-0.5">
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Tower</label>
                   <input 
                     type="text"
                     required
                     value={residentEditData.tower}
                     onChange={(e) => setResidentEditData({ ...residentEditData, tower: e.target.value })}
-                    className="w-full px-4 py-2 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-blue-500 font-bold text-sm"
+                    className="w-full px-3 py-1.5 rounded-xl border border-slate-200 outline-none focus:ring-1 focus:ring-blue-500 font-bold text-xs bg-slate-50/70"
+                    placeholder="Tower A"
                   />
                 </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Floor</label>
+                <div className="space-y-0.5">
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Floor</label>
                   <input 
                     type="number"
                     required
                     value={isNaN(residentEditData.floor) || residentEditData.floor === 0 ? '' : residentEditData.floor}
                     onChange={(e) => setResidentEditData({ ...residentEditData, floor: parseInt(e.target.value) || 0 })}
-                    className="w-full px-4 py-2 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-blue-500 font-bold text-sm"
+                    className="w-full px-3 py-1.5 rounded-xl border border-slate-200 outline-none focus:ring-1 focus:ring-blue-500 font-bold text-xs bg-slate-50/70"
+                    placeholder="1"
                   />
                 </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Flat</label>
+                <div className="space-y-0.5">
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Flat No</label>
                   <input 
                     type="text"
                     required
                     value={residentEditData.flat}
                     onChange={(e) => setResidentEditData({ ...residentEditData, flat: e.target.value })}
-                    className="w-full px-4 py-2 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-blue-500 font-bold text-sm"
+                    className="w-full px-3 py-1.5 rounded-xl border border-slate-200 outline-none focus:ring-1 focus:ring-blue-500 font-bold text-xs bg-slate-50/70"
+                    placeholder="101"
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Phone</label>
+
+              {/* Row 3: BHK, Flat Type & Square Feet Configuration */}
+              <div className="grid grid-cols-3 gap-2 bg-indigo-50/60 p-2.5 rounded-xl border border-indigo-100">
+                <div className="space-y-0.5">
+                  <label className="text-[9px] font-black text-indigo-900 uppercase tracking-wider">BHK</label>
+                  <select 
+                    value={residentEditData.bhk}
+                    onChange={(e) => {
+                      const selectedBhk = e.target.value;
+                      const isPremium = residentEditData.flat_type?.includes('Premium');
+                      let newType = isPremium ? `Premium ${selectedBhk}` : `Smart ${selectedBhk}`;
+                      let newSqft = 620;
+                      if (selectedBhk === '1 BHK') {
+                        newSqft = isPremium ? 580 : 520;
+                      } else if (selectedBhk === '2 BHK') {
+                        newSqft = isPremium ? 720 : 620;
+                      } else if (selectedBhk === '3 BHK') {
+                        newSqft = isPremium ? 920 : 850;
+                      }
+                      setResidentEditData({ 
+                        ...residentEditData, 
+                        bhk: selectedBhk,
+                        flat_type: newType,
+                        square_feet: newSqft
+                      });
+                    }}
+                    className="w-full px-2.5 py-1.5 rounded-lg border border-indigo-200 outline-none focus:ring-1 focus:ring-indigo-500 font-bold text-xs bg-white text-slate-800"
+                  >
+                    <option value="1 BHK">1 BHK</option>
+                    <option value="2 BHK">2 BHK</option>
+                    <option value="3 BHK">3 BHK</option>
+                  </select>
+                </div>
+
+                <div className="space-y-0.5">
+                  <label className="text-[9px] font-black text-indigo-900 uppercase tracking-wider">Flat Type</label>
+                  <select 
+                    value={residentEditData.flat_type}
+                    onChange={(e) => {
+                      const selectedType = e.target.value;
+                      let newSqft = residentEditData.square_feet;
+                      if (selectedType === 'Smart' || selectedType === 'Smart 2 BHK') newSqft = 620;
+                      else if (selectedType === 'Premium' || selectedType === 'Premium 2 BHK') newSqft = 720;
+                      else if (selectedType === 'Smart 1 BHK') newSqft = 520;
+                      else if (selectedType === 'Premium 1 BHK') newSqft = 580;
+                      else if (selectedType === 'Smart 3 BHK') newSqft = 850;
+                      else if (selectedType === 'Premium 3 BHK') newSqft = 920;
+
+                      // Synchronize BHK if specific BHK type is chosen
+                      let updatedBhk = residentEditData.bhk;
+                      if (selectedType.includes('1 BHK')) updatedBhk = '1 BHK';
+                      else if (selectedType.includes('2 BHK')) updatedBhk = '2 BHK';
+                      else if (selectedType.includes('3 BHK')) updatedBhk = '3 BHK';
+
+                      setResidentEditData({
+                        ...residentEditData,
+                        bhk: updatedBhk,
+                        flat_type: selectedType,
+                        square_feet: newSqft
+                      });
+                    }}
+                    className="w-full px-2.5 py-1.5 rounded-lg border border-indigo-200 outline-none focus:ring-1 focus:ring-indigo-500 font-bold text-xs bg-white text-slate-800"
+                  >
+                    <optgroup label="Standard Types">
+                      <option value="Smart">Smart</option>
+                      <option value="Premium">Premium</option>
+                    </optgroup>
+                    <optgroup label={`${residentEditData.bhk || '1 BHK'} Options`}>
+                      <option value={`Smart ${residentEditData.bhk || '1 BHK'}`}>Smart {residentEditData.bhk || '1 BHK'}</option>
+                      <option value={`Premium ${residentEditData.bhk || '1 BHK'}`}>Premium {residentEditData.bhk || '1 BHK'}</option>
+                    </optgroup>
+                    <optgroup label="All BHK Options">
+                      <option value="Smart 1 BHK">Smart 1 BHK (520 sq.ft)</option>
+                      <option value="Premium 1 BHK">Premium 1 BHK (580 sq.ft)</option>
+                      <option value="Smart 2 BHK">Smart 2 BHK (620 sq.ft)</option>
+                      <option value="Premium 2 BHK">Premium 2 BHK (720 sq.ft)</option>
+                      <option value="Smart 3 BHK">Smart 3 BHK (850 sq.ft)</option>
+                      <option value="Premium 3 BHK">Premium 3 BHK (920 sq.ft)</option>
+                    </optgroup>
+                  </select>
+                </div>
+
+                <div className="space-y-0.5">
+                  <label className="text-[9px] font-black text-indigo-900 uppercase tracking-wider">Sq. Ft</label>
+                  <input 
+                    type="number"
+                    required
+                    min="100"
+                    value={isNaN(residentEditData.square_feet) || residentEditData.square_feet === 0 ? '' : residentEditData.square_feet}
+                    onChange={(e) => setResidentEditData({ ...residentEditData, square_feet: parseInt(e.target.value) || 0 })}
+                    className="w-full px-2.5 py-1.5 rounded-lg border border-indigo-200 outline-none focus:ring-1 focus:ring-indigo-500 font-bold text-xs bg-white text-slate-800"
+                  />
+                </div>
+              </div>
+
+              {/* Row 4: Phone & Email */}
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-0.5">
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Phone</label>
                   <input 
                     type="text"
                     required
                     value={residentEditData.phone}
                     onChange={(e) => setResidentEditData({ ...residentEditData, phone: e.target.value })}
-                    className="w-full px-4 py-2 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-blue-500 font-bold text-sm"
+                    className="w-full px-3 py-1.5 rounded-xl border border-slate-200 outline-none focus:ring-1 focus:ring-blue-500 font-bold text-xs bg-slate-50/70"
+                    placeholder="Mobile Number"
                   />
                 </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Email</label>
+                <div className="space-y-0.5">
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Email</label>
                   <input 
                     type="email"
                     required
                     value={residentEditData.email}
                     onChange={(e) => setResidentEditData({ ...residentEditData, email: e.target.value })}
-                    className="w-full px-4 py-2 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-blue-500 font-bold text-sm"
+                    className="w-full px-3 py-1.5 rounded-xl border border-slate-200 outline-none focus:ring-1 focus:ring-blue-500 font-bold text-xs bg-slate-50/70"
+                    placeholder="Email Address"
                   />
                 </div>
               </div>
-              <div className="space-y-1">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Status</label>
-                <select 
-                  value={residentEditData.status}
-                  onChange={(e) => setResidentEditData({ ...residentEditData, status: e.target.value as 'Active' | 'Inactive' })}
-                  className="w-full px-4 py-2 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-blue-500 font-bold text-sm"
-                >
-                  <option value="Active">Active</option>
-                  <option value="Inactive">Inactive</option>
-                </select>
+
+              {/* Row 5: Resident Role & Status */}
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-0.5">
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Resident Type</label>
+                  <select 
+                    value={residentEditData.role || residentEditData.occupancy_type || 'Owner'}
+                    onChange={(e) => {
+                      const newRole = e.target.value as 'Owner' | 'Tenant';
+                      if (newRole === 'Tenant') {
+                        const assignedTid = editingResident?.tenant_id || residentEditData.tenant_id || getNextTenantId();
+                        setResidentEditData({ 
+                          ...residentEditData, 
+                          role: 'Tenant',
+                          occupancy_type: 'Tenant',
+                          tenant_id: assignedTid
+                        });
+                      } else {
+                        setResidentEditData({ 
+                          ...residentEditData, 
+                          role: 'Owner',
+                          occupancy_type: 'Owner',
+                          tenant_id: null,
+                          owner_id: null
+                        });
+                      }
+                    }}
+                    className="w-full px-3 py-1.5 rounded-xl border border-slate-200 outline-none focus:ring-1 focus:ring-blue-500 font-bold text-xs bg-white"
+                  >
+                    <option value="Owner">Owner</option>
+                    <option value="Tenant">Tenant</option>
+                  </select>
+                </div>
+                <div className="space-y-0.5">
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Account Status</label>
+                  <select 
+                    value={residentEditData.status}
+                    onChange={(e) => setResidentEditData({ ...residentEditData, status: e.target.value as 'Active' | 'Inactive' })}
+                    className="w-full px-3 py-1.5 rounded-xl border border-slate-200 outline-none focus:ring-1 focus:ring-blue-500 font-bold text-xs bg-white"
+                  >
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                  </select>
+                </div>
               </div>
+
+              {/* Owner Selection & Tenant ID (Conditional: ONLY for Tenant) */}
+              {(residentEditData.role === 'Tenant' || residentEditData.occupancy_type === 'Tenant') && (() => {
+                const currentTenantId = editingResident?.tenant_id || residentEditData.tenant_id || getNextTenantId();
+                const validOwners = residents.filter(r => 
+                  (r.role === 'Owner' || r.occupancy_type === 'Owner' || (!r.role && !r.occupancy_type)) &&
+                  r.resident_id !== residentEditData.resident_id
+                );
+
+                return (
+                  <div className="grid grid-cols-12 gap-2 p-2 rounded-xl bg-indigo-50/60 border border-indigo-100 text-xs">
+                    <div className="col-span-5 space-y-0.5">
+                      <label className="text-[8px] font-black text-indigo-700 uppercase tracking-wider">Tenant ID</label>
+                      <input 
+                        type="text"
+                        disabled
+                        value={currentTenantId}
+                        className="w-full px-2.5 py-1 rounded-lg border border-indigo-200 bg-white font-mono font-black text-[11px] text-indigo-700 cursor-not-allowed"
+                      />
+                    </div>
+                    <div className="col-span-7 space-y-0.5">
+                      <label className="text-[8px] font-black text-indigo-700 uppercase tracking-wider">Assigned Owner</label>
+                      <select 
+                        required
+                        value={residentEditData.owner_id || ''}
+                        onChange={(e) => setResidentEditData({ ...residentEditData, owner_id: e.target.value })}
+                        className="w-full px-2.5 py-1 rounded-lg border border-indigo-200 outline-none focus:ring-1 focus:ring-indigo-500 font-bold text-[11px] bg-white text-slate-800"
+                      >
+                        <option value="">-- Choose Owner --</option>
+                        {validOwners.map(owner => (
+                          <option key={owner.resident_id} value={owner.resident_id}>
+                            {owner.name} ({owner.resident_id} • Flat {owner.flat})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Submit Button */}
               <button 
                 type="submit"
                 disabled={updating === 'updating-resident'}
-                className="w-full bg-blue-600 text-white font-black py-4 rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 disabled:opacity-50 flex items-center justify-center gap-2 uppercase tracking-widest text-xs"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-2.5 rounded-xl shadow-md shadow-blue-100 disabled:opacity-50 flex items-center justify-center gap-2 uppercase tracking-widest text-xs cursor-pointer transition-all mt-1"
               >
                 {updating === 'updating-resident' ? (
                   <>
-                    <Clock className="w-4 h-4 animate-spin" />
-                    {editingResident ? 'Updating...' : 'Adding...'}
+                    <Clock className="w-3.5 h-3.5 animate-spin" />
+                    {editingResident ? 'UPDATING...' : 'ADDING...'}
                   </>
                 ) : (
                   <>
-                    <Check className="w-4 h-4" />
+                    <Check className="w-3.5 h-3.5" />
                     {editingResident ? 'Update Profile' : 'Add Resident'}
                   </>
                 )}
@@ -2581,7 +3212,196 @@ NOTIFY pgrst, 'reload schema';`);
         </div>
       )}
 
-      {/* Booking Details Modal */}
+      {/* Resident Details Modal (Requirement 10) */}
+      {selectedResidentDetails && (() => {
+        const r = selectedResidentDetails;
+        const residentRole = (r.role || r.occupancy_type || 'Owner') as 'Owner' | 'Tenant';
+        const isOwner = residentRole === 'Owner';
+        const linkedOwner = !isOwner ? residents.find(o => o.resident_id === r.owner_id) : null;
+        const linkedTenant = isOwner ? residents.find(t => (t.role === 'Tenant' || t.occupancy_type === 'Tenant' || !!t.tenant_id) && t.owner_id === r.resident_id) : null;
+
+        return (
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[100] p-4 animate-in fade-in duration-200">
+            <div className="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+              <div className={`p-8 text-white flex justify-between items-center ${isOwner ? 'bg-amber-600' : 'bg-indigo-600'}`}>
+                <div>
+                  <h3 className="text-2xl font-black">Resident Details</h3>
+                  <p className="text-white/80 text-xs font-bold uppercase tracking-widest mt-1">
+                    {isOwner ? 'Owner Profile' : 'Tenant Profile'} • {r.resident_id} {!isOwner && r.tenant_id ? `(${r.tenant_id})` : ''}
+                  </p>
+                </div>
+                <button onClick={() => setSelectedResidentDetails(null)} className="p-2 hover:bg-white/10 rounded-full transition-colors">
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="p-8 overflow-y-auto space-y-6">
+                {isOwner ? (
+                  <>
+                    {/* Owner Resident Details */}
+                    <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 space-y-4">
+                      <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+                        <h4 className="text-sm font-black text-slate-800 uppercase tracking-widest">Resident Details</h4>
+                        <span className="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-amber-100 text-amber-800">
+                          Role: Owner
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                        <div>
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Resident ID</p>
+                          <p className="text-sm font-black text-blue-600 font-mono mt-0.5">{r.resident_id}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Name</p>
+                          <p className="text-sm font-black text-slate-800 mt-0.5">{r.name}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tower</p>
+                          <p className="text-sm font-black text-slate-800 mt-0.5">{r.tower}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Floor</p>
+                          <p className="text-sm font-black text-slate-800 mt-0.5">{r.floor ?? '—'}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Flat</p>
+                          <p className="text-sm font-black text-slate-800 mt-0.5">{r.flat}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Flat Type</p>
+                          <p className="text-sm font-black text-indigo-600 mt-0.5">{r.flat_type || (r.bhk ? `${r.bhk}` : 'Smart 2 BHK')}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</p>
+                          <p className={`text-sm font-black mt-0.5 ${r.status === 'Active' ? 'text-emerald-600' : 'text-slate-500'}`}>
+                            {r.status || 'Active'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Tenant Details (below Owner Information, Requirement 4 & 5) */}
+                    {linkedTenant ? (
+                      <div className="bg-indigo-50/60 p-6 rounded-3xl border border-indigo-100 space-y-4">
+                        <div className="flex items-center justify-between pb-3 border-b border-indigo-200">
+                          <h4 className="text-sm font-black text-indigo-900 uppercase tracking-widest">Tenant Details</h4>
+                          <span className="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-indigo-200 text-indigo-800">
+                            Tenant Present
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                          <div>
+                            <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Tenant ID</p>
+                            <p className="text-sm font-black text-indigo-700 font-mono mt-0.5">{linkedTenant.tenant_id || 'T001'}</p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Name</p>
+                            <p className="text-sm font-black text-slate-800 mt-0.5">{linkedTenant.name}</p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Flat</p>
+                            <p className="text-sm font-black text-slate-800 mt-0.5">{linkedTenant.tower}-{linkedTenant.flat}</p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Status</p>
+                            <p className={`text-sm font-black mt-0.5 ${linkedTenant.status === 'Active' ? 'text-emerald-600' : 'text-slate-500'}`}>
+                              {linkedTenant.status || 'Active'}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+                        <span className="text-xs font-bold text-slate-700">Tenant Present: No</span>
+                        <span className="text-[10px] text-slate-400 font-medium">No tenant is linked to this owner</span>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    {/* For Tenant: Owner Details ABOVE Tenant Details (Requirement 7 & 10) */}
+                    <div className="bg-amber-50/60 p-6 rounded-3xl border border-amber-100 space-y-4">
+                      <div className="flex items-center justify-between pb-3 border-b border-amber-200">
+                        <h4 className="text-sm font-black text-amber-900 uppercase tracking-widest">Owner Details</h4>
+                        <span className="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-amber-200 text-amber-800">
+                          Linked Owner
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        <div>
+                          <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest">Owner ID</p>
+                          <p className="text-sm font-black text-blue-600 font-mono mt-0.5">{linkedOwner?.resident_id || r.owner_id || 'N/A'}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest">Owner Name</p>
+                          <p className="text-sm font-black text-slate-800 mt-0.5">{linkedOwner?.name || 'Owner Not Assigned'}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest">Flat</p>
+                          <p className="text-sm font-black text-slate-800 mt-0.5">{linkedOwner ? `${linkedOwner.tower}-${linkedOwner.flat}` : `${r.tower}-${r.flat}`}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest">Status</p>
+                          <p className={`text-sm font-black mt-0.5 ${linkedOwner?.status === 'Active' ? 'text-emerald-600' : 'text-slate-500'}`}>
+                            {linkedOwner?.status || 'Inactive'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Tenant Details */}
+                    <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 space-y-4">
+                      <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+                        <h4 className="text-sm font-black text-slate-800 uppercase tracking-widest">Resident Details</h4>
+                        <span className="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-indigo-100 text-indigo-800">
+                          Role: Tenant
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                        <div>
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tenant ID</p>
+                          <p className="text-sm font-black text-indigo-600 font-mono mt-0.5">{r.tenant_id || 'T001'}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Name</p>
+                          <p className="text-sm font-black text-slate-800 mt-0.5">{r.name}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tower</p>
+                          <p className="text-sm font-black text-slate-800 mt-0.5">{r.tower}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Floor</p>
+                          <p className="text-sm font-black text-slate-800 mt-0.5">{r.floor ?? '—'}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Flat</p>
+                          <p className="text-sm font-black text-slate-800 mt-0.5">{r.flat}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</p>
+                          <p className={`text-sm font-black mt-0.5 ${r.status === 'Active' ? 'text-emerald-600' : 'text-slate-500'}`}>
+                            {r.status || 'Active'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <div className="p-6 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
+                <button
+                  onClick={() => setSelectedResidentDetails(null)}
+                  className="px-8 py-3 bg-white border border-slate-200 text-slate-600 font-black text-xs uppercase tracking-widest rounded-2xl hover:bg-slate-100 transition-all"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
       {selectedBooking && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[100] p-4">
           <div className="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">

@@ -1,31 +1,37 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { User, Resident, MaintenanceRecord, Complaint, Booking } from './types';
 import { initialResidents, initialMaintenance, initialComplaints, initialBookings } from './data';
 import { societyService } from './lib/societyService';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
 import Login from './components/Login';
+import TopHeader from './components/TopHeader';
 import Sidebar from './components/Sidebar';
-import Header from './components/Header';
 import AdminDashboard from './components/AdminDashboard';
 import ResidentDashboard from './components/ResidentDashboard';
+import TenantDashboard from './components/TenantDashboard';
+import SecurityDashboard from './components/SecurityDashboard';
+import NoticeBoard from './components/NoticeBoard';
+import CommunicationCenter from './components/CommunicationCenter';
 import { Toaster } from 'sonner';
-import { Users } from 'lucide-react';
+import { Users, ShieldAlert } from 'lucide-react';
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [loading, setLoading] = useState(true);
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   
   // App State
   const [residents, setResidents] = useState<Resident[]>([]);
   const [maintenance, setMaintenance] = useState<MaintenanceRecord[]>([]);
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const isFetchingRef = useRef(false);
 
-  // Fetch data from Supabase
+  // Fetch data from Supabase or fallback
   const fetchData = async () => {
-    setLoading(true);
-
+    if (isFetchingRef.current) return;
+    isFetchingRef.current = true;
     try {
       const [resData, mainData, compData, bookingData] = await Promise.all([
         societyService.getResidents(),
@@ -35,88 +41,143 @@ export default function App() {
       ]);
 
       if (resData && resData.length > 0) {
-        const uniqueResidents = Array.from(new Map(resData.map(r => [r.resident_id, r])).values())
-          .filter(r => r.resident_id !== 'R081' && r.name.toLowerCase() !== 'dhilipan');
+        const uniqueResidents = resData.map(r => {
+          const flatType = r.flat_type || (r.bhk === '1 BHK' ? 'Smart 1 BHK' : r.bhk === '3 BHK' ? 'Premium 3 BHK' : 'Smart 2 BHK');
+          const bhk = r.bhk || (flatType.includes('1 BHK') ? '1 BHK' : flatType.includes('3 BHK') ? '3 BHK' : '2 BHK');
+          const sqft = r.square_feet || (flatType === 'Smart 1 BHK' ? 520 : flatType === 'Premium 2 BHK' ? 720 : flatType === 'Premium 3 BHK' ? 920 : 620);
+          return {
+            ...r,
+            role: (r.role || r.occupancy_type || (r.tenant_id ? 'Tenant' : 'Owner')) as 'Owner' | 'Tenant',
+            occupancy_type: (r.occupancy_type || r.role || (r.tenant_id ? 'Tenant' : 'Owner')) as 'Owner' | 'Tenant',
+            status: (r.status ? (r.status.toLowerCase() === 'active' ? 'Active' : 'Inactive') : 'Active') as 'Active' | 'Inactive',
+            owner_id: r.owner_id || null,
+            tenant_id: r.tenant_id || null,
+            bhk,
+            flat_type: flatType,
+            square_feet: sqft
+          };
+        }).filter(r => r.name?.toLowerCase() !== 'dhilipan');
+
+        const resMap = new Map(uniqueResidents.map(r => [r.resident_id, r.name]));
+        const rawMaintenance = mainData && mainData.length > 0 ? mainData : initialMaintenance;
+        const mappedMaintenance = rawMaintenance.map(m => ({
+          ...m,
+          resident_name: resMap.get(m.resident_id) || m.resident_name || 'Resident Not Found'
+        }));
+
         setResidents(uniqueResidents);
-        setMaintenance(mainData || []);
-        setComplaints(compData || []);
-        setBookings(bookingData || []);
+        setMaintenance(mappedMaintenance);
+        setComplaints(compData && compData.length > 0 ? compData : initialComplaints);
+        setBookings(bookingData && bookingData.length > 0 ? bookingData : initialBookings);
         setLoading(false);
         return;
       }
 
-      if (!isSupabaseConfigured) {
-        setResidents(initialResidents.filter(r => r.resident_id !== 'R081' && r.name.toLowerCase() !== 'dhilipan'));
-        setMaintenance(initialMaintenance);
-        setComplaints(initialComplaints);
-        setBookings(initialBookings);
-        setLoading(false);
-        return;
-      }
-      
-      const uniqueResidents = Array.from(new Map(resData.map(r => [r.resident_id, r])).values())
-        .filter(r => r.resident_id !== 'R081' && r.name.toLowerCase() !== 'dhilipan');
-      setResidents(uniqueResidents);
-      setMaintenance(mainData || []);
-      setComplaints(compData || []);
-      setBookings(bookingData || []);
-    } catch (error) {
-      console.error('Error fetching data from Supabase:', error);
-      // Fallback to initial data for prototype if Supabase tables are not set up
-      setResidents(initialResidents.filter(r => r.resident_id !== 'R081' && r.name.toLowerCase() !== 'dhilipan'));
-      setMaintenance(initialMaintenance);
+      const mapResidentDefaults = (r: Resident) => {
+        const flatType = r.flat_type || (r.bhk === '1 BHK' ? 'Smart 1 BHK' : r.bhk === '3 BHK' ? 'Premium 3 BHK' : 'Smart 2 BHK');
+        const bhk = r.bhk || (flatType.includes('1 BHK') ? '1 BHK' : flatType.includes('3 BHK') ? '3 BHK' : '2 BHK');
+        const sqft = r.square_feet || (flatType === 'Smart 1 BHK' ? 520 : flatType === 'Premium 2 BHK' ? 720 : flatType === 'Premium 3 BHK' ? 920 : 620);
+        return {
+          ...r,
+          role: (r.role || r.occupancy_type || (r.tenant_id ? 'Tenant' : 'Owner')) as 'Owner' | 'Tenant',
+          occupancy_type: (r.occupancy_type || r.role || (r.tenant_id ? 'Tenant' : 'Owner')) as 'Owner' | 'Tenant',
+          status: (r.status ? (r.status.toLowerCase() === 'active' ? 'Active' : 'Inactive') : 'Active') as 'Active' | 'Inactive',
+          owner_id: r.owner_id || null,
+          tenant_id: r.tenant_id || null,
+          bhk,
+          flat_type: flatType,
+          square_feet: sqft
+        };
+      };
+
+      const defaultResidents = initialResidents.map(mapResidentDefaults).filter(r => r.name?.toLowerCase() !== 'dhilipan');
+      const defaultResMap = new Map(defaultResidents.map(r => [r.resident_id, r.name]));
+      const mappedDefaultMaintenance = initialMaintenance.map(m => ({
+        ...m,
+        resident_name: defaultResMap.get(m.resident_id) || m.resident_name || 'Resident Not Found'
+      }));
+
+      setResidents(defaultResidents);
+      setMaintenance(mappedDefaultMaintenance);
+      setComplaints(initialComplaints);
+      setBookings(initialBookings);
+    } catch (error: unknown) {
+      console.warn('Notice: Using local society dataset:', error);
+      const mapResidentDefaults = (r: Resident) => {
+        const flatType = r.flat_type || (r.bhk === '1 BHK' ? 'Smart 1 BHK' : r.bhk === '3 BHK' ? 'Premium 3 BHK' : 'Smart 2 BHK');
+        const bhk = r.bhk || (flatType.includes('1 BHK') ? '1 BHK' : flatType.includes('3 BHK') ? '3 BHK' : '2 BHK');
+        const sqft = r.square_feet || (flatType === 'Smart 1 BHK' ? 520 : flatType === 'Premium 2 BHK' ? 720 : flatType === 'Premium 3 BHK' ? 920 : 620);
+        return {
+          ...r,
+          role: (r.role || r.occupancy_type || (r.tenant_id ? 'Tenant' : 'Owner')) as 'Owner' | 'Tenant',
+          occupancy_type: (r.occupancy_type || r.role || (r.tenant_id ? 'Tenant' : 'Owner')) as 'Owner' | 'Tenant',
+          status: (r.status ? (r.status.toLowerCase() === 'active' ? 'Active' : 'Inactive') : 'Active') as 'Active' | 'Inactive',
+          owner_id: r.owner_id || null,
+          tenant_id: r.tenant_id || null,
+          bhk,
+          flat_type: flatType,
+          square_feet: sqft
+        };
+      };
+      const defaultResidents = initialResidents.map(mapResidentDefaults).filter(r => r.name?.toLowerCase() !== 'dhilipan');
+      const defaultResMap = new Map(defaultResidents.map(r => [r.resident_id, r.name]));
+      const mappedDefaultMaintenance = initialMaintenance.map(m => ({
+        ...m,
+        resident_name: defaultResMap.get(m.resident_id) || m.resident_name || 'Resident Not Found'
+      }));
+
+      setResidents(defaultResidents);
+      setMaintenance(mappedDefaultMaintenance);
       setComplaints(initialComplaints);
       setBookings(initialBookings);
     } finally {
       setLoading(false);
+      isFetchingRef.current = false;
     }
   };
 
   useEffect(() => {
     fetchData();
-  }, []);
-
-  // Real-time updates with Supabase
-  useEffect(() => {
-    if (!isSupabaseConfigured) return;
-
-    const channel = supabase
-      .channel('schema-db-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-        },
-        () => {
-          fetchData();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    // Conservative auto-refresh every 60 seconds only when tab is active
+    const interval = setInterval(() => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        fetchData();
+      }
+    }, 60000);
+    return () => clearInterval(interval);
   }, []);
 
   const handleLogin = (loggedInUser: User) => {
     setUser(loggedInUser);
-    setActiveTab('dashboard');
+    if (loggedInUser.role === 'security') {
+      setActiveTab('security');
+    } else {
+      setActiveTab('dashboard');
+    }
   };
 
   const handleLogout = () => {
     setUser(null);
   };
 
+  const handleUserUpdate = (updatedUser: Partial<User | Resident>) => {
+    setUser(prev => {
+      if (!prev) return null;
+      const { role, ...rest } = updatedUser as any;
+      const validRole = (role === 'admin' || role === 'security' || role === 'resident') ? role : prev.role;
+      return { ...prev, ...rest, role: validRole };
+    });
+  };
+
   // Scroll to top on tab change or login
   useEffect(() => {
-    window.scrollTo(0, 0);
+    globalThis.scrollTo?.(0, 0);
   }, [activeTab, user?.id]);
 
   if (loading && !user) {
     return (
-      <div className="min-h-screen bg-stone-100 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-600"></div>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
       </div>
     );
   }
@@ -126,86 +187,157 @@ export default function App() {
   }
 
   const foundResident = user.resident_id 
-    ? residents.find(r => r.resident_id === user.resident_id) 
+    ? (
+        residents.find(r => r.resident_id === user.resident_id) ||
+        (user.tenant_id ? residents.find(r => r.tenant_id === user.tenant_id) : null) ||
+        residents.find(r => r.tenant_id === user.resident_id)
+      ) 
     : null;
 
-  const currentResident = foundResident ? {
+  const currentResident: Resident | null = foundResident ? {
     ...foundResident,
     flat: foundResident.flat || user.flat || '',
     tower: foundResident.tower || user.tower || '',
+    role: (foundResident.role || foundResident.occupancy_type || user.occupancy_type || (foundResident.tenant_id ? 'Tenant' : 'Owner')) as 'Owner' | 'Tenant',
+    occupancy_type: (foundResident.occupancy_type || foundResident.role || user.occupancy_type || (foundResident.tenant_id ? 'Tenant' : 'Owner')) as 'Owner' | 'Tenant',
+    tenant_id: foundResident.tenant_id || user.tenant_id || null,
+    owner_id: foundResident.owner_id || user.owner_id || null,
+    status: (foundResident.status || user.status || 'Active') as 'Active' | 'Inactive',
+    password: foundResident.password || user.password || 'resident123',
     resident_id: foundResident.resident_id || user.resident_id || ''
-  } : (user.resident_id ? (user as unknown as Resident) : null);
+  } : (user.resident_id ? { 
+    ...(user as unknown as Resident), 
+    role: (user.occupancy_type || (user.tenant_id ? 'Tenant' : 'Owner')) as 'Owner' | 'Tenant',
+    occupancy_type: (user.occupancy_type || (user.tenant_id ? 'Tenant' : 'Owner')) as 'Owner' | 'Tenant', 
+    tenant_id: user.tenant_id || null,
+    owner_id: user.owner_id || null,
+    status: (user.status || 'Active') as 'Active' | 'Inactive',
+    password: user.password || 'resident123' 
+  } : null);
+
+  const isAdmin = user.role === 'admin' || !!user.admin_id;
 
   return (
-    <div className="flex min-h-screen bg-[#F8FAFC] font-sans text-slate-900">
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 flex">
       <Toaster position="top-center" richColors />
-      {!isSupabaseConfigured && (
-        <div className="fixed top-0 left-0 right-0 bg-blue-600 text-white px-4 py-2 text-[10px] z-[9999] shadow-lg flex items-center justify-between font-black uppercase tracking-widest">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-            <span>Prototype Mode: Using local sample data</span>
-          </div>
-          <button 
-            onClick={() => alert('To connect Supabase:\n1. Open the "Secrets" panel in AI Studio.\n2. Add VITE_SUPABASE_URL (your project URL).\n3. Add VITE_SUPABASE_ANON_KEY (your anon key).\n4. The app will automatically sync once configured.')}
-            className="bg-white/20 hover:bg-white/30 px-3 py-1 rounded text-[10px] font-black transition-colors"
-          >
-            Setup Instructions
-          </button>
-        </div>
-      )}
+      
+      {/* Full Primary Navigation Sidebar */}
       <Sidebar 
-        isAdmin={!!user.admin_id} 
-        activeTab={activeTab} 
-        setActiveTab={setActiveTab} 
-        onLogout={handleLogout} 
+        isAdmin={isAdmin}
+        userRole={user.role}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        onLogout={handleLogout}
+        isMobileOpen={isMobileNavOpen}
+        onCloseMobile={() => setIsMobileNavOpen(false)}
       />
       
-      <main className="flex-1 flex flex-col min-w-0">
-        <Header user={user} />
-
-        {/* Content Area */}
-        <div className="flex-1 p-4 md:p-6 bg-[#F8FAFC]">
-          {user.admin_id ? (
-            <AdminDashboard 
-              user={user}
-              activeTab={activeTab}
-              setActiveTab={setActiveTab}
-              residents={residents}
-              maintenance={maintenance}
-              complaints={complaints}
-              bookings={bookings}
-              onRefresh={fetchData}
-            />
-          ) : currentResident ? (
-            <ResidentDashboard 
+      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto">
+        {/* Top Header */}
+        <TopHeader 
+          user={user} 
+          activeTab={activeTab} 
+          setActiveTab={setActiveTab} 
+          onLogout={handleLogout} 
+          onToggleMobileNav={() => setIsMobileNavOpen(prev => !prev)}
+        />
+        
+        <main className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 lg:p-8">
+        {user.role === 'security' && activeTab === 'notices' ? (
+          <NoticeBoard 
+            user={user}
+            onSwitchTab={(tab) => setActiveTab(tab)}
+            onRefresh={fetchData}
+          />
+        ) : user.role === 'security' && activeTab === 'communication' ? (
+          <CommunicationCenter 
+            user={user}
+            onSwitchTab={(tab) => setActiveTab(tab)}
+            onRefresh={fetchData}
+          />
+        ) : user.role === 'security' || activeTab === 'security' ? (
+          <SecurityDashboard 
+            user={user}
+            residents={residents}
+            onLogout={handleLogout}
+            onUserUpdate={handleUserUpdate}
+          />
+        ) : (user.admin_id || user.role === 'admin') ? (
+          <AdminDashboard 
+            user={user}
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            residents={residents}
+            maintenance={maintenance}
+            complaints={complaints}
+            bookings={bookings}
+            onRefresh={fetchData}
+            onUserUpdate={handleUserUpdate}
+          />
+        ) : currentResident ? (
+          activeTab === 'financial' ? (
+            <div className="bg-white rounded-3xl p-12 border border-rose-100 shadow-sm text-center max-w-2xl mx-auto my-12">
+              <div className="w-16 h-16 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-rose-100">
+                <ShieldAlert className="w-8 h-8" />
+              </div>
+              <h2 className="text-2xl font-black text-slate-900 mb-2">Access Denied / Unauthorized</h2>
+              <p className="text-sm font-medium text-slate-500 leading-relaxed mb-6">
+                The Financial module is strictly restricted to Society Administrators. You do not have permission to view or manage society balance sheets, expenses, or financial ledgers.
+              </p>
+              <button
+                onClick={() => setActiveTab('dashboard')}
+                className="px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-md"
+              >
+                Return to Dashboard
+              </button>
+            </div>
+          ) : (currentResident.role === 'Tenant' || currentResident.occupancy_type === 'Tenant' || user.occupancy_type === 'Tenant') ? (
+            <TenantDashboard 
               activeTab={activeTab}
               resident={currentResident}
+              residents={residents}
               maintenance={maintenance}
               complaints={complaints}
               bookings={bookings}
               onRefresh={fetchData}
               setActiveTab={setActiveTab}
               onLogout={handleLogout}
+              onUserUpdate={handleUserUpdate}
             />
           ) : (
-            <div className="flex flex-col items-center justify-center h-full text-center p-8">
-              <div className="w-16 h-16 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mb-4">
-                <Users className="w-8 h-8" />
-              </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-2">Resident Profile Not Found</h3>
-              <p className="text-slate-500 max-w-md">
-                We couldn't find your resident profile in the database. Please contact your society administrator.
-              </p>
-              <button 
-                onClick={handleLogout}
-                className="mt-6 px-6 py-2 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-colors"
-              >
-                Logout & Try Again
-              </button>
+            <ResidentDashboard 
+              activeTab={activeTab}
+              resident={currentResident}
+              residents={residents}
+              maintenance={maintenance}
+              complaints={complaints}
+              bookings={bookings}
+              onRefresh={fetchData}
+              setActiveTab={setActiveTab}
+              onLogout={handleLogout}
+              onUserUpdate={handleUserUpdate}
+            />
+          )
+        ) : (
+          <div className="flex flex-col items-center justify-center h-full text-center p-8">
+            <div className="w-16 h-16 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mb-4">
+              <Users className="w-8 h-8" />
             </div>
-          )}
-        </div>
+            <h3 className="text-xl font-bold text-slate-900 mb-2">Profile Not Found</h3>
+            <p className="text-slate-500 max-w-md">
+              We couldn't find your user profile in the database. Please contact your society administrator.
+            </p>
+            <button 
+              onClick={handleLogout}
+              className="mt-6 px-6 py-2 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-colors"
+            >
+              Logout & Try Again
+            </button>
+          </div>
+        )}
       </main>
+      </div>
     </div>
   );
 }
+
