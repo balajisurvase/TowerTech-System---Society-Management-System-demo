@@ -45,6 +45,12 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import NoticeBoard from './NoticeBoard';
 import CommunicationCenter from './CommunicationCenter';
+import ResidentDocumentsSection from './ResidentDocumentsSection';
+import { 
+  ViewBillWorkspace, 
+  MarkBillPaidWorkspace, 
+  BillReceiptWorkspace 
+} from './workspaces/MaintenanceWorkspaces';
 
 interface ResidentDashboardProps {
   activeTab: string;
@@ -2002,21 +2008,41 @@ export default function ResidentDashboard({
           );
         }
 
+        const flatType = resident.flat_type || (resident.bhk ? (resident.bhk === '1 BHK' ? 'Smart 1 BHK' : resident.bhk === '3 BHK' ? 'Premium 3 BHK' : 'Smart 2 BHK') : 'Smart 2 BHK');
+        const sqft = resident.square_feet || (flatType.includes('1 BHK') ? 520 : flatType.includes('3 BHK') ? 920 : flatType.includes('Premium') ? 720 : 620);
+        const bhk = resident.bhk || (flatType.includes('1 BHK') ? '1 BHK' : flatType.includes('3 BHK') ? '3 BHK' : '2 BHK');
+        const wing = resident.wing || resident.tower;
+
         return (
           <div className="flex flex-col gap-5">
-            {/* Professional Welcome Banner */}
+            {/* Professional Welcome Banner & Occupancy Distinction */}
             <div className="bg-slate-900 text-white p-6 rounded-2xl shadow-sm border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-indigo-400 bg-indigo-950/80 px-2 py-0.5 rounded border border-indigo-800/60">
-                    {isOwner ? 'Property Owner' : 'Resident Member'}
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${
+                    isOwner 
+                      ? 'bg-amber-400/20 text-amber-200 border-amber-400/30' 
+                      : 'bg-purple-400/20 text-purple-200 border-purple-400/30'
+                  }`}>
+                    {isOwner ? 'OWNER OCCUPIED' : 'TENANT OCCUPIED'}
                   </span>
                   <span className="text-slate-400 text-xs">•</span>
-                  <span className="text-slate-300 text-xs font-bold">Tower {resident.tower} — Flat {resident.flat}</span>
+                  <span className="text-slate-200 text-xs font-bold">
+                    Flat {resident.flat} (Tower {resident.tower} / Wing {wing})
+                  </span>
+                  <span className="text-slate-400 text-xs">•</span>
+                  <span className="text-indigo-300 text-xs font-mono font-bold">
+                    {flatType} • {sqft} sq.ft.
+                  </span>
                 </div>
                 <h2 className="text-2xl font-black tracking-tight text-white">
                   Welcome back, {resident.name}
                 </h2>
+                {!isOwner && (
+                  <p className="text-xs text-slate-400 font-medium">
+                    Owner: <span className="font-bold text-amber-300">{linkedOwner?.name || resident.owner_name || 'Deepak Yadav'}</span>
+                  </p>
+                )}
                 <p className="text-slate-400 text-xs font-medium">
                   Green Park Residency • Resident Management Portal
                 </p>
@@ -2025,8 +2051,15 @@ export default function ResidentDashboard({
               {/* Quick Action Buttons */}
               <div className="flex flex-wrap items-center gap-2">
                 <button
-                  onClick={() => setActiveTab('maintenance')}
+                  onClick={() => setActiveTab('documents')}
                   className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  <span>Upload Documents</span>
+                </button>
+                <button
+                  onClick={() => setActiveTab('maintenance')}
+                  className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs rounded-xl transition-all flex items-center gap-1.5 border border-slate-700 cursor-pointer"
                 >
                   <CreditCard className="w-3.5 h-3.5" />
                   <span>Pay Maintenance</span>
@@ -2038,82 +2071,82 @@ export default function ResidentDashboard({
                   <MessageSquare className="w-3.5 h-3.5" />
                   <span>Raise Complaint</span>
                 </button>
-                <button
-                  onClick={() => setActiveTab('notices')}
-                  className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs rounded-xl transition-all flex items-center gap-1.5 border border-slate-700 cursor-pointer"
-                >
-                  <Megaphone className="w-3.5 h-3.5" />
-                  <span>View Notices</span>
-                </button>
               </div>
             </div>
 
             <div className="space-y-6">
-              {/* Quick Summary Cards */}
+              {/* Quick Summary Cards (Solid Vibrant Colors) */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <button 
                   onClick={() => setActiveTab('maintenance')}
-                  className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs text-left hover:border-indigo-300 transition-all cursor-pointer group"
+                  className="bg-[#2563EB] p-5 rounded-2xl shadow-lg shadow-blue-500/20 text-white text-left transition-transform hover:-translate-y-0.5 cursor-pointer group"
                 >
                   <div className="flex items-center justify-between mb-3">
-                    <div className="w-9 h-9 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center font-bold">
-                      <CreditCard className="w-4 h-4" />
+                    <div className="w-10 h-10 bg-white/20 text-white rounded-xl flex items-center justify-center font-black backdrop-blur-xs">
+                      <CreditCard className="w-5 h-5 text-white" />
                     </div>
-                    <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase ${
-                      residentMaintenance.some(m => m.status === 'Unpaid') ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                    <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg uppercase tracking-wider ${
+                      residentMaintenance.some(m => m.status === 'Unpaid') ? 'bg-red-500 text-white' : 'bg-emerald-500 text-white'
                     }`}>
                       {residentMaintenance.some(m => m.status === 'Unpaid') ? 'DUE' : 'CLEARED'}
                     </span>
                   </div>
-                  <p className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-0.5">Maintenance Status</p>
-                  <h3 className="text-xl font-black text-slate-900">
+                  <p className="text-[10px] font-black uppercase tracking-wider text-white/90 mb-0.5">Maintenance Status</p>
+                  <h3 className="text-2xl font-black text-white font-mono tracking-tight">
                     {residentMaintenance.some(m => m.status === 'Unpaid') ? 'Payment Due' : 'All Settled'}
                   </h3>
-                  <p className="text-[11px] text-slate-500 font-medium mt-1">
+                  <p className="text-xs text-white/80 font-bold mt-1">
                     {residentMaintenance.filter(m => m.status === 'Unpaid').length} pending bills
                   </p>
                 </button>
 
                 <button 
                   onClick={() => setActiveTab('complaints')}
-                  className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs text-left hover:border-amber-300 transition-all cursor-pointer group"
+                  className="bg-[#EA580C] p-5 rounded-2xl shadow-lg shadow-orange-500/20 text-white text-left transition-transform hover:-translate-y-0.5 cursor-pointer group"
                 >
                   <div className="flex items-center justify-between mb-3">
-                    <div className="w-9 h-9 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center font-bold">
-                      <MessageSquare className="w-4 h-4" />
+                    <div className="w-10 h-10 bg-white/20 text-white rounded-xl flex items-center justify-center font-black backdrop-blur-xs">
+                      <MessageSquare className="w-5 h-5 text-white" />
                     </div>
-                    <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-amber-600 transition-colors" />
+                    <ChevronRight className="w-4 h-4 text-white/80 group-hover:text-white transition-colors" />
                   </div>
-                  <p className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-0.5">My Complaints</p>
-                  <h3 className="text-xl font-black text-slate-900">{myComplaints.length} Tickets</h3>
-                  <p className="text-[11px] text-slate-500 font-medium mt-1">
+                  <p className="text-[10px] font-black uppercase tracking-wider text-white/90 mb-0.5">My Complaints</p>
+                  <h3 className="text-2xl font-black text-white font-mono tracking-tight">{myComplaints.length} Tickets</h3>
+                  <p className="text-xs text-white/80 font-bold mt-1">
                     {myComplaints.filter(c => c.status === 'Pending').length} active in progress
                   </p>
                 </button>
 
                 <button 
                   onClick={() => setActiveTab('bookings')}
-                  className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs text-left hover:border-emerald-300 transition-all cursor-pointer group"
+                  className="bg-[#059669] p-5 rounded-2xl shadow-lg shadow-emerald-500/20 text-white text-left transition-transform hover:-translate-y-0.5 cursor-pointer group"
                 >
                   <div className="flex items-center justify-between mb-3">
-                    <div className="w-9 h-9 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center font-bold">
-                      <Calendar className="w-4 h-4" />
+                    <div className="w-10 h-10 bg-white/20 text-white rounded-xl flex items-center justify-center font-black backdrop-blur-xs">
+                      <Calendar className="w-5 h-5 text-white" />
                     </div>
-                    <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-emerald-600 transition-colors" />
+                    <ChevronRight className="w-4 h-4 text-white/80 group-hover:text-white transition-colors" />
                   </div>
-                  <p className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-0.5">Amenity Bookings</p>
-                  <h3 className="text-xl font-black text-slate-900">{residentBookings.length} Reservations</h3>
-                  <p className="text-[11px] text-slate-500 font-medium mt-1">
+                  <p className="text-[10px] font-black uppercase tracking-wider text-white/90 mb-0.5">Amenity Bookings</p>
+                  <h3 className="text-2xl font-black text-white font-mono tracking-tight">{residentBookings.length} Reservations</h3>
+                  <p className="text-xs text-white/80 font-bold mt-1">
                     {residentBookings.filter(b => b.status === 'Approved').length} approved bookings
                   </p>
                 </button>
               </div>
 
+              {/* Owner Documents Section on Dashboard (Requirement 3) */}
+              <ResidentDocumentsSection 
+                resident={resident} 
+                isOwner={isOwner} 
+                onRefresh={onRefresh} 
+              />
+
             {/* Detailed Info Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Profile Summary */}
-              <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
-                <div className="flex items-center justify-between mb-6">
+              {/* Profile Summary Box */}
+              <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <div className="flex items-center justify-between mb-5">
                   <div className="flex items-center gap-3">
                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
                       isOwner ? 'bg-amber-50 text-amber-600' : 'bg-indigo-50 text-indigo-600'
@@ -2121,103 +2154,67 @@ export default function ResidentDashboard({
                       {isOwner ? <Home className="w-5 h-5" /> : <Key className="w-5 h-5" />}
                     </div>
                     <div>
-                      <h3 className="text-lg font-black text-slate-900 tracking-tight">Resident Profile</h3>
+                      <h3 className="text-base font-black text-slate-900 tracking-tight">
+                        {isOwner ? 'Owner Profile' : 'Tenant Profile'}
+                      </h3>
                       <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{resident.name}</p>
                     </div>
                   </div>
-                  <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${
+                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border ${
                     isOwner ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-indigo-50 text-indigo-700 border-indigo-200'
                   }`}>
-                    {isOwner ? 'Owner' : 'Tenant'}
+                    {isOwner ? 'OWNER OCCUPIED' : 'TENANT OCCUPIED'}
                   </span>
                 </div>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center py-2 border-b border-slate-50">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Resident Type</span>
-                    <span className={`text-xs font-black px-2.5 py-0.5 rounded-full ${
-                      isOwner ? 'bg-amber-100 text-amber-800' : 'bg-indigo-100 text-indigo-800'
-                    }`}>
-                      {isOwner ? 'Owner' : 'Tenant'}
-                    </span>
+                <div className="space-y-2.5 text-xs">
+                  <div className="flex justify-between items-center py-1.5 border-b border-slate-100">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Flat Number</span>
+                    <span className="font-black text-slate-900">Flat {resident.flat} (Tower {resident.tower})</span>
                   </div>
-                  <div className="flex justify-between items-center py-2 border-b border-slate-50">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                      {isOwner ? 'Owner Status' : 'Tenant Status'}
-                    </span>
-                    <span className={`text-xs font-black flex items-center gap-1.5 ${
-                      residentStatus === 'Active' ? 'text-emerald-600' : 'text-slate-400'
-                    }`}>
-                      <span className={`w-2 h-2 rounded-full ${residentStatus === 'Active' ? 'bg-emerald-500' : 'bg-slate-300'}`} />
-                      {residentStatus}
-                    </span>
+                  <div className="flex justify-between items-center py-1.5 border-b border-slate-100">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">BHK / Type</span>
+                    <span className="font-bold text-indigo-600">{flatType} ({sqft} sq.ft.)</span>
                   </div>
-                  <div className="flex justify-between items-center py-2 border-b border-slate-50">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Flat Number</span>
-                    <span className="text-xs font-bold text-slate-900">{resident.flat || `T-${resident.tower} / F-${resident.flat}`}</span>
+                  <div className="flex justify-between items-center py-1.5 border-b border-slate-100">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Mobile Number</span>
+                    <span className="font-mono font-bold text-slate-800">{resident.phone}</span>
                   </div>
                   {!isOwner && (
-                    <>
-                      <div className="flex justify-between items-center py-2 border-b border-slate-50">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tenant ID</span>
-                        <span className="text-xs font-black text-indigo-600 font-mono">{resident.tenant_id || 'T001'}</span>
-                      </div>
-                      <div className="flex justify-between items-center py-2 border-b border-slate-50 bg-indigo-50/60 px-2.5 rounded-xl">
-                        <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">Linked Owner</span>
-                        <span className="text-xs font-black text-indigo-900 truncate max-w-[140px]">
-                          {linkedOwner ? `${linkedOwner.name} (${linkedOwner.resident_id})` : (resident.owner_id ? `Owner ID: ${resident.owner_id}` : 'Not Assigned')}
-                        </span>
-                      </div>
-                    </>
-                  )}
-                  {isOwner && (
-                    <div className="flex justify-between items-center py-2 border-b border-slate-50">
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tenant Present</span>
-                      <span className={`text-xs font-black flex items-center gap-1.5 ${linkedTenant ? 'text-emerald-600' : 'text-slate-500'}`}>
-                        {linkedTenant ? (
-                          <>
-                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                            Yes ({linkedTenant.tenant_id || 'T001'})
-                          </>
-                        ) : (
-                          'No'
-                        )}
-                      </span>
+                    <div className="flex justify-between items-center py-1.5 border-b border-slate-100 bg-purple-50/50 px-2 rounded-lg">
+                      <span className="text-[10px] font-bold text-purple-700 uppercase tracking-wider">Owner Name</span>
+                      <span className="font-bold text-purple-950">{linkedOwner?.name || resident.owner_name || 'Deepak Yadav'}</span>
                     </div>
                   )}
-                  <div className="flex justify-between items-center py-2 border-b border-slate-50">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Resident ID</span>
-                    <span className="text-xs font-black text-blue-600">{resident.resident_id}</span>
-                  </div>
-                  <div className="flex justify-between items-center py-2">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Phone</span>
-                    <span className="text-xs font-bold text-slate-900">{resident.phone}</span>
+                  <div className="flex justify-between items-center py-1.5">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Resident Status</span>
+                    <span className="font-bold text-emerald-600">{residentStatus}</span>
                   </div>
                 </div>
               </div>
 
               {/* Recent Maintenance */}
-              <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-lg font-black text-slate-900 tracking-tight">Recent Bills</h3>
-                  <button onClick={() => setActiveTab('maintenance')} className="text-blue-600 text-[10px] font-black uppercase tracking-widest hover:underline">View All</button>
+              <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <div className="flex items-center justify-between mb-5">
+                  <h3 className="text-base font-black text-slate-900 tracking-tight">Recent Bills</h3>
+                  <button onClick={() => setActiveTab('maintenance')} className="text-indigo-600 text-[10px] font-bold uppercase tracking-wider hover:underline">View All</button>
                 </div>
-                <div className="space-y-3">
+                <div className="space-y-2.5">
                   {residentMaintenance.slice(0, 3).map((m, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-100">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${m.status === 'Paid' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
-                          <CreditCard className="w-4 h-4" />
+                    <div key={index} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
+                      <div className="flex items-center gap-2.5">
+                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${m.status === 'Paid' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+                          <CreditCard className="w-3.5 h-3.5" />
                         </div>
                         <div>
-                          <p className="text-xs font-black text-slate-900">{m.month}</p>
-                          <p className="text-[10px] font-bold text-slate-400">₹{m.amount.toLocaleString('en-IN')}</p>
+                          <p className="text-xs font-bold text-slate-900">{m.month}</p>
+                          <p className="text-[10px] font-mono text-slate-400">₹{m.amount.toLocaleString('en-IN')}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
                         {m.status === 'Paid' ? (
                           <button
                             onClick={() => handleOpenViewPayment(m)}
-                            className="text-[9px] font-black uppercase text-emerald-700 bg-emerald-100/80 hover:bg-emerald-200 px-2.5 py-1 rounded-lg transition-colors flex items-center gap-1"
+                            className="text-[9px] font-black uppercase text-emerald-700 bg-emerald-100/80 hover:bg-emerald-200 px-2 py-0.5 rounded-md transition-colors flex items-center gap-1"
                           >
                             <CheckCircle2 className="w-3 h-3 text-emerald-600" />
                             Paid
@@ -2225,10 +2222,10 @@ export default function ResidentDashboard({
                         ) : (
                           <button
                             onClick={() => handleOpenPayBill(m)}
-                            className="text-[9px] font-black uppercase text-white bg-indigo-600 hover:bg-indigo-700 px-2.5 py-1 rounded-lg transition-colors shadow-sm shadow-indigo-100 flex items-center gap-1"
+                            className="text-[9px] font-black uppercase text-white bg-indigo-600 hover:bg-indigo-700 px-2 py-0.5 rounded-md transition-colors shadow-2xs flex items-center gap-1"
                           >
                             <CreditCard className="w-3 h-3" />
-                            Pay Bill
+                            Pay
                           </button>
                         )}
                       </div>
@@ -2239,29 +2236,28 @@ export default function ResidentDashboard({
               </div>
 
               {/* Recent Bookings */}
-              <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-lg font-black text-slate-900 tracking-tight">Recent Bookings</h3>
-                  <button onClick={() => setActiveTab('bookings')} className="text-amber-600 text-[10px] font-black uppercase tracking-widest hover:underline">View All</button>
+              <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <div className="flex items-center justify-between mb-5">
+                  <h3 className="text-base font-black text-slate-900 tracking-tight">Recent Bookings</h3>
+                  <button onClick={() => setActiveTab('bookings')} className="text-amber-600 text-[10px] font-bold uppercase tracking-wider hover:underline">View All</button>
                 </div>
-                <div className="space-y-3">
+                <div className="space-y-2.5">
                   {residentBookings.slice(0, 3).map((b, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-100">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-amber-50 rounded-lg flex items-center justify-center text-amber-600">
-                          <Calendar className="w-4 h-4" />
+                    <div key={index} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-7 h-7 bg-amber-50 rounded-lg flex items-center justify-center text-amber-600">
+                          <Calendar className="w-3.5 h-3.5" />
                         </div>
                         <div>
-                          <p className="text-xs font-black text-slate-900 truncate w-24">{b.amenity_name}</p>
-                          <p className="text-[10px] font-bold text-slate-400">{format(new Date(b.booking_date), 'dd MMM yyyy')}</p>
+                          <p className="text-xs font-bold text-slate-900 truncate max-w-[100px]">{b.amenity_name}</p>
+                          <p className="text-[10px] text-slate-400">{format(new Date(b.booking_date), 'dd MMM yyyy')}</p>
                         </div>
                       </div>
-                      <span className={`text-[10px] font-black uppercase flex items-center gap-1 ${
+                      <span className={`text-[10px] font-bold uppercase ${
                         b.status === 'Approved' ? 'text-emerald-600' : 
                         b.status === 'Pending' ? 'text-amber-600' : 'text-rose-600'
                       }`}>
-                        {b.status === 'Approved' ? 'APPROVED' : 
-                         b.status === 'Pending' ? 'PENDING' : 'REJECTED'}
+                        {b.status}
                       </span>
                     </div>
                   ))}
@@ -3012,317 +3008,233 @@ export default function ResidentDashboard({
           </div>
         );
 
+      case 'documents': {
+        return (
+          <div className="space-y-6 max-w-5xl mx-auto w-full">
+            <ResidentDocumentsSection 
+              resident={resident} 
+              isOwner={isOwner} 
+              onRefresh={onRefresh} 
+            />
+          </div>
+        );
+      }
+
       case 'profile': {
         const isOwner = residentRole === 'Owner';
+        const flatType = resident.flat_type || (resident.bhk ? (resident.bhk === '1 BHK' ? 'Smart 1 BHK' : resident.bhk === '3 BHK' ? 'Premium 3 BHK' : 'Smart 2 BHK') : 'Smart 2 BHK');
+        const sqft = resident.square_feet || (flatType.includes('1 BHK') ? 520 : flatType.includes('3 BHK') ? 920 : flatType.includes('Premium') ? 720 : 620);
+        const bhk = resident.bhk || (flatType.includes('1 BHK') ? '1 BHK' : flatType.includes('3 BHK') ? '3 BHK' : '2 BHK');
+        const wing = resident.wing || resident.tower;
         const currentPass = profileData.password || resident.password || 'resident123';
 
         return (
-          <div className="flex flex-col gap-6 max-w-4xl mx-auto w-full">
+          <div className="flex flex-col gap-6 max-w-5xl mx-auto w-full font-sans">
             {/* Top Profile Hero Card */}
-            <div className="bg-gradient-to-br from-indigo-600 to-violet-700 p-8 rounded-[2.5rem] shadow-xl text-white relative overflow-hidden group shrink-0">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32 transition-transform duration-700 group-hover:scale-110"></div>
-              <div className="relative z-10">
-                <div className="flex items-center gap-6 mb-8">
-                  <div className="w-20 h-20 bg-white/20 backdrop-blur-md rounded-3xl flex items-center justify-center border border-white/30 shadow-inner">
-                    <UserIcon className="w-10 h-10 text-white" />
+            <div className="bg-slate-900 text-white p-6 sm:p-8 rounded-3xl shadow-xl border border-slate-800 relative overflow-hidden shrink-0">
+              <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="flex items-center gap-5">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 bg-indigo-600/30 rounded-2xl flex items-center justify-center border border-indigo-500/30 shrink-0">
+                    <UserIcon className="w-8 h-8 sm:w-10 sm:h-10 text-indigo-400" />
                   </div>
                   <div>
-                    <div className="flex flex-wrap items-center gap-3">
-                      <h3 className="text-3xl font-black tracking-tight">{resident.name}</h3>
-                      <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border flex items-center gap-1.5 shadow-sm ${
-                        isOwner 
-                          ? 'bg-amber-400/20 text-amber-200 border-amber-300/40' 
-                          : 'bg-emerald-400/20 text-emerald-200 border-emerald-300/40'
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                        isOwner ? 'bg-amber-400/20 text-amber-300 border border-amber-400/30' : 'bg-purple-400/20 text-purple-300 border border-purple-400/30'
                       }`}>
-                        {isOwner ? <Home className="w-3.5 h-3.5" /> : <Key className="w-3.5 h-3.5" />}
-                        {isOwner ? 'Owner' : 'Tenant'}
+                        {isOwner ? 'OWNER OCCUPIED' : 'TENANT OCCUPIED'}
                       </span>
-                      <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-white/20 text-white border border-white/30 flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
                         {residentStatus}
                       </span>
                     </div>
-                    <p className="text-indigo-100 font-bold uppercase tracking-widest text-[10px] mt-1.5">Resident Profile • {resident.resident_id}</p>
+                    <h3 className="text-2xl sm:text-3xl font-black text-white mt-1.5">{resident.name}</h3>
+                    <p className="text-slate-400 text-xs font-medium mt-0.5">
+                      Flat {resident.flat} (Tower {resident.tower} / Wing {wing}) • {flatType} • {sqft} sq.ft.
+                    </p>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                  <div className="bg-white/10 backdrop-blur-sm p-4 rounded-2xl border border-white/10">
-                    <p className="text-[9px] font-black text-indigo-100 uppercase tracking-widest opacity-70">Tower</p>
-                    <p className="text-xl font-black">{resident.tower}</p>
-                  </div>
-                  <div className="bg-white/10 backdrop-blur-sm p-4 rounded-2xl border border-white/10">
-                    <p className="text-[9px] font-black text-indigo-100 uppercase tracking-widest opacity-70">Flat</p>
-                    <p className="text-xl font-black">{resident.flat}</p>
-                  </div>
-                  <div className="bg-white/10 backdrop-blur-sm p-4 rounded-2xl border border-white/10">
-                    <p className="text-[9px] font-black text-indigo-100 uppercase tracking-widest opacity-70">Resident Type</p>
-                    <p className="text-xl font-black">{isOwner ? 'Owner' : 'Tenant'}</p>
-                  </div>
-                  <div className="bg-white/10 backdrop-blur-sm p-4 rounded-2xl border border-white/10">
-                    <p className="text-[9px] font-black text-indigo-100 uppercase tracking-widest opacity-70">
-                      {isOwner ? 'Owner Status' : 'Tenant Status'}
-                    </p>
-                    <p className="text-xl font-black">{residentStatus}</p>
-                  </div>
+
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setShowEditProfile(true)}
+                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-xs flex items-center gap-2"
+                  >
+                    <Edit className="w-3.5 h-3.5" />
+                    <span>Edit Profile</span>
+                  </button>
+                  <button
+                    onClick={() => setShowChangePassword(true)}
+                    className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs uppercase tracking-wider rounded-xl transition-all border border-slate-700 flex items-center gap-2"
+                  >
+                    <Lock className="w-3.5 h-3.5" />
+                    <span>Password</span>
+                  </button>
                 </div>
               </div>
             </div>
 
-            {/* Profile Detail Cards */}
+            {/* Profile Detail Box / Card (Requirement 1) */}
             {isOwner ? (
-              <>
-                {/* 1. Owner Details */}
-                <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100">
-                  <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600 shadow-inner">
-                        <Home className="w-6 h-6" />
-                      </div>
-                      <div>
-                        <h4 className="text-xl font-black text-slate-900 tracking-tight">Owner Details</h4>
-                        <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Property Owner Record & Unit Information</p>
-                      </div>
+              <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-slate-200 space-y-6">
+                <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600 font-bold">
+                      <Home className="w-5 h-5" />
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200">
-                        Resident Type: Owner
-                      </span>
-                      <span className={`px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-wider border flex items-center gap-1.5 ${
-                        residentStatus === 'Active' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-50 text-slate-600 border-slate-200'
-                      }`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${residentStatus === 'Active' ? 'bg-emerald-500' : 'bg-slate-400'}`}></span>
-                        Owner Status: {residentStatus}
-                      </span>
+                    <div>
+                      <h4 className="text-lg font-black text-slate-900 tracking-tight">Owner Profile Details</h4>
+                      <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Property Owner Record & Unit Information</p>
                     </div>
                   </div>
+                  <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-50 text-amber-800 border border-amber-200">
+                    OWNER OCCUPIED
+                  </span>
+                </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-                    <div className="p-4 bg-slate-50/70 rounded-2xl border border-slate-100">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Name</p>
-                      <p className="text-base font-black text-slate-900 mt-1">{resident.name}</p>
-                    </div>
-                    <div className="p-4 bg-slate-50/70 rounded-2xl border border-slate-100">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Resident ID</p>
-                      <p className="text-base font-black text-blue-600 font-mono mt-1">{resident.resident_id}</p>
-                    </div>
-                    <div className="p-4 bg-slate-50/70 rounded-2xl border border-slate-100">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tower</p>
-                      <p className="text-base font-black text-slate-900 mt-1">{resident.tower}</p>
-                    </div>
-                    <div className="p-4 bg-slate-50/70 rounded-2xl border border-slate-100">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Floor</p>
-                      <p className="text-base font-black text-slate-900 mt-1">{resident.floor ?? '—'}</p>
-                    </div>
-                    <div className="p-4 bg-slate-50/70 rounded-2xl border border-slate-100">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Flat</p>
-                      <p className="text-base font-black text-slate-900 mt-1">{resident.flat}</p>
-                    </div>
-                    <div className="p-4 bg-slate-50/70 rounded-2xl border border-slate-100">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</p>
-                      <span className={`inline-flex items-center gap-1.5 text-sm font-black mt-1 ${
-                        residentStatus === 'Active' ? 'text-emerald-600' : 'text-slate-400'
-                      }`}>
-                        <span className={`w-2 h-2 rounded-full ${residentStatus === 'Active' ? 'bg-emerald-500' : 'bg-slate-300'}`}></span>
-                        {residentStatus}
-                      </span>
-                    </div>
+                {/* 11 Required Fields for Owner */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 text-xs">
+                  <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Owner Name</p>
+                    <p className="font-black text-slate-900 mt-1 text-sm">{resident.name}</p>
+                  </div>
+                  <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Flat Number</p>
+                    <p className="font-black text-slate-900 mt-1 text-sm">{resident.flat}</p>
+                  </div>
+                  <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Building / Wing</p>
+                    <p className="font-bold text-slate-800 mt-1 text-sm">Tower {resident.tower} / Wing {wing}</p>
+                  </div>
+                  <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Mobile Number</p>
+                    <p className="font-mono font-bold text-slate-800 mt-1 text-sm">{resident.phone}</p>
+                  </div>
+                  <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Email</p>
+                    <p className="font-medium text-slate-700 truncate mt-1">{resident.email || '—'}</p>
+                  </div>
+                  <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Date of Possession</p>
+                    <p className="font-bold text-slate-800 mt-1">{resident.possession_date || '15 Jan 2024'}</p>
+                  </div>
+                  <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Resident Status</p>
+                    <p className={`font-bold mt-1 ${residentStatus === 'Active' ? 'text-emerald-600' : 'text-slate-400'}`}>
+                      {residentStatus}
+                    </p>
+                  </div>
+                  <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Family Members</p>
+                    <p className="font-bold text-slate-800 mt-1">{resident.family_members ? `${resident.family_members} Members` : '3 Members'}</p>
+                  </div>
+                  <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">BHK</p>
+                    <p className="font-bold text-slate-800 mt-1">{bhk}</p>
+                  </div>
+                  <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Flat Type</p>
+                    <p className="font-bold text-indigo-600 mt-1">{flatType}</p>
+                  </div>
+                  <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Square Feet</p>
+                    <p className="font-mono font-bold text-slate-800 mt-1">{sqft} sq.ft.</p>
                   </div>
                 </div>
 
-                {/* 2. Tenant Details below Owner Information (or Tenant Present: No) */}
-                {linkedTenant ? (
-                  <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100">
-                    <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 shadow-inner">
-                          <Key className="w-6 h-6" />
-                        </div>
-                        <div>
-                          <h4 className="text-xl font-black text-slate-900 tracking-tight">Tenant Details</h4>
-                          <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Tenant Linked via Owner ID {resident.resident_id}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-200 flex items-center gap-1.5">
-                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                          Tenant Present
-                        </span>
-                        <span className={`px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-wider border ${
-                          linkedTenant.status === 'Active' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-50 text-slate-600 border-slate-200'
-                        }`}>
-                          Tenant Status: {linkedTenant.status || 'Active'}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-                      <div className="p-4 bg-slate-50/70 rounded-2xl border border-slate-100">
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tenant ID</p>
-                        <p className="text-base font-black text-indigo-600 font-mono mt-1">{linkedTenant.tenant_id || 'T001'}</p>
-                      </div>
-                      <div className="p-4 bg-slate-50/70 rounded-2xl border border-slate-100">
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tenant Name</p>
-                        <p className="text-base font-black text-slate-900 mt-1">{linkedTenant.name}</p>
-                      </div>
-                      <div className="p-4 bg-slate-50/70 rounded-2xl border border-slate-100">
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tower</p>
-                        <p className="text-base font-black text-slate-900 mt-1">{linkedTenant.tower}</p>
-                      </div>
-                      <div className="p-4 bg-slate-50/70 rounded-2xl border border-slate-100">
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Floor</p>
-                        <p className="text-base font-black text-slate-900 mt-1">{linkedTenant.floor ?? '—'}</p>
-                      </div>
-                      <div className="p-4 bg-slate-50/70 rounded-2xl border border-slate-100">
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Flat</p>
-                        <p className="text-base font-black text-slate-900 mt-1">{linkedTenant.flat}</p>
-                      </div>
-                      <div className="p-4 bg-slate-50/70 rounded-2xl border border-slate-100">
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tenant Status</p>
-                        <span className={`inline-flex items-center gap-1.5 text-sm font-black mt-1 ${
-                          linkedTenant.status === 'Active' ? 'text-emerald-600' : 'text-slate-400'
-                        }`}>
-                          <span className={`w-2 h-2 rounded-full ${linkedTenant.status === 'Active' ? 'bg-emerald-500' : 'bg-slate-300'}`}></span>
-                          {linkedTenant.status || 'Active'}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400">
-                        <Key className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-black text-slate-800">Tenant Present: No</p>
-                        <p className="text-xs text-slate-400 font-medium">No tenant is currently linked to your owner profile (Owner ID: {resident.resident_id}).</p>
-                      </div>
-                    </div>
-                    <span className="px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200">
-                      Tenant Present: No
-                    </span>
-                  </div>
-                )}
-              </>
+                {/* Embedded Owner Documents Section */}
+                <div className="pt-4 border-t border-slate-100">
+                  <ResidentDocumentsSection 
+                    resident={resident} 
+                    isOwner={true} 
+                    onRefresh={onRefresh} 
+                  />
+                </div>
+              </div>
             ) : (
-              <>
-                {/* 1. Owner Details ABOVE Tenant Details for Tenant */}
-                <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100">
-                  <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600 shadow-inner">
-                        <Home className="w-6 h-6" />
-                      </div>
-                      <div>
-                        <h4 className="text-xl font-black text-slate-900 tracking-tight">Owner Details</h4>
-                        <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Primary Property Owner Information</p>
-                      </div>
+              <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-slate-200 space-y-6">
+                <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 font-bold">
+                      <Key className="w-5 h-5" />
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200">
-                        Flat Owner
-                      </span>
-                      <span className={`px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-wider border ${
-                        linkedOwner?.status === 'Active' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-50 text-slate-600 border-slate-200'
-                      }`}>
-                        Owner Status: {linkedOwner?.status || 'Active'}
-                      </span>
+                    <div>
+                      <h4 className="text-lg font-black text-slate-900 tracking-tight">Tenant Profile Details</h4>
+                      <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Your Tenancy & Lease Documentation</p>
                     </div>
                   </div>
+                  <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-purple-100 text-purple-800 border border-purple-200">
+                    TENANT OCCUPIED
+                  </span>
+                </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-                    <div className="p-4 bg-slate-50/70 rounded-2xl border border-slate-100">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Owner ID</p>
-                      <p className="text-base font-black text-blue-600 font-mono mt-1">
-                        {linkedOwner?.resident_id || resident.owner_id || 'N/A'}
-                      </p>
-                    </div>
-                    <div className="p-4 bg-slate-50/70 rounded-2xl border border-slate-100">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Owner Name</p>
-                      <p className="text-base font-black text-slate-900 mt-1">{linkedOwner?.name || 'Owner Not Assigned'}</p>
-                    </div>
-                    <div className="p-4 bg-slate-50/70 rounded-2xl border border-slate-100">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tower</p>
-                      <p className="text-base font-black text-slate-900 mt-1">{linkedOwner?.tower || resident.tower}</p>
-                    </div>
-                    <div className="p-4 bg-slate-50/70 rounded-2xl border border-slate-100">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Floor</p>
-                      <p className="text-base font-black text-slate-900 mt-1">{linkedOwner?.floor ?? '—'}</p>
-                    </div>
-                    <div className="p-4 bg-slate-50/70 rounded-2xl border border-slate-100">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Flat</p>
-                      <p className="text-base font-black text-slate-900 mt-1">{linkedOwner?.flat || resident.flat}</p>
-                    </div>
-                    <div className="p-4 bg-slate-50/70 rounded-2xl border border-slate-100">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Owner Status</p>
-                      <span className={`inline-flex items-center gap-1.5 text-sm font-black mt-1 ${
-                        linkedOwner?.status === 'Active' ? 'text-emerald-600' : 'text-slate-400'
-                      }`}>
-                        <span className={`w-2 h-2 rounded-full ${linkedOwner?.status === 'Active' ? 'bg-emerald-500' : 'bg-slate-300'}`}></span>
-                        {linkedOwner?.status || 'Active'}
-                      </span>
-                    </div>
+                {/* 13 Required Fields for Tenant */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 text-xs">
+                  <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Tenant Name</p>
+                    <p className="font-black text-slate-900 mt-1 text-sm">{resident.name}</p>
+                  </div>
+                  <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Flat Number</p>
+                    <p className="font-black text-slate-900 mt-1 text-sm">{resident.flat}</p>
+                  </div>
+                  <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Building / Wing</p>
+                    <p className="font-bold text-slate-800 mt-1 text-sm">Tower {resident.tower} / Wing {wing}</p>
+                  </div>
+                  <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Mobile Number</p>
+                    <p className="font-mono font-bold text-slate-800 mt-1 text-sm">{resident.phone}</p>
+                  </div>
+                  <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Email</p>
+                    <p className="font-medium text-slate-700 truncate mt-1">{resident.email || '—'}</p>
+                  </div>
+                  <div className="p-3.5 bg-amber-50/70 rounded-2xl border border-amber-100">
+                    <p className="text-[10px] font-black text-amber-700 uppercase tracking-wider">Owner Name</p>
+                    <p className="font-black text-amber-950 mt-1">{linkedOwner?.name || resident.owner_name || 'Deepak Yadav'}</p>
+                  </div>
+                  <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Tenant Status</p>
+                    <p className={`font-bold mt-1 ${residentStatus === 'Active' ? 'text-emerald-600' : 'text-slate-400'}`}>
+                      {residentStatus}
+                    </p>
+                  </div>
+                  <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Move-in Date</p>
+                    <p className="font-bold text-slate-800 mt-1">{resident.move_in_date || '01 Mar 2025'}</p>
+                  </div>
+                  <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Expected Move-out</p>
+                    <p className="font-bold text-slate-800 mt-1">{resident.expected_move_out_date || '28 Feb 2027'}</p>
+                  </div>
+                  <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">BHK</p>
+                    <p className="font-bold text-slate-800 mt-1">{bhk}</p>
+                  </div>
+                  <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Flat Type</p>
+                    <p className="font-bold text-indigo-600 mt-1">{flatType}</p>
+                  </div>
+                  <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Square Feet</p>
+                    <p className="font-mono font-bold text-slate-800 mt-1">{sqft} sq.ft.</p>
+                  </div>
+                  <div className="col-span-2 sm:col-span-3 md:col-span-4 p-3.5 bg-slate-50 rounded-2xl border border-slate-100">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Permanent Address</p>
+                    <p className="font-medium text-slate-800 mt-1">{resident.permanent_address || '402, Shivam Enclave, Main Road, Pune, Maharashtra 411038'}</p>
                   </div>
                 </div>
 
-                {/* 2. Tenant Details */}
-                <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100">
-                  <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 shadow-inner">
-                        <Key className="w-6 h-6" />
-                      </div>
-                      <div>
-                        <h4 className="text-xl font-black text-slate-900 tracking-tight">Tenant Details</h4>
-                        <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Your Rental Occupancy Record</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-200">
-                        Resident Type: Tenant
-                      </span>
-                      <span className={`px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-wider border flex items-center gap-1.5 ${
-                        residentStatus === 'Active' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-50 text-slate-600 border-slate-200'
-                      }`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${residentStatus === 'Active' ? 'bg-emerald-500' : 'bg-slate-400'}`}></span>
-                        Tenant Status: {residentStatus}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-                    <div className="p-4 bg-slate-50/70 rounded-2xl border border-slate-100">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tenant ID</p>
-                      <p className="text-base font-black text-indigo-600 font-mono mt-1">{resident.tenant_id || 'T001'}</p>
-                    </div>
-                    <div className="p-4 bg-slate-50/70 rounded-2xl border border-slate-100">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tenant Name</p>
-                      <p className="text-base font-black text-slate-900 mt-1">{resident.name}</p>
-                    </div>
-                    <div className="p-4 bg-slate-50/70 rounded-2xl border border-slate-100">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tower</p>
-                      <p className="text-base font-black text-slate-900 mt-1">{resident.tower}</p>
-                    </div>
-                    <div className="p-4 bg-slate-50/70 rounded-2xl border border-slate-100">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Floor</p>
-                      <p className="text-base font-black text-slate-900 mt-1">{resident.floor ?? '—'}</p>
-                    </div>
-                    <div className="p-4 bg-slate-50/70 rounded-2xl border border-slate-100">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Flat</p>
-                      <p className="text-base font-black text-slate-900 mt-1">{resident.flat}</p>
-                    </div>
-                    <div className="p-4 bg-slate-50/70 rounded-2xl border border-slate-100">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tenant Status</p>
-                      <span className={`inline-flex items-center gap-1.5 text-sm font-black mt-1 ${
-                        residentStatus === 'Active' ? 'text-emerald-600' : 'text-slate-400'
-                      }`}>
-                        <span className={`w-2 h-2 rounded-full ${residentStatus === 'Active' ? 'bg-emerald-500' : 'bg-slate-300'}`}></span>
-                        {residentStatus}
-                      </span>
-                    </div>
-                  </div>
+                {/* Embedded Tenant Documents Section */}
+                <div className="pt-4 border-t border-slate-100">
+                  <ResidentDocumentsSection 
+                    resident={resident} 
+                    isOwner={false} 
+                    onRefresh={onRefresh} 
+                  />
                 </div>
-              </>
+              </div>
             )}
 
             {/* Profile Form & Settings */}
@@ -3617,9 +3529,47 @@ export default function ResidentDashboard({
 
       {showChangePassword && renderChangePasswordModal()}
 
-      {renderBillModal()}
-      {renderPayBillModal()}
-      {renderViewPaymentModal()}
+      {selectedBill && (
+        <ViewBillWorkspace
+          bill={selectedBill}
+          resident={resident}
+          onBack={() => setSelectedBill(null)}
+          onMarkPaid={(b) => {
+            setSelectedBill(null);
+            setPayingBill(b);
+          }}
+          onPrintReceipt={(b) => {
+            setSelectedBill(null);
+            setViewingPayment(b);
+          }}
+        />
+      )}
+      {payingBill && (
+        <MarkBillPaidWorkspace
+          bill={payingBill}
+          resident={resident}
+          onBack={() => setPayingBill(null)}
+          onConfirm={async (payData) => {
+            try {
+              const billId = payingBill.maintenance_id || payingBill.id!;
+              await societyService.updateMaintenanceStatus(billId, 'Paid');
+              toast.success(`Payment of ₹${payData.amount.toLocaleString()} recorded successfully!`);
+              setPayingBill(null);
+              onRefresh();
+            } catch (err: unknown) {
+              const msg = err instanceof Error ? err.message : 'Error';
+              toast.error('Failed to record payment: ' + msg);
+            }
+          }}
+        />
+      )}
+      {viewingPayment && (
+        <BillReceiptWorkspace
+          bill={viewingPayment}
+          resident={resident}
+          onBack={() => setViewingPayment(null)}
+        />
+      )}
 
       {/* Image Preview Modal */}
       {selectedImage && (

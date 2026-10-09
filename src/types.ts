@@ -30,6 +30,7 @@ export interface Resident {
   tenant_id?: string | null;
   name: string;
   tower: string;
+  wing?: string;
   floor: number;
   flat: string;
   flat_number?: string;
@@ -48,6 +49,37 @@ export interface Resident {
   bhk?: string;
   flat_type?: string;
   square_feet?: number;
+  possession_date?: string;
+  family_members?: number | string;
+  permanent_address?: string;
+  move_in_date?: string;
+  expected_move_out_date?: string;
+}
+
+export type DocumentStatus = 'Not Uploaded' | 'Uploaded' | 'Under Review' | 'Verified' | 'Rejected';
+
+export interface ResidentDocument {
+  id: string;
+  resident_id: string;
+  society_id: string;
+  document_type: string;
+  document_name: string;
+  purpose: string;
+  file_path?: string;
+  file_url?: string;
+  file_name?: string;
+  file_size?: number;
+  mime_type?: string;
+  status: DocumentStatus;
+  uploaded_at?: string;
+  reviewed_at?: string;
+  reviewed_by?: string;
+  rejection_reason?: string;
+  deposit_amount?: number;
+  deposit_date?: string;
+  deposit_ref?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export type MaintenanceCalcMethod = 'Flat/BHK Maintenance' | 'Square Foot Maintenance';

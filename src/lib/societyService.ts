@@ -1,6 +1,6 @@
 import { supabase } from './supabase';
-import { Resident, MaintenanceRecord, Complaint, Booking, Society, Admin, Amenity, Media, Visitor, Role, Finance, Notice, Communication } from '../types';
-import { initialAmenities, initialAdmins, initialResidents, initialSecurityUsers, initialVisitors, initialFinances, initialNotices, initialCommunications } from '../data';
+import { Resident, MaintenanceRecord, Complaint, Booking, Society, Admin, Amenity, Media, Visitor, Role, Finance, Notice, Communication, ResidentDocument, DocumentStatus } from '../types';
+import { initialAmenities, initialAdmins, initialResidents, initialSecurityUsers, initialVisitors, initialFinances, initialNotices, initialCommunications, initialResidentDocuments, OWNER_DOCUMENT_DEFINITIONS, TENANT_DOCUMENT_DEFINITIONS } from '../data';
 
 // Rate-limit resilience & in-memory cache
 interface CacheItem<T> {
@@ -1838,41 +1838,33 @@ export const societyService = {
   async getNotices(societyId?: string) {
     const socId = societyId || 'GV2026';
     return cachedQuery(`notices_${socId}`, async () => {
-      const storageKey = `towertech_notices_${socId}`;
-      
-      // Check Supabase first
       try {
         const { data, error } = await supabase
           .from('notices')
           .select('*')
-          .eq('society_id', socId)
-          .order('is_pinned', { ascending: false })
-          .order('posted_date', { ascending: false });
+          .order('created_at', { ascending: false });
 
-        if (!error && data && data.length > 0) {
-          localStorage.setItem(storageKey, JSON.stringify(data));
-          return data as Notice[];
+        if (!error && data) {
+          return data.map((n: any) => ({
+            notice_id: String(n.notice_id || n.id),
+            id: String(n.id || n.notice_id),
+            title: n.title || 'Untitled Notice',
+            description: n.description || n.message || '',
+            category: n.category || 'General',
+            priority: n.priority || 'Normal',
+            posted_by: n.posted_by || n.created_by || 'Admin',
+            posted_date: n.posted_date || (n.created_at ? new Date(n.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]),
+            society_id: n.society_id || socId,
+            status: n.status || 'Active',
+            is_pinned: !!n.is_pinned
+          })) as Notice[];
         }
         if (error) checkRateLimitError(error);
       } catch (err) {
         checkRateLimitError(err);
       }
-
-      // LocalStorage fallback
-      const local = localStorage.getItem(storageKey);
-      if (local) {
-        try {
-          const parsed = JSON.parse(local);
-          if (Array.isArray(parsed) && parsed.length > 0) return parsed as Notice[];
-        } catch {
-          // ignore
-        }
-      }
-
-      // Default initialNotices
-      localStorage.setItem(storageKey, JSON.stringify(initialNotices));
-      return initialNotices;
-    }, initialNotices, 30000);
+      return [] as Notice[];
+    }, [] as Notice[], 15000);
   },
 
   async createNotice(noticeData: Partial<Notice>) {
@@ -2093,6 +2085,385 @@ export const societyService = {
     const filtered = list.filter(m => m.message_id !== messageId);
     localStorage.setItem(storageKey, JSON.stringify(filtered));
     return true;
+  },
+
+  // ==========================================
+  // RESIDENT DOCUMENTS (OWNER & TENANT)
+  // ==========================================
+  // RESIDENT DOCUMENTS & VERIFICATION SYSTEM
+  // ==========================================
+  async getResidentDocuments(residentId: string, societyId?: string): Promise<ResidentDocument[]> {
+    console.log('[ResidentDocuments] Querying resident_documents where resident_id =', residentId);
+    try {
+      // Query resident_documents where: resident_id = current resident ID
+      const { data, error } = await supabase
+        .from('resident_documents')
+        .select('*')
+        .eq('resident_id', residentId)
+        .order('uploaded_at', { ascending: false });
+
+      if (error) {
+        console.error('[ResidentDocuments] Supabase query error:', error);
+        throw error;
+      }
+
+      console.log('[ResidentDocuments] Query successful, records found:', data?.length || 0);
+
+      // Resolve file_url from Supabase storage if file_path is present
+      const docsWithUrls: ResidentDocument[] = (data || []).map(doc => {
+        let publicUrl = doc.file_url;
+        if (doc.file_path) {
+          // Check storage for public URL
+          const { data: mediaUrl } = supabase.storage
+            .from('media')
+            .getPublicUrl(doc.file_path);
+          if (mediaUrl?.publicUrl) {
+            publicUrl = mediaUrl.publicUrl;
+          }
+        }
+        return {
+          ...doc,
+          file_url: publicUrl
+        };
+      });
+
+      return docsWithUrls;
+    } catch (err) {
+      console.error('[ResidentDocuments] Error in getResidentDocuments:', err);
+      // Fallback to local storage cache if database connection fails
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const socId = societyId || 'SOC001';
+        const storageKey = `towertech_documents_${socId}`;
+        const local = window.localStorage.getItem(storageKey);
+        const allDocs: ResidentDocument[] = local ? JSON.parse(local) : [];
+        return allDocs.filter(d => d.resident_id === residentId && d.file_path);
+      }
+      return [];
+    }
+  },
+
+  async uploadResidentDocument(params: {
+    resident_id: string;
+    society_id?: string;
+    role?: 'owner' | 'tenant';
+    document_type: string;
+    document_name: string;
+    purpose: string;
+    file: File | Blob;
+    file_name?: string;
+    existingDoc?: ResidentDocument | null;
+    deposit_amount?: number;
+    deposit_date?: string;
+    deposit_ref?: string;
+  }): Promise<ResidentDocument> {
+    const socId = params.society_id || 'SOC001';
+    const roleFolder = params.role || 'owner';
+    const docTypeFolder = params.document_type.toLowerCase().replace(/[^a-z0-9_-]/g, '_');
+    const originalFileName = params.file_name || (params.file instanceof File ? params.file.name : `${params.document_type}.pdf`);
+    const fileExt = originalFileName.split('.').pop()?.toLowerCase() || 'pdf';
+    const mimeType = params.file.type || (fileExt === 'pdf' ? 'application/pdf' : 'image/jpeg');
+
+    // 1. Validate File
+    // Allowed: PDF, JPG, JPEG, PNG
+    const allowedExts = ['pdf', 'jpg', 'jpeg', 'png'];
+    const allowedMimes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+    if (!allowedExts.includes(fileExt) && !allowedMimes.includes(mimeType)) {
+      throw new Error('Invalid file format. Only PDF, JPG, JPEG, and PNG files are supported.');
+    }
+
+    // Maximum size: 10 MB
+    const fileSize = params.file.size;
+    if (fileSize > 10 * 1024 * 1024) {
+      throw new Error('File size exceeds 10 MB limit. Please upload a smaller file.');
+    }
+
+    // Storage Path:
+    // resident-documents/{society_id}/{resident_id}/{role}/{document_type}/{filename}
+    // Example: resident-documents/SOC001/R001/owner/sale_deed/R001_sale_deed_123456.pdf
+    const timestamp = Date.now();
+    const cleanBaseName = originalFileName.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9_-]/g, '_');
+    const finalStoredFileName = `${params.resident_id}_${docTypeFolder}_${timestamp}.${fileExt}`;
+    const storagePath = `resident-documents/${socId}/${params.resident_id}/${roleFolder}/${docTypeFolder}/${finalStoredFileName}`;
+
+    // Debugging logs (Points 1-5)
+    console.log('1. selected file:', originalFileName, `(${fileSize} bytes, ${mimeType})`);
+    console.log('2. resident ID:', params.resident_id);
+    console.log('3. society ID:', socId);
+    console.log('4. document type:', params.document_type);
+    console.log('5. Storage path:', storagePath);
+
+    // 2. Upload to Supabase Storage
+    let bucketUsed = 'resident-documents';
+    let uploadData: any = null;
+    let uploadError: any = null;
+
+    try {
+      const res = await supabase.storage
+        .from('resident-documents')
+        .upload(storagePath, params.file, {
+          contentType: mimeType,
+          upsert: false
+        });
+      uploadData = res.data;
+      uploadError = res.error;
+    } catch (e: any) {
+      uploadError = e;
+    }
+
+    if (uploadError && (uploadError.message?.includes('Bucket not found') || (uploadError as any).statusCode === '404' || (uploadError as any).statusCode === '403')) {
+      bucketUsed = 'media';
+      try {
+        const mediaRes = await supabase.storage
+          .from('media')
+          .upload(storagePath, params.file, {
+            contentType: mimeType,
+            upsert: false
+          });
+        uploadData = mediaRes.data;
+        uploadError = mediaRes.error;
+      } catch (e: any) {
+        uploadError = e;
+      }
+    }
+
+    console.log('6. Storage upload response:', uploadData, uploadError);
+
+    // If Storage upload fails: DO NOT insert into resident_documents
+    if (uploadError) {
+      console.error('Supabase Storage upload failed:', uploadError);
+      throw new Error(`Storage upload failed: ${uploadError.message || 'Unknown storage error'}`);
+    }
+
+    // Resolve public URL for preview/download
+    const { data: urlData } = supabase.storage
+      .from(bucketUsed)
+      .getPublicUrl(storagePath);
+    const finalFileUrl = urlData?.publicUrl || '';
+
+    // 3. Duplicate Document Check & DB Operations
+    let existingDoc = params.existingDoc;
+    if (!existingDoc) {
+      const { data: existingRows } = await supabase
+        .from('resident_documents')
+        .select('*')
+        .eq('resident_id', params.resident_id)
+        .eq('document_type', params.document_type)
+        .limit(1);
+      if (existingRows && existingRows.length > 0) {
+        existingDoc = existingRows[0];
+      }
+    }
+
+    let finalRecord: ResidentDocument;
+
+    if (existingDoc && existingDoc.id) {
+      // REPLACE FLOW: Update existing resident_documents record
+      console.log('[ResidentDocuments] Replacing existing document record ID:', existingDoc.id);
+      const updatePayload: Record<string, any> = {
+        file_path: storagePath,
+        file_url: finalFileUrl,
+        file_name: originalFileName,
+        file_size: fileSize,
+        mime_type: mimeType,
+        status: 'Under Review' as DocumentStatus,
+        uploaded_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      if (params.purpose) {
+        updatePayload.purpose = params.deposit_amount
+          ? `${params.purpose} (Deposit: ₹${params.deposit_amount}${params.deposit_ref ? `, Ref: ${params.deposit_ref}` : ''})`
+          : params.purpose;
+      }
+
+      const { data: updateData, error: updateError } = await supabase
+        .from('resident_documents')
+        .update(updatePayload)
+        .eq('id', existingDoc.id)
+        .select();
+
+      console.log('7. Database update response:', updateData, updateError);
+
+      if (updateError) {
+        // Rollback: Delete the uploaded Storage file immediately
+        console.error('Database update failed! Rolling back uploaded storage file:', updateError);
+        try {
+          await supabase.storage.from(bucketUsed).remove([storagePath]);
+        } catch (rbErr) {
+          console.error('Rollback error deleting storage file:', rbErr);
+        }
+        throw new Error(`Database record update failed: ${updateError.message}`);
+      }
+
+      finalRecord = (updateData && updateData[0]) || {
+        ...existingDoc,
+        ...updatePayload
+      };
+
+      // Remove the old Storage file after the new upload succeeds
+      if (existingDoc.file_path && existingDoc.file_path !== storagePath) {
+        console.log('[ResidentDocuments] Removing old storage file:', existingDoc.file_path);
+        try {
+          await supabase.storage.from(bucketUsed).remove([existingDoc.file_path]);
+        } catch (cleanErr) {
+          console.warn('[ResidentDocuments] Could not delete old file:', cleanErr);
+        }
+      }
+    } else {
+      // INSERT FLOW: Insert new metadata into resident_documents
+      const combinedPurpose = params.deposit_amount 
+        ? `${params.purpose} (Deposit: ₹${params.deposit_amount}${params.deposit_ref ? `, Ref: ${params.deposit_ref}` : ''})`
+        : params.purpose;
+
+      const insertPayload = {
+        resident_id: params.resident_id,
+        society_id: socId,
+        document_type: params.document_type,
+        document_name: params.document_name,
+        purpose: combinedPurpose,
+        file_path: storagePath,
+        file_url: finalFileUrl,
+        file_name: originalFileName,
+        file_size: fileSize,
+        mime_type: mimeType,
+        status: 'Under Review' as DocumentStatus,
+        uploaded_at: new Date().toISOString()
+      };
+
+      const { data: insertData, error: insertError } = await supabase
+        .from('resident_documents')
+        .insert([insertPayload])
+        .select();
+
+      console.log('7. Database insert response:', insertData, insertError);
+
+      if (insertError) {
+        // Rollback: Delete the uploaded Storage file immediately
+        console.error('Database INSERT failed! Rolling back uploaded storage file:', insertError);
+        try {
+          await supabase.storage.from(bucketUsed).remove([storagePath]);
+        } catch (rbErr) {
+          console.error('Rollback error deleting storage file:', rbErr);
+        }
+        throw new Error(`Database insert failed: ${insertError.message}`);
+      }
+
+      if (!insertData || insertData.length === 0) {
+        try {
+          await supabase.storage.from(bucketUsed).remove([storagePath]);
+        } catch {}
+        throw new Error('Database insert returned no rows.');
+      }
+
+      finalRecord = insertData[0];
+    }
+
+    console.log('8. final document record:', finalRecord);
+
+    // Update local cache
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const storageKey = `towertech_documents_${socId}`;
+      const local = window.localStorage.getItem(storageKey);
+      const list: ResidentDocument[] = local ? JSON.parse(local) : [];
+      const idx = list.findIndex(d => d.resident_id === params.resident_id && d.document_type === params.document_type);
+      if (idx >= 0) {
+        list[idx] = finalRecord;
+      } else {
+        list.push(finalRecord);
+      }
+      window.localStorage.setItem(storageKey, JSON.stringify(list));
+    }
+
+    return finalRecord;
+  },
+
+  async deleteResidentDocument(documentId: string, residentId: string, societyId?: string, documentType?: string, filePath?: string): Promise<boolean> {
+    console.log('[ResidentDocuments] Deleting document ID:', documentId, 'resident_id:', residentId, 'file_path:', filePath);
+    
+    // 1. Delete from database
+    try {
+      if (documentId) {
+        const { error } = await supabase
+          .from('resident_documents')
+          .delete()
+          .eq('id', documentId);
+        if (error) console.error('[ResidentDocuments] DB delete error:', error);
+      } else if (documentType) {
+        const { error } = await supabase
+          .from('resident_documents')
+          .delete()
+          .match({ resident_id: residentId, document_type: documentType });
+        if (error) console.error('[ResidentDocuments] DB delete error:', error);
+      }
+    } catch (err) {
+      console.error('[ResidentDocuments] Exception deleting from database:', err);
+    }
+
+    // 2. Delete file from Storage if file_path is provided
+    if (filePath) {
+      try {
+        console.log('[ResidentDocuments] Deleting file from storage:', filePath);
+        await supabase.storage.from('media').remove([filePath]);
+        await supabase.storage.from('resident-documents').remove([filePath]);
+      } catch (err) {
+        console.warn('[ResidentDocuments] Storage remove exception:', err);
+      }
+    }
+
+    // 3. Clean local storage cache
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const socId = societyId || 'SOC001';
+      const storageKey = `towertech_documents_${socId}`;
+      const local = window.localStorage.getItem(storageKey);
+      const list: ResidentDocument[] = local ? JSON.parse(local) : [];
+      const filtered = list.filter(d => !(d.id === documentId || (d.resident_id === residentId && (documentType ? d.document_type === documentType : false))));
+      window.localStorage.setItem(storageKey, JSON.stringify(filtered));
+    }
+
+    return true;
+  },
+
+  async updateResidentDocumentStatus(
+    documentId: string,
+    status: DocumentStatus,
+    rejectionReason?: string,
+    reviewedBy?: string,
+    societyId?: string
+  ): Promise<ResidentDocument | null> {
+    const socId = societyId || 'SOC001';
+    const storageKey = `towertech_documents_${socId}`;
+
+    const updatePayload: Partial<ResidentDocument> = {
+      status,
+      reviewed_at: new Date().toISOString(),
+      reviewed_by: reviewedBy || 'Society Administrator',
+      rejection_reason: status === 'Rejected' ? (rejectionReason || 'Document unreadable or invalid') : undefined,
+      updated_at: new Date().toISOString()
+    };
+
+    try {
+      const { data, error } = await supabase
+        .from('resident_documents')
+        .update(updatePayload)
+        .eq('id', documentId)
+        .select();
+
+      if (!error && data && data.length > 0) {
+        return data[0];
+      }
+    } catch (err) {
+      console.error('[ResidentDocuments] Error updating document status:', err);
+    }
+
+    const local = localStorage.getItem(storageKey);
+    const list: ResidentDocument[] = local ? JSON.parse(local) : [];
+    const index = list.findIndex(d => d.id === documentId);
+    if (index >= 0) {
+      list[index] = { ...list[index], ...updatePayload };
+      localStorage.setItem(storageKey, JSON.stringify(list));
+      return list[index];
+    }
+    return null;
   }
 };
 

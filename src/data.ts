@@ -1,4 +1,4 @@
-import { Resident, Admin, MaintenanceRecord, Complaint, Booking, Amenity, Finance, Notice, Communication } from './types';
+import { Resident, Admin, MaintenanceRecord, Complaint, Booking, Amenity, Finance, Notice, Communication, ResidentDocument } from './types';
 
 export const initialResidents: Resident[] = [
   { resident_id: 'R001', name: 'Karan Bodake', tower: 'A', floor: 1, flat: '101', email: 'rahul101@gvsociety.com', phone: '9000000001', society_id: 'GV2026', password: 'resident123', role: 'Owner', occupancy_type: 'Owner', owner_id: null, tenant_id: null, status: 'Active', bhk: '2 BHK', flat_type: 'Smart 2 BHK', square_feet: 620 },
@@ -730,5 +730,28 @@ export const initialCommunications: Communication[] = [
     created_at: '2026-09-20T16:10:00Z'
   }
 ];
+
+export const OWNER_DOCUMENT_DEFINITIONS = [
+  { type: 'sale_deed', name: 'Sale Deed / Agreement of Sale', purpose: 'Proof of ownership' },
+  { type: 'index_ii', name: 'Index II', purpose: 'Property ownership/registration proof' },
+  { type: 'possession_letter', name: 'Possession Letter', purpose: 'Proof that possession was given' },
+  { type: 'occupancy_certificate', name: 'Occupancy Certificate (OC)', purpose: "Confirms the building's authorized occupancy" },
+  { type: 'property_tax_receipt', name: 'Property Tax Receipt', purpose: 'Supporting property proof' },
+  { type: 'government_id', name: 'Aadhaar / Government ID', purpose: 'Identity verification' },
+  { type: 'passport_photo', name: 'Passport-size Photo', purpose: 'Resident identification' }
+];
+
+export const TENANT_DOCUMENT_DEFINITIONS = [
+  { type: 'government_id', name: 'Aadhaar / Government ID', purpose: 'Tenant identity' },
+  { type: 'rent_agreement', name: 'Rent Agreement / Leave & License Agreement', purpose: 'Proof of tenancy' },
+  { type: 'police_verification', name: 'Police Verification', purpose: 'Security verification' },
+  { type: 'passport_photo', name: 'Passport-size Photo', purpose: 'Identification' },
+  { type: 'permanent_address_proof', name: 'Permanent Address Proof', purpose: 'Background/address verification' },
+  { type: 'owner_confirmation', name: "Owner's Confirmation", purpose: 'Confirms permission to occupy' },
+  { type: 'deposit_details', name: 'Deposit Details', purpose: 'Record of security deposit' },
+  { type: 'other_supporting_document', name: 'Other Supporting Documents', purpose: 'As required by society' }
+];
+
+export const initialResidentDocuments: ResidentDocument[] = [];
 
 

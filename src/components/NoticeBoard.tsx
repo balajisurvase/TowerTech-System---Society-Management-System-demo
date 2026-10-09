@@ -35,6 +35,7 @@ import { Notice, NoticeCategory, NoticePriority, NoticeStatus, User, Resident, R
 import { societyService } from '../lib/societyService';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { CreateNoticeWorkspace, ViewNoticeWorkspace, NoticeItem } from './workspaces/NoticeWorkspaces';
 
 interface NoticeBoardProps {
   user: User | Resident;
@@ -257,6 +258,101 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
   const activeCount = notices.filter(n => n.status === 'Active').length;
   const urgentCount = notices.filter(n => n.priority === 'Urgent' || n.priority === 'Important').length;
   const pinnedCount = notices.filter(n => n.is_pinned).length;
+
+  if (showCreateModal || editingNotice) {
+    return (
+      <CreateNoticeWorkspace
+        mode={editingNotice ? 'edit' : 'create'}
+        editingNotice={editingNotice ? {
+          notice_id: editingNotice.notice_id,
+          title: editingNotice.title,
+          category: editingNotice.category as any,
+          priority: editingNotice.priority as any,
+          posted_date: editingNotice.posted_date || '',
+          posted_by: editingNotice.posted_by || 'Admin',
+          description: editingNotice.description || '',
+          target_audience: editingNotice.target_audience,
+          is_pinned: editingNotice.is_pinned,
+          expires_at: editingNotice.expiry_date
+        } : null}
+        onBack={() => {
+          setShowCreateModal(false);
+          setEditingNotice(null);
+        }}
+        onSubmit={async (nData) => {
+          try {
+            setSubmitting(true);
+            if (editingNotice) {
+              await societyService.updateNotice(editingNotice.notice_id, {
+                title: nData.title,
+                category: nData.category,
+                priority: nData.priority,
+                target_audience: nData.target_audience,
+                expiry_date: nData.expires_at || null,
+                is_pinned: Boolean(nData.is_pinned),
+                description: nData.description,
+                society_id: user.society_id
+              });
+              toast.success('Notice updated successfully!');
+            } else {
+              await societyService.createNotice({
+                title: nData.title,
+                category: nData.category,
+                priority: nData.priority,
+                target_audience: nData.target_audience,
+                expiry_date: nData.expires_at || null,
+                status: 'Active',
+                is_pinned: Boolean(nData.is_pinned),
+                description: nData.description,
+                posted_by: user.name || 'Society Admin',
+                society_id: user.society_id || 'GV2026'
+              });
+              toast.success('Notice published successfully!');
+            }
+            setShowCreateModal(false);
+            setEditingNotice(null);
+            await loadNotices();
+            if (onRefresh) onRefresh();
+          } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : 'Operation failed';
+            toast.error(msg);
+          } finally {
+            setSubmitting(false);
+          }
+        }}
+      />
+    );
+  }
+
+  if (viewingNotice) {
+    return (
+      <ViewNoticeWorkspace
+        notice={{
+          notice_id: viewingNotice.notice_id,
+          title: viewingNotice.title,
+          category: viewingNotice.category as any,
+          priority: viewingNotice.priority as any,
+          posted_date: viewingNotice.posted_date || '',
+          posted_by: viewingNotice.posted_by || 'Admin',
+          description: viewingNotice.description || '',
+          target_audience: viewingNotice.target_audience,
+          is_pinned: viewingNotice.is_pinned,
+          expires_at: viewingNotice.expiry_date
+        }}
+        isAdmin={isAdmin}
+        onBack={() => setViewingNotice(null)}
+        onEdit={() => {
+          const currentViewing = viewingNotice;
+          setViewingNotice(null);
+          setEditingNotice(currentViewing);
+        }}
+        onDelete={(id) => {
+          setViewingNotice(null);
+          handleDelete(id);
+        }}
+      />
+    );
+  }
 
   return (
     <div className="flex flex-col gap-6 max-w-7xl mx-auto w-full">

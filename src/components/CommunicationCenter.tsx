@@ -18,7 +18,10 @@ import {
   RefreshCw,
   Share2,
   Smile,
-  AlertCircle
+  AlertCircle,
+  Image as ImageIcon,
+  Camera,
+  FileText
 } from 'lucide-react';
 import { Communication, CommunicationChannel, User, Resident, Role } from '../types';
 import { societyService } from '../lib/societyService';
@@ -332,6 +335,57 @@ export default function CommunicationCenter({ user, onSwitchTab, onRefresh }: Co
                 </button>
               )}
             </div>
+          </div>
+
+          {/* ApnaComplex Quick Actions: Document, Gallery, Camera (Screen 1 in screenshot) */}
+          <div className="px-5 py-3 bg-white border-b border-slate-100 flex items-center justify-around sm:justify-start sm:gap-6">
+            <button
+              type="button"
+              onClick={() => {
+                setAttachmentName('Rental_Agreement_2026.pdf');
+                setAttachmentUrl('https://example.com/rental_agreement.pdf');
+                setShowAttachmentInput(true);
+                toast.success('Document attached: Rental_Agreement_2026.pdf');
+              }}
+              className="flex flex-col items-center gap-1 group cursor-pointer"
+            >
+              <div className="w-10 h-10 rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
+                <FileText className="w-5 h-5" />
+              </div>
+              <span className="text-[11px] font-bold text-slate-600 group-hover:text-slate-900">Document</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setAttachmentName('Maintenance_Issue_Photo.jpg');
+                setAttachmentUrl('https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=600&q=80');
+                setShowAttachmentInput(true);
+                toast.success('Gallery photo attached');
+              }}
+              className="flex flex-col items-center gap-1 group cursor-pointer"
+            >
+              <div className="w-10 h-10 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
+                <ImageIcon className="w-5 h-5" />
+              </div>
+              <span className="text-[11px] font-bold text-slate-600 group-hover:text-slate-900">Gallery</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setAttachmentName('Gate_Entry_Snapshot.jpg');
+                setAttachmentUrl('https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=600&q=80');
+                setShowAttachmentInput(true);
+                toast.success('Camera snapshot captured');
+              }}
+              className="flex flex-col items-center gap-1 group cursor-pointer"
+            >
+              <div className="w-10 h-10 rounded-xl bg-purple-100 text-[#542d87] flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
+                <Camera className="w-5 h-5" />
+              </div>
+              <span className="text-[11px] font-bold text-slate-600 group-hover:text-slate-900">Camera</span>
+            </button>
           </div>
 
           {/* Messages Stream */}

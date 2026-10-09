@@ -37,6 +37,11 @@ import {
 import { Finance, FinanceType, PaymentMode, PaymentStatus, Resident, MaintenanceRecord, User } from '../types';
 import { societyService } from '../lib/societyService';
 import { toast } from 'sonner';
+import { 
+  AddEditFinanceWorkspace, 
+  ViewFinanceVoucherWorkspace, 
+  FinanceStatementWorkspace 
+} from './workspaces/FinanceWorkspaces';
 
 interface FinanceDashboardProps {
   user: User;
@@ -520,6 +525,83 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
     return null;
   };
 
+  if (showAddEditModal) {
+    return (
+      <AddEditFinanceWorkspace
+        mode={editingFinance ? 'edit' : 'add'}
+        editingFinance={editingFinance}
+        onBack={() => {
+          setShowAddEditModal(false);
+          setEditingFinance(null);
+        }}
+        onSubmit={async (fd) => {
+          try {
+            if (editingFinance) {
+              await societyService.updateFinance(editingFinance.finance_id, {
+                finance_type: fd.finance_type,
+                category: fd.category,
+                description: fd.description,
+                amount: fd.amount,
+                payment_mode: fd.payment_mode,
+                payment_status: fd.payment_status,
+                transaction_date: fd.transaction_date,
+                party_name: fd.party_name,
+                reference_number: fd.reference_number,
+                society_id: user.society_id
+              });
+              toast.success('Record updated successfully');
+            } else {
+              await societyService.addFinance({
+                finance_type: fd.finance_type,
+                category: fd.category,
+                description: fd.description,
+                amount: fd.amount,
+                payment_mode: fd.payment_mode,
+                payment_status: fd.payment_status,
+                transaction_date: fd.transaction_date,
+                party_name: fd.party_name,
+                reference_number: fd.reference_number,
+                society_id: user.society_id || 'GV2026'
+              });
+              toast.success('Record added successfully');
+            }
+            setShowAddEditModal(false);
+            setEditingFinance(null);
+            await loadFinances();
+            if (onRefresh) onRefresh();
+          } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : 'Operation failed';
+            toast.error(msg);
+          }
+        }}
+      />
+    );
+  }
+
+  if (selectedReceipt) {
+    return (
+      <ViewFinanceVoucherWorkspace
+        record={selectedReceipt}
+        onBack={() => setSelectedReceipt(null)}
+        onEdit={(rec) => {
+          const currentRec = rec;
+          setSelectedReceipt(null);
+          setEditingFinance(currentRec);
+          setShowAddEditModal(true);
+        }}
+      />
+    );
+  }
+
+  if (showReportModal) {
+    return (
+      <FinanceStatementWorkspace
+        finances={finances}
+        onBack={() => setShowReportModal(false)}
+      />
+    );
+  }
+
   return (
     <div className="flex flex-col gap-6">
       {/* --------------------------------------------------------------------- */}
@@ -570,70 +652,69 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
       </div>
 
       {/* --------------------------------------------------------------------- */}
-      {/* 2. Top Metric Cards Row: Total Income | Total Expenses | Pending Dues  */}
-      {/* --------------------------------------------------------------------- */}
+      {/* 2. Top Metric Cards Row: Total Income | Total Expenses | Pending Dues (Solid Colors) */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {/* Total Income */}
+        {/* Total Income: Solid Green #059669 */}
         <div 
           onClick={() => {
             setActiveTypeTab('Income');
             setClickedFilter(null);
           }}
-          className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between hover:border-indigo-300 transition-all cursor-pointer group"
+          className="bg-[#059669] p-6 rounded-2xl shadow-lg shadow-emerald-500/20 text-white flex flex-col justify-between hover:scale-[1.01] transition-all cursor-pointer group"
         >
           <div className="flex items-center justify-between mb-4">
-            <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Total Income</span>
-            <div className="w-9 h-9 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100 group-hover:scale-110 transition-transform">
-              <ArrowUpRight className="w-5 h-5" />
+            <span className="text-[11px] font-black text-white/90 uppercase tracking-widest">Total Income</span>
+            <div className="w-10 h-10 rounded-xl bg-white/20 text-white flex items-center justify-center backdrop-blur-xs font-black">
+              <ArrowUpRight className="w-5 h-5 text-white" />
             </div>
           </div>
           <div>
-            <h3 className="text-3xl font-black text-slate-900 tracking-tight">₹{totalIncome.toLocaleString('en-IN')}</h3>
-            <p className="text-[11px] font-bold text-emerald-600 mt-1 flex items-center gap-1">
+            <h3 className="text-3xl font-black text-white font-mono tracking-tight">₹{totalIncome.toLocaleString('en-IN')}</h3>
+            <p className="text-[11px] font-bold text-white/80 mt-1 flex items-center gap-1">
               <span>Paid inflows received</span>
             </p>
           </div>
         </div>
 
-        {/* Total Expenses */}
+        {/* Total Expenses: Solid Red #DC2626 */}
         <div 
           onClick={() => {
             setActiveTypeTab('Expense');
             setClickedFilter(null);
           }}
-          className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between hover:border-indigo-300 transition-all cursor-pointer group"
+          className="bg-[#DC2626] p-6 rounded-2xl shadow-lg shadow-red-500/20 text-white flex flex-col justify-between hover:scale-[1.01] transition-all cursor-pointer group"
         >
           <div className="flex items-center justify-between mb-4">
-            <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Total Expenses</span>
-            <div className="w-9 h-9 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-100 group-hover:scale-110 transition-transform">
-              <ArrowDownRight className="w-5 h-5" />
+            <span className="text-[11px] font-black text-white/90 uppercase tracking-widest">Total Expenses</span>
+            <div className="w-10 h-10 rounded-xl bg-white/20 text-white flex items-center justify-center backdrop-blur-xs font-black">
+              <ArrowDownRight className="w-5 h-5 text-white" />
             </div>
           </div>
           <div>
-            <h3 className="text-3xl font-black text-slate-900 tracking-tight">₹{totalExpenses.toLocaleString('en-IN')}</h3>
-            <p className="text-[11px] font-bold text-rose-600 mt-1 flex items-center gap-1">
+            <h3 className="text-3xl font-black text-white font-mono tracking-tight">₹{totalExpenses.toLocaleString('en-IN')}</h3>
+            <p className="text-[11px] font-bold text-white/80 mt-1 flex items-center gap-1">
               <span>Operational outlays</span>
             </p>
           </div>
         </div>
 
-        {/* Pending Dues */}
+        {/* Pending Dues: Solid Orange #EA580C */}
         <div 
           onClick={() => {
             setActiveTypeTab('PendingDues');
             setClickedFilter(null);
           }}
-          className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between hover:border-indigo-300 transition-all cursor-pointer group"
+          className="bg-[#EA580C] p-6 rounded-2xl shadow-lg shadow-orange-500/20 text-white flex flex-col justify-between hover:scale-[1.01] transition-all cursor-pointer group"
         >
           <div className="flex items-center justify-between mb-4">
-            <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Pending Dues</span>
-            <div className="w-9 h-9 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-100 group-hover:scale-110 transition-transform">
-              <AlertCircle className="w-5 h-5" />
+            <span className="text-[11px] font-black text-white/90 uppercase tracking-widest">Pending Dues</span>
+            <div className="w-10 h-10 rounded-xl bg-white/20 text-white flex items-center justify-center backdrop-blur-xs font-black">
+              <AlertCircle className="w-5 h-5 text-white" />
             </div>
           </div>
           <div>
-            <h3 className="text-3xl font-black text-slate-900 tracking-tight">₹{pendingDues.toLocaleString('en-IN')}</h3>
-            <p className="text-[11px] font-bold text-amber-600 mt-1">
+            <h3 className="text-3xl font-black text-white font-mono tracking-tight">₹{pendingDues.toLocaleString('en-IN')}</h3>
+            <p className="text-[11px] font-bold text-white/80 mt-1">
               <span>Unpaid / Overdue flat dues</span>
             </p>
           </div>

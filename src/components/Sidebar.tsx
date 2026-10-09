@@ -5,15 +5,19 @@ import {
   CreditCard, 
   MessageSquare, 
   Calendar, 
-  Shield,
-  IndianRupee,
+  Shield, 
+  IndianRupee, 
   LogOut, 
   Building2, 
-  User,
-  Megaphone,
-  MessagesSquare,
-  ChevronRight,
-  X
+  User, 
+  Megaphone, 
+  MessagesSquare, 
+  ChevronRight, 
+  FileText, 
+  X, 
+  Sparkles, 
+  Settings,
+  HelpCircle
 } from 'lucide-react';
 import { Role } from '../types';
 
@@ -25,17 +29,6 @@ interface SidebarProps {
   onLogout: () => void;
   isMobileOpen?: boolean;
   onCloseMobile?: () => void;
-}
-
-interface NavItem {
-  id: string;
-  label: string;
-  icon: React.ComponentType<{ className?: string }>;
-}
-
-interface NavSection {
-  title: string;
-  items: NavItem[];
 }
 
 export default function Sidebar({ 
@@ -50,105 +43,38 @@ export default function Sidebar({
   const isUserAdmin = userRole === 'admin' || isAdmin;
   const isSecurity = userRole === 'security';
 
-  let sections: NavSection[] = [];
-
-  if (isSecurity) {
-    sections = [
-      {
-        title: 'SECURITY',
-        items: [
-          { id: 'security', label: 'Visitor Desk', icon: Shield },
-        ]
-      },
-      {
-        title: 'COMMUNICATION',
-        items: [
-          { id: 'notices', label: 'Notices', icon: Megaphone },
-          { id: 'communication', label: 'Broadcasts', icon: MessagesSquare },
-        ]
-      },
-      {
-        title: 'ACCOUNT',
-        items: [
-          { id: 'profile', label: 'Profile', icon: User },
-        ]
-      }
-    ];
-  } else if (isUserAdmin) {
-    sections = [
-      {
-        title: 'MAIN',
-        items: [
-          { id: 'dashboard', label: 'Overview', icon: LayoutDashboard },
-        ]
-      },
-      {
-        title: 'SOCIETY',
-        items: [
-          { id: 'residents', label: 'Residents', icon: Users },
-          { id: 'maintenance', label: 'Maintenance', icon: CreditCard },
-          { id: 'complaints', label: 'Complaints', icon: MessageSquare },
-          { id: 'notices', label: 'Notices', icon: Megaphone },
-          { id: 'communication', label: 'Communication', icon: MessagesSquare },
-        ]
-      },
-      {
-        title: 'MANAGEMENT',
-        items: [
-          { id: 'financial', label: 'Finance & Ledger', icon: IndianRupee },
-          { id: 'bookings', label: 'Amenity Bookings', icon: Calendar },
-        ]
-      },
-      {
-        title: 'SECURITY',
-        items: [
-          { id: 'security', label: 'Security & Gate', icon: Shield },
-        ]
-      },
-      {
-        title: 'ADMINISTRATION',
-        items: [
-          { id: 'profile', label: 'Admin Settings', icon: User },
-        ]
-      }
-    ];
-  } else {
-    // Resident or Tenant
-    sections = [
-      {
-        title: 'MAIN',
-        items: [
-          { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-        ]
-      },
-      {
-        title: 'COMMUNITY',
-        items: [
-          { id: 'notices', label: 'Notice Board', icon: Megaphone },
-          { id: 'communication', label: 'Helpdesk Chat', icon: MessagesSquare },
-          { id: 'complaints', label: 'My Complaints', icon: MessageSquare },
-        ]
-      },
-      {
-        title: 'SERVICES',
-        items: [
-          { id: 'maintenance', label: 'My Maintenance', icon: CreditCard },
-          { id: 'bookings', label: 'Book Amenity', icon: Calendar },
-          { id: 'security', label: 'Gate Passes', icon: Shield },
-        ]
-      },
-      {
-        title: 'ACCOUNT',
-        items: [
-          { id: 'profile', label: 'My Profile', icon: User },
-        ]
-      }
-    ];
-  }
+  const navItems = isSecurity ? [
+    { id: 'dashboard', label: 'My Stuff', icon: LayoutDashboard },
+    { id: 'security', label: 'Security & Gate', icon: Shield },
+    { id: 'notices', label: 'Community Notices', icon: Megaphone },
+    { id: 'communication', label: 'Messages', icon: MessagesSquare },
+    { id: 'profile', label: 'Settings', icon: Settings },
+  ] : isUserAdmin ? [
+    { id: 'dashboard', label: 'My Stuff (Dashboard)', icon: LayoutDashboard },
+    { id: 'maintenance', label: 'My Financials', icon: CreditCard },
+    { id: 'complaints', label: 'My Complaints', icon: MessageSquare },
+    { id: 'notices', label: 'Community Notices', icon: Megaphone },
+    { id: 'residents', label: 'Society Directory', icon: Users },
+    { id: 'communication', label: 'Helpdesk & Chat', icon: MessagesSquare },
+    { id: 'financial', label: 'Accounts & Ledger', icon: IndianRupee },
+    { id: 'bookings', label: 'Amenities', icon: Calendar },
+    { id: 'security', label: 'Gate Security', icon: Shield },
+    { id: 'profile', label: 'Settings', icon: Settings },
+  ] : [
+    { id: 'dashboard', label: 'My Stuff', icon: LayoutDashboard },
+    { id: 'maintenance', label: 'My Financials', icon: CreditCard },
+    { id: 'complaints', label: 'My Complaints', icon: MessageSquare },
+    { id: 'notices', label: 'Notice Board', icon: Megaphone },
+    { id: 'communication', label: 'Messages', icon: MessagesSquare },
+    { id: 'documents', label: 'Documents', icon: FileText },
+    { id: 'bookings', label: 'Bookings', icon: Calendar },
+    { id: 'security', label: 'Gate Passes', icon: Shield },
+    { id: 'profile', label: 'Settings', icon: Settings },
+  ];
 
   return (
     <>
-      {/* Mobile backdrop */}
+      {/* Mobile Backdrop */}
       {isMobileOpen && (
         <div 
           onClick={onCloseMobile}
@@ -156,28 +82,27 @@ export default function Sidebar({
         />
       )}
 
-      <aside className={`fixed md:sticky top-0 left-0 h-screen w-[250px] bg-[#0F172A] text-slate-400 flex flex-col shrink-0 z-50 border-r border-slate-800 font-sans select-none transition-transform duration-200 ease-in-out ${
+      <aside className={`fixed md:sticky top-0 left-0 h-screen w-[240px] sm:w-[260px] bg-[#542d87] text-white flex flex-col shrink-0 z-50 font-sans select-none transition-transform duration-200 ease-in-out p-4 shadow-xl border-r border-purple-900/40 ${
         isMobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
       }`}>
-        {/* Brand Header */}
-        <div className="p-4 md:p-5 pb-4 border-b border-slate-800/80 flex items-center justify-between">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-9 h-9 bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-xl flex items-center justify-center shrink-0 shadow-md shadow-indigo-950/50 border border-indigo-400/20">
-              <Building2 className="w-5 h-5 text-white" />
+        
+        {/* BRAND LOGO ("apnacomplex" / "TowerTech") */}
+        <div className="flex items-center justify-between pb-5 px-2 border-b border-white/10">
+          <div className="cursor-pointer" onClick={() => setActiveTab('dashboard')}>
+            <div className="flex items-center gap-1.5 leading-none">
+              <span className="text-2xl font-black text-white tracking-tight lowercase">
+                apnacomplex<span className="text-orange-400">.</span>
+              </span>
             </div>
-            <div className="min-w-0">
-              <h1 className="text-sm font-extrabold tracking-tight text-white leading-none truncate">
-                TowerTech
-              </h1>
-              <p className="text-[10px] font-semibold text-indigo-400/90 tracking-wide mt-1 truncate">
-                Green Park Residency
-              </p>
-            </div>
+            <p className="text-[10px] font-semibold text-purple-200 uppercase tracking-widest mt-1">
+              Green Park Residency
+            </p>
           </div>
+
           {onCloseMobile && (
             <button
               onClick={onCloseMobile}
-              className="md:hidden p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+              className="md:hidden p-1.5 rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition-colors"
               aria-label="Close menu"
             >
               <X className="w-5 h-5" />
@@ -185,55 +110,59 @@ export default function Sidebar({
           )}
         </div>
 
-        {/* Grouped Navigation */}
-        <nav className="flex-1 px-3 py-4 space-y-5 overflow-y-auto custom-scrollbar">
-          {sections.map((section) => (
-            <div key={section.title} className="space-y-1">
-              <div className="px-3 text-[10px] font-extrabold text-slate-500 tracking-wider uppercase">
-                {section.title}
-              </div>
-              {section.items.map((tab) => {
-                const isActive = activeTab === tab.id;
-                const Icon = tab.icon;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => {
-                      setActiveTab(tab.id);
-                      if (onCloseMobile) onCloseMobile();
-                    }}
-                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-xs font-semibold cursor-pointer ${
-                      isActive 
-                        ? 'bg-indigo-600 text-white shadow-md shadow-indigo-950/40 font-bold' 
-                        : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <Icon className={`w-4 h-4 shrink-0 transition-colors ${isActive ? 'text-white' : 'text-slate-400'}`} />
-                      <span className="truncate">{tab.label}</span>
-                    </div>
-                    {isActive && (
-                      <ChevronRight className="w-3.5 h-3.5 text-indigo-200 shrink-0" />
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          ))}
+        {/* NAVIGATION LINKS */}
+        <nav className="flex-1 space-y-1 overflow-y-auto custom-scrollbar pr-1 py-4">
+          <p className="text-[10px] font-bold text-purple-300 uppercase tracking-widest px-3 mb-2">
+            Modules
+          </p>
+          {navItems.map((item) => {
+            const isActive = activeTab === item.id;
+            const Icon = item.icon;
+            return (
+              <button
+                key={item.id}
+                onClick={() => {
+                  setActiveTab(item.id);
+                  if (onCloseMobile) onCloseMobile();
+                }}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-150 text-xs font-bold cursor-pointer ${
+                  isActive 
+                    ? 'bg-white text-[#542d87] shadow-sm font-black' 
+                    : 'text-purple-100 hover:text-white hover:bg-white/10'
+                }`}
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <Icon className={`w-4 h-4 shrink-0 transition-colors ${isActive ? 'text-[#542d87]' : 'text-purple-200'}`} />
+                  <span className="truncate">{item.label}</span>
+                </div>
+                {isActive && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-orange-500 shrink-0"></span>
+                )}
+              </button>
+            );
+          })}
         </nav>
 
-        {/* Footer / User & Logout */}
-        <div className="p-3 border-t border-slate-800/80 bg-slate-900/50">
+        {/* BOTTOM HELP & PROFILE */}
+        <div className="pt-3 border-t border-white/10 space-y-1">
+          <button
+            onClick={() => setActiveTab('communication')}
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-purple-200 hover:text-white hover:bg-white/10 text-xs font-semibold cursor-pointer"
+          >
+            <HelpCircle className="w-4 h-4" />
+            <span>Support Helpdesk</span>
+          </button>
+
           <button
             onClick={onLogout}
-            className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-all text-xs font-semibold group cursor-pointer"
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-rose-300 hover:text-white hover:bg-rose-500/20 text-xs font-bold cursor-pointer"
           >
-            <LogOut className="w-4 h-4 shrink-0 text-slate-400 group-hover:text-rose-400 transition-colors" />
-            <span className="truncate">Sign Out</span>
+            <LogOut className="w-4 h-4" />
+            <span>Sign Out</span>
           </button>
         </div>
+
       </aside>
     </>
   );
 }
-

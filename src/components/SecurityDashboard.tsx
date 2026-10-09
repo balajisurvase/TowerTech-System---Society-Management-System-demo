@@ -338,49 +338,49 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
         </div>
       </div>
 
-      {/* LIVE GATE STATUS SUMMARY CARDS */}
+      {/* LIVE GATE STATUS SUMMARY CARDS (Solid Vibrant Colors) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs flex items-center justify-between">
+        <div className="bg-[#2563EB] p-5 rounded-2xl shadow-lg shadow-blue-500/20 text-white flex items-center justify-between">
           <div>
-            <p className="text-[10px] font-extrabold text-indigo-600 uppercase tracking-wider">Visitors Inside</p>
-            <h3 className="text-2xl font-black text-slate-900 font-mono mt-0.5">{insideCount}</h3>
-            <p className="text-[10px] text-slate-400 font-medium">Currently on premises</p>
+            <p className="text-[11px] font-black uppercase tracking-wider text-white/90">Visitors Inside</p>
+            <h3 className="text-3xl font-black text-white font-mono tracking-tight mt-1">{insideCount}</h3>
+            <p className="text-[11px] font-bold text-white/80 mt-0.5">Currently on premises</p>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
-            <LogIn className="w-5 h-5" />
+          <div className="w-10 h-10 rounded-xl bg-white/20 text-white flex items-center justify-center font-black backdrop-blur-xs">
+            <LogIn className="w-5 h-5 text-white" />
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs flex items-center justify-between">
+        <div className="bg-[#EA580C] p-5 rounded-2xl shadow-lg shadow-orange-500/20 text-white flex items-center justify-between">
           <div>
-            <p className="text-[10px] font-extrabold text-amber-600 uppercase tracking-wider">Expected Visitors</p>
-            <h3 className="text-2xl font-black text-slate-900 font-mono mt-0.5">{expectedCount}</h3>
-            <p className="text-[10px] text-slate-400 font-medium">Pre-approved by flat</p>
+            <p className="text-[11px] font-black uppercase tracking-wider text-white/90">Expected Visitors</p>
+            <h3 className="text-3xl font-black text-white font-mono tracking-tight mt-1">{expectedCount}</h3>
+            <p className="text-[11px] font-bold text-white/80 mt-0.5">Pre-approved by flat</p>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
-            <Clock className="w-5 h-5" />
+          <div className="w-10 h-10 rounded-xl bg-white/20 text-white flex items-center justify-center font-black backdrop-blur-xs">
+            <Clock className="w-5 h-5 text-white" />
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs flex items-center justify-between">
+        <div className="bg-[#059669] p-5 rounded-2xl shadow-lg shadow-emerald-500/20 text-white flex items-center justify-between">
           <div>
-            <p className="text-[10px] font-extrabold text-emerald-600 uppercase tracking-wider">Checked Out Today</p>
-            <h3 className="text-2xl font-black text-slate-900 font-mono mt-0.5">{exitedTodayCount}</h3>
-            <p className="text-[10px] text-slate-400 font-medium">Exited gate safely</p>
+            <p className="text-[11px] font-black uppercase tracking-wider text-white/90">Checked Out Today</p>
+            <h3 className="text-3xl font-black text-white font-mono tracking-tight mt-1">{exitedTodayCount}</h3>
+            <p className="text-[11px] font-bold text-white/80 mt-0.5">Exited gate safely</p>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
-            <LogOutIcon className="w-5 h-5" />
+          <div className="w-10 h-10 rounded-xl bg-white/20 text-white flex items-center justify-center font-black backdrop-blur-xs">
+            <LogOutIcon className="w-5 h-5 text-white" />
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs flex items-center justify-between">
+        <div className="bg-[#0D9488] p-5 rounded-2xl shadow-lg shadow-teal-500/20 text-white flex items-center justify-between">
           <div>
-            <p className="text-[10px] font-extrabold text-blue-600 uppercase tracking-wider">Deliveries Today</p>
-            <h3 className="text-2xl font-black text-slate-900 font-mono mt-0.5">{deliveriesCount}</h3>
-            <p className="text-[10px] text-slate-400 font-medium">Couriers / Parcels</p>
+            <p className="text-[11px] font-black uppercase tracking-wider text-white/90">Deliveries Today</p>
+            <h3 className="text-3xl font-black text-white font-mono tracking-tight mt-1">{deliveriesCount}</h3>
+            <p className="text-[11px] font-bold text-white/80 mt-0.5">Couriers / Parcels</p>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
-            <Package className="w-5 h-5" />
+          <div className="w-10 h-10 rounded-xl bg-white/20 text-white flex items-center justify-center font-black backdrop-blur-xs">
+            <Package className="w-5 h-5 text-white" />
           </div>
         </div>
       </div>
