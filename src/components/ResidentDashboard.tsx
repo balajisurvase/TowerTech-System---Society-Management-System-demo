@@ -45,6 +45,7 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import NoticeBoard from './NoticeBoard';
 import CommunicationCenter from './CommunicationCenter';
+import SecurityDashboard from './SecurityDashboard';
 import ResidentDocumentsSection from './ResidentDocumentsSection';
 import { 
   ViewBillWorkspace, 
@@ -3490,6 +3491,15 @@ export default function ResidentDashboard({
             user={resident}
             onSwitchTab={(tab) => setActiveTab(tab)}
             onRefresh={onRefresh}
+          />
+        );
+
+      case 'security':
+        return (
+          <SecurityDashboard 
+            user={resident as unknown as User}
+            residents={residents || []}
+            onLogout={onLogout}
           />
         );
 

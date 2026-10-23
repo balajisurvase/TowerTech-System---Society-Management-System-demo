@@ -51,7 +51,7 @@ export default function TopHeader({
     { id: '3', title: 'Complaint #104 Updated to In-Progress', time: '3 hours ago', icon: MessageSquare, color: 'text-purple-600 bg-purple-50' },
   ];
 
-  // Map subnav tabs (ApnaComplex style: ACTIVITY | MY STUFF | COMMUNITY | MANAGEMENT)
+  // Map subnav tabs (TowerTech style: ACTIVITY | MY STUFF | COMMUNITY | MANAGEMENT)
   const isActivity = activeTab === 'security' || activeTab === 'audit';
   const isMyStuff = activeTab === 'dashboard' || activeTab === 'profile';
   const isCommunity = activeTab === 'notices' || activeTab === 'communication' || activeTab === 'residents';
@@ -84,15 +84,12 @@ export default function TopHeader({
             </div>
             <div>
               <div className="flex items-center gap-1.5 leading-none">
-                <span className="text-base font-black text-white tracking-tight lowercase">
-                  apnacomplex<span className="text-orange-400">.</span>
-                </span>
-                <span className="text-[10px] font-bold text-purple-200 uppercase tracking-widest hidden sm:inline">
-                  | TowerTech
+                <span className="text-base font-black text-white tracking-tight">
+                  TowerTech<span className="text-orange-400">.</span>
                 </span>
               </div>
-              <span className="text-[11px] font-semibold text-purple-200 block leading-tight mt-0.5">
-                Green Park Residency {flatDisplay && `· ${flatDisplay}`}
+              <span className="text-[11px] font-extrabold text-orange-300 block leading-tight mt-0.5 tracking-wide">
+                Joyville Sensorium {flatDisplay && `· ${flatDisplay}`}
               </span>
             </div>
           </button>
@@ -202,52 +199,7 @@ export default function TopHeader({
         </div>
       </div>
 
-      {/* Sub-Navigation Row (ApnaComplex Signature Tabs: ACTIVITY | MY STUFF | COMMUNITY | MANAGEMENT) */}
-      <div className="w-full px-4 md:px-6 flex items-center gap-6 overflow-x-auto custom-scrollbar text-xs font-bold uppercase tracking-wider">
-        <button
-          onClick={() => setActiveTab('security')}
-          className={`py-2.5 transition-all cursor-pointer whitespace-nowrap border-b-2 ${
-            isActivity
-              ? 'border-white text-white font-black'
-              : 'border-transparent text-purple-200 hover:text-white'
-          }`}
-        >
-          Activity
-        </button>
 
-        <button
-          onClick={() => setActiveTab('dashboard')}
-          className={`py-2.5 transition-all cursor-pointer whitespace-nowrap border-b-2 ${
-            isMyStuff
-              ? 'border-white text-white font-black'
-              : 'border-transparent text-purple-200 hover:text-white'
-          }`}
-        >
-          My Stuff
-        </button>
-
-        <button
-          onClick={() => setActiveTab('notices')}
-          className={`py-2.5 transition-all cursor-pointer whitespace-nowrap border-b-2 ${
-            isCommunity
-              ? 'border-white text-white font-black'
-              : 'border-transparent text-purple-200 hover:text-white'
-          }`}
-        >
-          Community
-        </button>
-
-        <button
-          onClick={() => setActiveTab('maintenance')}
-          className={`py-2.5 transition-all cursor-pointer whitespace-nowrap border-b-2 ${
-            isManagement
-              ? 'border-white text-white font-black'
-              : 'border-transparent text-purple-200 hover:text-white'
-          }`}
-        >
-          Management
-        </button>
-      </div>
 
       {/* Global Search Modal */}
       {showSearchModal && (

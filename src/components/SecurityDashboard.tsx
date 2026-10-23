@@ -43,8 +43,13 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'All' | 'Inside' | 'Exited' | 'Pending'>('All');
   
+  const isSecurityRole = user.role === 'security';
+  const isAdminRole = user.role === 'admin' || !!user.admin_id;
+  const isResidentRole = !isSecurityRole && !isAdminRole;
+
   // Registration Modal State
   const [showRegisterModal, setShowRegisterModal] = useState(false);
+  const [showPreApproveModal, setShowPreApproveModal] = useState(false);
   const [showEmergencyModal, setShowEmergencyModal] = useState(false);
   const [showResidentCallModal, setShowResidentCallModal] = useState(false);
   const [selectedCallResident, setSelectedCallResident] = useState<Resident | null>(null);
@@ -85,11 +90,12 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
 
   useEffect(() => {
     fetchVisitors();
+    // Fast 8-second auto-refresh polling for real-time visitor gate synchronization
     const interval = setInterval(() => {
       if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
         fetchVisitors();
       }
-    }, 30000);
+    }, 8000);
     return () => clearInterval(interval);
   }, []);
 
@@ -98,8 +104,22 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
     await fetchVisitors();
   };
 
-  // Filter visitors
-  const filteredVisitors = visitors.filter(v => {
+  // Role-filtered visitor records:
+  // Residents see ONLY visitors for their flat/resident_id
+  // Security and Admin see all society visitors
+  const roleBaseVisitors = visitors.filter(v => {
+    if (isResidentRole) {
+      const myResId = user.resident_id || user.id;
+      const myFlat = user.flat;
+      const matchRes = myResId && String(v.resident_id) === String(myResId);
+      const matchFlat = myFlat && String(v.flat).toLowerCase().trim() === String(myFlat).toLowerCase().trim();
+      return matchRes || matchFlat;
+    }
+    return true;
+  });
+
+  // Filter visitors by status & search query
+  const filteredVisitors = roleBaseVisitors.filter(v => {
     const matchesStatus = statusFilter === 'All' 
       ? true 
       : statusFilter === 'Pending' 
@@ -120,10 +140,10 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
   });
 
   // Metrics
-  const insideCount = visitors.filter(v => v.status === 'Inside').length || 8;
-  const expectedCount = visitors.filter(v => v.status === 'Pending' || v.approval_status === 'Pending').length || 4;
-  const exitedTodayCount = visitors.filter(v => v.status === 'Exited').length || 32;
-  const deliveriesCount = visitors.filter(v => v.visitor_type === 'Delivery').length || 18;
+  const insideCount = roleBaseVisitors.filter(v => v.status === 'Inside').length;
+  const expectedCount = roleBaseVisitors.filter(v => v.status === 'Pending' || v.approval_status === 'Pending').length;
+  const exitedTodayCount = roleBaseVisitors.filter(v => v.status === 'Exited').length;
+  const deliveriesCount = roleBaseVisitors.filter(v => v.visitor_type === 'Delivery').length;
 
   const handleMarkExit = async (visitorId: string | number) => {
     const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -132,9 +152,58 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
       exit_time: timeStr
     };
 
-    setVisitors(prev => prev.map(v => (v.visitor_id === visitorId || v.id === visitorId) ? { ...v, ...updates } : v));
+    setVisitors(prev => prev.map(v => (String(v.visitor_id) === String(visitorId) || String(v.id) === String(visitorId)) ? { ...v, ...updates } : v));
     toast.success('Visitor marked as Exited.');
     await societyService.updateVisitor(visitorId, updates);
+    await fetchVisitors();
+  };
+
+  const handlePreApproveVisitor = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.visitor_name.trim() || !formData.visitor_mobile.trim()) {
+      toast.error('Please enter visitor name and mobile number.');
+      return;
+    }
+
+    setRegisterLoading(true);
+    try {
+      const newVisitorData: Partial<Visitor> = {
+        visitor_name: formData.visitor_name.trim(),
+        visitor_mobile: formData.visitor_mobile.trim(),
+        visitor_type: formData.visitor_type || 'Guest',
+        vehicle_number: formData.vehicle_number?.trim() || undefined,
+        purpose: formData.purpose?.trim() || 'Pre-Approved Guest Entry',
+        resident_id: user.resident_id || user.id,
+        resident_name: user.name,
+        tower: user.tower || 'A',
+        floor: user.floor || 1,
+        flat: user.flat || '101',
+        status: 'Pending',
+        approval_status: 'Approved',
+        entry_time: 'Expected Today',
+        security_id: 'PRE-APPROVED',
+        created_at: new Date().toISOString()
+      };
+
+      await societyService.addVisitor(newVisitorData);
+      toast.success(`Pre-approved visitor pass generated for ${formData.visitor_name}`);
+      await fetchVisitors();
+
+      setShowPreApproveModal(false);
+      setFormData({
+        visitor_name: '',
+        visitor_mobile: '',
+        visitor_type: 'Guest',
+        vehicle_number: '',
+        purpose: '',
+        notes: ''
+      });
+    } catch (err) {
+      console.error('Failed to pre-approve visitor:', err);
+      toast.error('Failed to pre-approve visitor');
+    } finally {
+      setRegisterLoading(false);
+    }
   };
 
   const handleRegisterVisitor = async (e: React.FormEvent) => {
@@ -215,26 +284,56 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-xl font-black tracking-tight">Security Gate Post</h2>
+              <h2 className="text-xl font-black tracking-tight">
+                {isResidentRole ? 'Visitor Management' : isAdminRole ? 'Visitor Management Log' : 'Security Gate Post'}
+              </h2>
               <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                Online Status
+                Gate Sync Active
               </span>
             </div>
             <p className="text-xs text-slate-400 font-medium mt-0.5">
-              Duty Officer: <span className="text-white font-bold">{user.name}</span> ({user.shift || 'Morning Shift'}) • <span className="font-mono text-indigo-300">{dateFormatted}, {timeFormatted}</span>
+              {isResidentRole ? (
+                <>Resident Account: <span className="text-white font-bold">{user.name}</span> • Flat {user.flat || 'A-102'}</>
+              ) : isAdminRole ? (
+                <>Administrator View: <span className="text-white font-bold">{user.name}</span> • Society Records</>
+              ) : (
+                <>Duty Officer: <span className="text-white font-bold">{user.name}</span> ({user.shift || 'General Shift'})</>
+              )} • <span className="font-mono text-indigo-300">{dateFormatted}, {timeFormatted}</span>
             </p>
           </div>
         </div>
 
-        <button
-          onClick={handleRefresh}
-          disabled={refreshing}
-          className="p-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl border border-slate-700 transition-colors flex items-center gap-2 text-xs font-bold shrink-0"
-        >
-          <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin text-indigo-400' : ''}`} />
-          <span>Sync Gate Data</span>
-        </button>
+        <div className="flex items-center gap-2">
+          {isResidentRole && (
+            <button
+              onClick={() => {
+                setFormData({
+                  visitor_name: '',
+                  visitor_mobile: '',
+                  visitor_type: 'Guest',
+                  vehicle_number: '',
+                  purpose: 'Pre-Approved Guest Entry',
+                  notes: ''
+                });
+                setShowPreApproveModal(true);
+              }}
+              className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-md flex items-center gap-2 cursor-pointer transition-all"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Pre-Approve Guest Pass</span>
+            </button>
+          )}
+
+          <button
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="p-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl border border-slate-700 transition-colors flex items-center gap-2 text-xs font-bold shrink-0"
+          >
+            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin text-indigo-400' : ''}`} />
+            <span>Sync Gate Data</span>
+          </button>
+        </div>
       </div>
 
       {/* SPEED & TOUCH TARGETS: PRIMARY QUICK ACTIONS */}
@@ -724,6 +823,115 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* PRE-APPROVE GUEST PASS MODAL (FOR RESIDENTS) */}
+      {showPreApproveModal && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 z-[100]">
+          <div className="bg-white rounded-3xl shadow-2xl p-6 sm:p-8 max-w-md w-full relative border border-slate-200 animate-in zoom-in-95 duration-150">
+            <button
+              onClick={() => setShowPreApproveModal(false)}
+              className="absolute right-6 top-6 text-slate-400 hover:text-slate-600 p-1"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center font-bold">
+                <Shield className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-lg font-black text-slate-900">Pre-Approve Guest Gate Pass</h3>
+                <p className="text-xs text-slate-400">Flat {user.flat || 'A-102'} • Seamless Gate Access</p>
+              </div>
+            </div>
+
+            <form onSubmit={handlePreApproveVisitor} className="space-y-3.5">
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Visitor / Guest Name *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Ramesh Kumar"
+                  value={formData.visitor_name}
+                  onChange={(e) => setFormData(prev => ({ ...prev, visitor_name: e.target.value }))}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 outline-none focus:border-indigo-500"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Visitor Mobile Number *</label>
+                <input
+                  type="tel"
+                  required
+                  placeholder="10-digit mobile number"
+                  value={formData.visitor_mobile}
+                  onChange={(e) => setFormData(prev => ({ ...prev, visitor_mobile: e.target.value }))}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 outline-none focus:border-indigo-500 font-mono"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Pass Category</label>
+                  <select
+                    value={formData.visitor_type}
+                    onChange={(e) => setFormData(prev => ({ ...prev, visitor_type: e.target.value }))}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 outline-none focus:border-indigo-500 bg-white"
+                  >
+                    <option value="Guest">Guest / Friend</option>
+                    <option value="Delivery">Delivery (Parcel / Food)</option>
+                    <option value="Cab / Taxi">Cab / Taxi</option>
+                    <option value="Service / Repair">Service / Maintenance</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Vehicle Number (Optional)</label>
+                  <input
+                    type="text"
+                    placeholder="MH-12-XX-1234"
+                    value={formData.vehicle_number}
+                    onChange={(e) => setFormData(prev => ({ ...prev, vehicle_number: e.target.value }))}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 outline-none focus:border-indigo-500 font-mono uppercase"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Purpose / Note</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Dinner visit / Amazon parcel"
+                  value={formData.purpose}
+                  onChange={(e) => setFormData(prev => ({ ...prev, purpose: e.target.value }))}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 outline-none focus:border-indigo-500"
+                />
+              </div>
+
+              <div className="pt-3 flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowPreApproveModal(false)}
+                  className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs uppercase transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={registerLoading}
+                  className="flex-[1.5] py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white font-bold rounded-xl text-xs uppercase shadow-lg shadow-indigo-600/20 transition flex items-center justify-center gap-2"
+                >
+                  {registerLoading ? (
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    'ISSUE PRE-APPROVED PASS'
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

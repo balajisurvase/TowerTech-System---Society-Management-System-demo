@@ -190,7 +190,7 @@ export function GenerateBillWorkspace({
             ) : (
               <>
                 <CreditCard className="w-4 h-4" />
-                <span>{billMode === 'single' ? 'Generate Bill' : `Generate Bills for All (${residents.length}) Units`}</span>
+                <span>Generate Bill</span>
               </>
             )}
           </button>
@@ -217,43 +217,17 @@ export function GenerateBillWorkspace({
 
           <div className="p-6 space-y-6">
             {/* Mode Selector */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="w-full">
               <div
-                onClick={() => setBillMode('single')}
-                className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                  billMode === 'single'
-                    ? 'border-blue-600 bg-blue-50/50 shadow-xs'
-                    : 'border-slate-200 hover:border-slate-300 bg-white'
-                }`}
+                className="p-4 rounded-xl border-2 border-blue-600 bg-blue-50/50 shadow-xs"
               >
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-black uppercase tracking-wider text-slate-800">Single Resident Bill</span>
-                  <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                    billMode === 'single' ? 'border-blue-600 bg-blue-600' : 'border-slate-300'
-                  }`}>
-                    {billMode === 'single' && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                  <div className="w-4 h-4 rounded-full border-2 border-blue-600 bg-blue-600 flex items-center justify-center">
+                    <div className="w-1.5 h-1.5 rounded-full bg-white" />
                   </div>
                 </div>
                 <p className="text-xs text-slate-500 mt-1">Generate a maintenance invoice for a specific individual flat.</p>
-              </div>
-
-              <div
-                onClick={() => setBillMode('bulk')}
-                className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                  billMode === 'bulk'
-                    ? 'border-blue-600 bg-blue-50/50 shadow-xs'
-                    : 'border-slate-200 hover:border-slate-300 bg-white'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-black uppercase tracking-wider text-slate-800">Bulk Generation (Entire Society)</span>
-                  <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                    billMode === 'bulk' ? 'border-blue-600 bg-blue-600' : 'border-slate-300'
-                  }`}>
-                    {billMode === 'bulk' && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
-                  </div>
-                </div>
-                <p className="text-xs text-slate-500 mt-1">Generate bills for all {residents.length} active society apartments at once.</p>
               </div>
             </div>
 
@@ -563,7 +537,7 @@ export function GenerateBillWorkspace({
               ) : (
                 <>
                   <Check className="w-4 h-4" />
-                  <span>{billMode === 'single' ? 'Generate Bill' : `Generate ${residents.length} Bills`}</span>
+                  <span>Generate Bill</span>
                 </>
               )}
             </button>

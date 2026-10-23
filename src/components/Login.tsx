@@ -1,5 +1,21 @@
 import React, { useState } from 'react';
-import { Building2, Eye, EyeOff, ShieldCheck, X, UserPlus, Lock, Mail, ArrowRight, Check } from 'lucide-react';
+import { 
+  Building2, 
+  Eye, 
+  EyeOff, 
+  ShieldCheck, 
+  X, 
+  UserPlus, 
+  Lock, 
+  Mail, 
+  ArrowRight, 
+  Check, 
+  CreditCard, 
+  Shield, 
+  Megaphone, 
+  MessageSquare, 
+  Sparkles 
+} from 'lucide-react';
 import { User } from '../types';
 import { societyService } from '../lib/societyService';
 import RegisterSociety from './RegisterSociety';
@@ -78,7 +94,7 @@ export default function Login({ onLogin }: LoginProps) {
   }
 
   return (
-    <div className="fixed inset-0 w-screen h-screen h-[100vh] h-[100dvh] min-h-[100vh] max-h-[100vh] overflow-hidden bg-slate-950 font-sans selection:bg-purple-100 selection:text-purple-700 flex flex-col md:flex-row border-none m-0 p-0">
+    <div className="fixed inset-0 w-screen h-screen h-[100vh] h-[100dvh] bg-slate-950 font-sans selection:bg-purple-100 selection:text-purple-700 flex flex-col md:flex-row overflow-y-auto md:overflow-hidden m-0 p-0">
       
       {/* Forgot Password Modal */}
       {showForgotModal && (
@@ -154,34 +170,34 @@ export default function Login({ onLogin }: LoginProps) {
         </div>
       )}
 
-      {/* LEFT COLUMN: LOGIN FORM PANEL (Full height corner-to-corner) */}
-      <div className="w-full md:w-[50%] lg:w-[45%] xl:w-[42%] h-full bg-white p-6 sm:p-8 md:p-10 lg:p-12 xl:p-14 flex flex-col justify-between overflow-hidden relative z-20 shrink-0 shadow-2xl">
+      {/* LEFT COLUMN: LOGIN FORM PANEL */}
+      <div className="w-full md:w-[48%] lg:w-[42%] xl:w-[38%] min-h-screen md:min-h-0 md:h-full bg-white p-6 sm:p-8 lg:p-10 flex flex-col justify-between overflow-y-auto z-20 shrink-0 shadow-2xl">
         
         <div>
           {/* Header Title */}
-          <div className="mb-6">
-            <div className="flex items-center gap-2.5 mb-1.5">
-              <div className="w-9 h-9 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-black text-sm">
-                <Building2 className="w-5 h-5" />
+          <div className="mb-5">
+            <div className="flex items-center gap-2.5 mb-1">
+              <div className="w-8 h-8 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center font-black text-sm">
+                <Building2 className="w-4 h-4" />
               </div>
-              <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
+              <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
                 Login
               </h1>
             </div>
-            <p className="text-xs sm:text-sm font-medium text-slate-500 ml-0.5">
+            <p className="text-xs font-medium text-slate-500 ml-0.5">
               Don't have an account?{' '}
               <button 
                 type="button" 
                 onClick={() => setView('register')} 
                 className="text-purple-600 hover:text-purple-700 font-bold hover:underline cursor-pointer transition-colors"
               >
-                New User Register Here
+                Register Here
               </button>
             </p>
           </div>
 
           {/* Login Form */}
-          <form onSubmit={handleLogin} className="space-y-4 w-full">
+          <form onSubmit={handleLogin} className="space-y-3.5 w-full">
             
             {/* Society ID Field */}
             <div className="space-y-1">
@@ -195,7 +211,7 @@ export default function Login({ onLogin }: LoginProps) {
                   value={societyId}
                   onChange={(e) => setSocietyId(e.target.value)}
                   placeholder="GV2026"
-                  className="w-full pl-10 pr-4 h-11 sm:h-12 rounded-xl border border-slate-200/90 focus:border-purple-600 focus:ring-2 focus:ring-purple-100 outline-none text-xs sm:text-sm font-black text-slate-800 bg-slate-50/50 focus:bg-white transition-all"
+                  className="w-full pl-10 pr-4 h-10 sm:h-11 rounded-xl border border-slate-200/90 focus:border-purple-600 focus:ring-2 focus:ring-purple-100 outline-none text-xs sm:text-sm font-black text-slate-800 bg-slate-50/50 focus:bg-white transition-all"
                   required
                 />
               </div>
@@ -213,7 +229,7 @@ export default function Login({ onLogin }: LoginProps) {
                   value={loginId}
                   onChange={(e) => setLoginId(e.target.value)}
                   placeholder="Username or Email"
-                  className="w-full pl-10 pr-4 h-11 sm:h-12 rounded-xl border border-slate-200/90 focus:border-purple-600 focus:ring-2 focus:ring-purple-100 outline-none text-xs sm:text-sm font-bold text-slate-800 bg-slate-50/50 focus:bg-white transition-all placeholder:text-slate-300"
+                  className="w-full pl-10 pr-4 h-10 sm:h-11 rounded-xl border border-slate-200/90 focus:border-purple-600 focus:ring-2 focus:ring-purple-100 outline-none text-xs sm:text-sm font-bold text-slate-800 bg-slate-50/50 focus:bg-white transition-all placeholder:text-slate-300"
                   required
                 />
               </div>
@@ -231,7 +247,7 @@ export default function Login({ onLogin }: LoginProps) {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Password"
-                  className="w-full pl-10 pr-10 h-11 sm:h-12 rounded-xl border border-slate-200/90 focus:border-purple-600 focus:ring-2 focus:ring-purple-100 outline-none text-xs sm:text-sm font-bold text-slate-800 bg-slate-50/50 focus:bg-white transition-all placeholder:text-slate-300"
+                  className="w-full pl-10 pr-10 h-10 sm:h-11 rounded-xl border border-slate-200/90 focus:border-purple-600 focus:ring-2 focus:ring-purple-100 outline-none text-xs sm:text-sm font-bold text-slate-800 bg-slate-50/50 focus:bg-white transition-all placeholder:text-slate-300"
                   required
                 />
                 <button 
@@ -245,7 +261,7 @@ export default function Login({ onLogin }: LoginProps) {
             </div>
 
             {/* Remember Me & Forgot Password Row */}
-            <div className="flex items-center justify-between pt-1 text-xs">
+            <div className="flex items-center justify-between pt-0.5 text-xs">
               <label className="flex items-center gap-2 font-semibold text-slate-600 cursor-pointer select-none">
                 <input 
                   type="checkbox"
@@ -277,7 +293,7 @@ export default function Login({ onLogin }: LoginProps) {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full sm:w-auto bg-[#542d87] hover:bg-[#462372] active:bg-[#391c5c] disabled:bg-slate-300 text-white font-bold py-3 px-10 rounded-lg text-xs uppercase tracking-wider transition-all shadow-md shadow-[#542d87]/20 hover:shadow-lg active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full bg-[#542d87] hover:bg-[#462372] active:bg-[#391c5c] disabled:bg-slate-300 text-white font-bold py-3 px-8 rounded-lg text-xs uppercase tracking-wider transition-all shadow-md shadow-[#542d87]/20 hover:shadow-lg active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer"
               >
                 {loading ? (
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -291,67 +307,103 @@ export default function Login({ onLogin }: LoginProps) {
 
       </div>
 
-      {/* RIGHT COLUMN: FULL-BLEED BUILDING ARTWORK & BRANDING PANEL */}
-      <div className="hidden md:flex flex-1 h-full relative overflow-hidden flex-col justify-between p-10 lg:p-14 xl:p-16 text-white bg-slate-950 shrink-0 z-10">
+      {/* RIGHT COLUMN: SHORT, BOLD FEATURE PRESENTATION WITH SYMBOLS */}
+      <div className="hidden md:flex flex-1 h-full relative overflow-hidden flex-col justify-between p-8 lg:p-12 text-white bg-slate-950 shrink-0 z-10">
         
-        {/* Full-bleed Building Line Art Image Background */}
+        {/* Building Background Image */}
         <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
           <img 
             src="/src/assets/images/building_bg_1791112941582.jpg" 
-            alt="Building Architecture" 
-            className="w-full h-full object-cover object-center opacity-45 mix-blend-luminosity filter contrast-125 brightness-110 scale-100"
+            alt="TowerTech Platform" 
+            className="w-full h-full object-cover object-center opacity-35 mix-blend-luminosity filter contrast-125 brightness-110"
             referrerPolicy="no-referrer"
           />
-          {/* Rich Gradient Overlay for readability and elegant depth */}
-          <div className="absolute inset-0 bg-gradient-to-tr from-slate-950 via-slate-950/80 to-purple-950/70" />
-          <div className="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-transparent to-purple-950/50" />
+          <div className="absolute inset-0 bg-gradient-to-tr from-slate-950 via-slate-950/85 to-purple-950/75" />
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-transparent to-purple-950/60" />
         </div>
 
-        {/* Ambient Radial Glows */}
+        {/* Ambient Glows */}
         <div className="absolute top-10 right-10 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl pointer-events-none z-0" />
         <div className="absolute bottom-10 left-10 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none z-0" />
 
-        {/* Top Header Logo */}
-        <div className="relative z-10 flex items-center gap-3">
-          <div className="w-11 h-11 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-lg">
-            <Building2 className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <span className="text-lg font-black text-white tracking-tight block">TowerTech</span>
-            <span className="text-[10px] font-bold text-purple-200/80 uppercase tracking-widest block">Society Management Platform</span>
+        {/* Top Brand Badge */}
+        <div className="relative z-10 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/20 shadow-lg">
+              <Building2 className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <span className="text-lg font-black text-white tracking-tight block">TowerTech</span>
+              <span className="text-[10px] font-extrabold text-purple-200/90 uppercase tracking-widest block">Society System</span>
+            </div>
           </div>
         </div>
 
-        {/* Center Welcome Text */}
-        <div className="relative z-10 max-w-lg my-auto py-8">
-          <h2 className="text-4xl lg:text-5xl xl:text-6xl font-black text-white tracking-tight leading-[1.05] drop-shadow-sm">
-            Welcome<br />Back.
-          </h2>
+        {/* Center Short Bold Features Grid */}
+        <div className="relative z-10 max-w-xl my-auto py-4 space-y-4">
+          <div>
+            <h2 className="text-2xl lg:text-3xl font-black text-white tracking-tight leading-tight drop-shadow-sm">
+              All-in-One Residential Platform
+            </h2>
+            <p className="text-xs text-slate-300 font-bold mt-1">
+              Streamline maintenance, security, notices, and helpdesk in one place.
+            </p>
+          </div>
 
-          <p className="text-xs sm:text-sm font-medium text-slate-200/90 leading-relaxed mt-5 max-w-md">
-            Official TowerTech society portal. Access maintenance payments, complaints, visitor passes, notices, and amenity bookings in one unified platform.
-          </p>
+          <div className="grid grid-cols-1 gap-2.5 pt-1 font-sans">
+            {/* Feature 1 */}
+            <div className="flex items-center gap-3.5 bg-white/10 backdrop-blur-md p-3.5 rounded-2xl border border-white/15 hover:bg-white/15 transition-all group">
+              <div className="w-9 h-9 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center shrink-0 border border-orange-400/30 group-hover:scale-105 transition-transform">
+                <CreditCard className="w-5 h-5 text-orange-400" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm font-extrabold text-white tracking-tight">Maintenance & Online Bills</p>
+                <p className="text-[11px] font-bold text-purple-200/90 truncate mt-0.5">Automated billing, instant receipts & payment history</p>
+              </div>
+            </div>
 
-          <div className="mt-8 flex flex-wrap gap-2.5">
-            <span className="px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md text-white text-xs font-bold border border-white/15">
-              • Maintenance & Ledger
-            </span>
-            <span className="px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md text-white text-xs font-bold border border-white/15">
-              • Gate Pass & Visitors
-            </span>
-            <span className="px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md text-white text-xs font-bold border border-white/15">
-              • Helpdesk & Amenities
-            </span>
+            {/* Feature 2 */}
+            <div className="flex items-center gap-3.5 bg-white/10 backdrop-blur-md p-3.5 rounded-2xl border border-white/15 hover:bg-white/15 transition-all group">
+              <div className="w-9 h-9 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0 border border-indigo-400/30 group-hover:scale-105 transition-transform">
+                <Shield className="w-5 h-5 text-indigo-400" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm font-extrabold text-white tracking-tight">Real-Time Visitor Gate Pass</p>
+                <p className="text-[11px] font-bold text-purple-200/90 truncate mt-0.5">Pre-approve guests, track deliveries & live gate logs</p>
+              </div>
+            </div>
+
+            {/* Feature 3 */}
+            <div className="flex items-center gap-3.5 bg-white/10 backdrop-blur-md p-3.5 rounded-2xl border border-white/15 hover:bg-white/15 transition-all group">
+              <div className="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0 border border-amber-400/30 group-hover:scale-105 transition-transform">
+                <Megaphone className="w-5 h-5 text-amber-400" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm font-extrabold text-white tracking-tight">Notice Management</p>
+                <p className="text-[11px] font-bold text-purple-200/90 truncate mt-0.5">Publish circulars, announcements & urgent alerts</p>
+              </div>
+            </div>
+
+            {/* Feature 4 */}
+            <div className="flex items-center gap-3.5 bg-white/10 backdrop-blur-md p-3.5 rounded-2xl border border-white/15 hover:bg-white/15 transition-all group">
+              <div className="w-9 h-9 rounded-xl bg-purple-500/20 text-purple-300 flex items-center justify-center shrink-0 border border-purple-400/30 group-hover:scale-105 transition-transform">
+                <MessageSquare className="w-5 h-5 text-purple-300" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm font-extrabold text-white tracking-tight">Communication & Helpdesk</p>
+                <p className="text-[11px] font-bold text-purple-200/90 truncate mt-0.5">Log complaints, chat in channels & book amenities</p>
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Bottom Footer Badge */}
-        <div className="relative z-10 pt-6 border-t border-white/15 flex items-center justify-between text-xs font-bold text-slate-300">
+        <div className="relative z-10 pt-4 border-t border-white/15 flex items-center justify-between text-xs font-black text-slate-300">
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-            <span>Authorized Access Portal</span>
+            <span>Secure Society Access</span>
           </div>
-          <span className="text-[11px] text-slate-400 font-medium">© 2026 TowerTech</span>
+          <span className="text-[11px] text-purple-200 font-bold">© 2026 TowerTech</span>
         </div>
 
       </div>

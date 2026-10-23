@@ -222,7 +222,7 @@ export default function App() {
     <div className="min-h-screen bg-[#f4f5f8] font-sans text-slate-900 flex flex-col w-full min-w-0">
       <Toaster position="top-center" richColors />
       
-      {/* ApnaComplex Deep Purple Top Header Bar */}
+      {/* TowerTech Deep Purple Top Header Bar */}
       <TopHeader 
         user={user}
         activeTab={activeTab}
@@ -264,11 +264,11 @@ export default function App() {
                   className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#542d87] hover:bg-[#462372] text-white font-bold text-xs transition-all shadow-xs active:scale-95 cursor-pointer"
                 >
                   <ArrowLeft className="w-4 h-4 text-white" />
-                  <span>Back to My Stuff</span>
+                  <span>Back to Dashboard</span>
                 </button>
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-bold text-[#542d87] bg-purple-50 border border-purple-100 px-3 py-1 rounded-full uppercase tracking-wider">
-                    {activeTab} MODULE
+                    {activeTab === 'security' ? 'VISITOR MANAGEMENT' : activeTab === 'notices' ? 'NOTICE MANAGEMENT' : activeTab === 'communication' ? 'COMMUNICATION' : activeTab === 'financial' ? 'FINANCIAL MANAGEMENT' : activeTab.toUpperCase()} MODULE
                   </span>
                 </div>
               </div>

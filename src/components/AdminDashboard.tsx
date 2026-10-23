@@ -1012,8 +1012,8 @@ export default function AdminDashboard({
       case 'dashboard':
         const recentComplaints = complaints.slice(0, 5);
         const recentBookings = bookings.slice(0, 5);
-        const ownerCount = residents.filter(r => (r.role || r.occupancy_type) === 'Owner').length || 60;
-        const tenantCount = residents.filter(r => (r.role || r.occupancy_type) === 'Tenant').length || 30;
+        const ownerCount = residents.filter(r => (r.role || r.occupancy_type) === 'Owner').length;
+        const tenantCount = residents.filter(r => (r.role || r.occupancy_type) === 'Tenant').length;
 
         return (
           <div className="flex flex-col gap-6 w-full">
@@ -2200,47 +2200,6 @@ export default function AdminDashboard({
                     ))}
                   </select>
                 </div>
-
-                {/* Bulk Generate Bills for All Residents */}
-                <button 
-                  onClick={async () => {
-                    if (!residents || residents.length === 0) {
-                      toast.error('No residents found to generate bills for');
-                      return;
-                    }
-                    if (globalThis.confirm?.(`Generate ${selectedMonth === 'All' ? 'October 2026' : selectedMonth} maintenance bills for all ${residents.length} active residents?`)) {
-                      setUpdating('generating-bulk');
-                      try {
-                        const bills = residents.map(r => ({
-                          resident_id: r.resident_id,
-                          resident_name: r.name,
-                          flat_no: r.flat,
-                          tower: r.tower,
-                          month: selectedMonth === 'All' ? 'October 2026' : selectedMonth,
-                          amount: (r.bhk === '1 BHK' ? 1800 : r.bhk === '3 BHK' ? 3500 : 2500),
-                          status: 'Unpaid' as const,
-                          due_date: '2026-10-15',
-                          late_fee: 0,
-                          society_id: user.society_id,
-                          admin_id: user.admin_id,
-                          generated_by: 'Admin'
-                        }));
-                        await societyService.createBulkMaintenanceBills(bills);
-                        toast.success(`Maintenance bills generated for all ${residents.length} units!`);
-                        onRefresh();
-                      } catch (err: any) {
-                        toast.error('Failed bulk generation: ' + (err?.message || 'Error'));
-                      } finally {
-                        setUpdating(null);
-                      }
-                    }
-                  }}
-                  className="px-3.5 py-2 bg-purple-50 hover:bg-purple-100 active:bg-purple-200 text-purple-700 text-xs font-bold rounded-xl transition-all border border-purple-200 flex items-center gap-1.5 shadow-2xs cursor-pointer"
-                  title="Generate bills for all residents"
-                >
-                  <Layers className="w-4 h-4 text-purple-600" />
-                  <span>Generate for All</span>
-                </button>
 
                 {/* Single / Custom Bill Generation */}
                 <button 

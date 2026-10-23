@@ -356,75 +356,120 @@ export const societyService = {
   },
 
   async getVisitors(status?: string, search?: string) {
-    const cacheKey = `visitors_${status || 'all'}_${search || ''}`;
-    return cachedQuery(cacheKey, async () => {
-      const query = new URLSearchParams();
-      if (status && status !== 'All') query.append('status', status);
-      if (search) query.append('search', search);
-      const queryString = query.toString() ? `?${query.toString()}` : '';
-
-      const pyData = await pythonApi<Visitor[]>(`/api/visitors${queryString}`);
-      if (pyData && Array.isArray(pyData) && pyData.length > 0) {
-        return pyData;
-      }
-
+    const socId = 'GV2026';
+    const storageKey = `towertech_visitors_${socId}`;
+    return cachedQuery(`visitors_${status || 'all'}_${search || ''}`, async () => {
       try {
-        let req = supabase.from('visitor').select('*').order('visitor_id', { ascending: false });
+        let req = supabase.from('visitor').select('*').order('created_at', { ascending: false });
         if (status && status !== 'All') {
           req = req.eq('status', status);
         }
         const { data, error } = await req;
-        if (error) {
-          checkRateLimitError(error);
-          return initialVisitors;
+        if (!error && data && data.length > 0) {
+          localStorage.setItem(storageKey, JSON.stringify(data));
+          return data as Visitor[];
         }
-        return (data && data.length > 0 ? data : initialVisitors) as Visitor[];
       } catch (err) {
         checkRateLimitError(err);
-        return initialVisitors;
       }
-    }, initialVisitors, 25000);
+
+      // Fallback to local storage or initial data
+      const local = typeof window !== 'undefined' ? localStorage.getItem(storageKey) : null;
+      if (local) {
+        try {
+          const parsed = JSON.parse(local);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            if (status && status !== 'All') {
+              return parsed.filter((v: Visitor) => v.status === status);
+            }
+            return parsed as Visitor[];
+          }
+        } catch {}
+      }
+
+      const list = initialVisitors || [];
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(storageKey, JSON.stringify(list));
+      }
+      return list as Visitor[];
+    }, initialVisitors, 10000);
   },
 
   async addVisitor(visitorData: Partial<Visitor>) {
     invalidateCache('visitors');
-    const pyRes = await pythonApi<Visitor>('/api/visitors', {
-      method: 'POST',
-      body: JSON.stringify(visitorData),
-    });
-    if (pyRes) return pyRes;
+    const socId = visitorData.society_id || 'GV2026';
+    const storageKey = `towertech_visitors_${socId}`;
+    const timestamp = Date.now();
+    const visitor_id = visitorData.visitor_id || timestamp;
+
+    const payload: Visitor = {
+      visitor_id,
+      id: visitor_id,
+      visitor_name: visitorData.visitor_name || 'Guest',
+      visitor_mobile: visitorData.visitor_mobile || '',
+      visitor_type: visitorData.visitor_type || 'Guest',
+      vehicle_number: visitorData.vehicle_number || '',
+      purpose: visitorData.purpose || 'Visit',
+      resident_id: visitorData.resident_id || 'R001',
+      resident_name: visitorData.resident_name || 'Resident',
+      tower: visitorData.tower || 'A',
+      floor: visitorData.floor || 1,
+      flat: visitorData.flat || '101',
+      entry_time: visitorData.entry_time || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      exit_time: visitorData.exit_time || '',
+      status: (visitorData.status as any) || 'Inside',
+      approval_status: (visitorData.approval_status as any) || 'Approved',
+      security_id: visitorData.security_id || 'S001',
+      society_id: socId,
+      created_at: new Date().toISOString()
+    };
 
     try {
-      const { data, error } = await supabase.from('visitor').insert([visitorData]).select();
+      const { data, error } = await supabase.from('visitor').insert([payload]).select();
       if (!error && data && data.length > 0) {
-        return data[0] as Visitor;
+        payload.id = data[0].id;
+        payload.visitor_id = data[0].visitor_id || data[0].id;
       }
-    } catch {
-      // fallback
+    } catch (e) {
+      console.warn('Supabase visitor insert warning:', e);
     }
-    return { ...visitorData, visitor_id: Date.now(), id: Date.now() } as Visitor;
+
+    // Update local storage
+    if (typeof window !== 'undefined') {
+      const local = localStorage.getItem(storageKey);
+      const list: Visitor[] = local ? JSON.parse(local) : [...initialVisitors];
+      const updatedList = [payload, ...list.filter(v => (v.visitor_id || v.id) !== visitor_id)];
+      localStorage.setItem(storageKey, JSON.stringify(updatedList));
+    }
+
+    return payload;
   },
 
   async updateVisitor(visitorId: string | number, updates: Partial<Visitor>) {
     invalidateCache('visitors');
-    const pyRes = await pythonApi<Visitor>(`/api/visitors/${visitorId}`, {
-      method: 'PUT',
-      body: JSON.stringify(updates),
-    });
-    if (pyRes) return pyRes;
+    const socId = 'GV2026';
+    const storageKey = `towertech_visitors_${socId}`;
 
     try {
-      const { data, error } = await supabase
+      await supabase
         .from('visitor')
         .update(updates)
-        .eq('visitor_id', visitorId)
-        .select();
-      if (!error && data && data.length > 0) {
-        return data[0] as Visitor;
-      }
-    } catch {
-      // fallback
+        .or(`visitor_id.eq.${visitorId},id.eq.${visitorId}`);
+    } catch (e) {
+      console.warn('Supabase visitor update warning:', e);
     }
+
+    if (typeof window !== 'undefined') {
+      const local = localStorage.getItem(storageKey);
+      const list: Visitor[] = local ? JSON.parse(local) : [...initialVisitors];
+      const index = list.findIndex(v => String(v.visitor_id) === String(visitorId) || String(v.id) === String(visitorId));
+      if (index !== -1) {
+        list[index] = { ...list[index], ...updates };
+        localStorage.setItem(storageKey, JSON.stringify(list));
+        return list[index];
+      }
+    }
+
     return updates as Visitor;
   },
 

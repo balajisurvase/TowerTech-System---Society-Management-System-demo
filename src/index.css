@@ -5,42 +5,43 @@
   --font-display: "Inter", "Plus Jakarta Sans", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
   
-  --color-primary: #542d87; /* ApnaComplex Signature Deep Royal Purple */
-  --color-purple: #542d87; 
-  --color-teal: #0d9488; 
-  --color-emerald: #16a34a; 
-  --color-orange: #f57c00; /* ApnaComplex Warm Financial Orange */
+  --color-primary: #0f2942; /* TowerTech Primary Deep Navy Blue */
+  --color-purple: #1e3a8a; 
+  --color-teal: #0d9488; /* TowerTech Subtle Teal Accent */
+  --color-teal-light: #ccfbf1;
+  --color-emerald: #10b981; 
+  --color-orange: #f59e0b; /* Amber/Orange for alerts & notices */
   --color-red: #ef4444; 
-  --color-pink: #db2777; 
-  --color-navy: #172554; 
+  --color-pink: #ec4899; 
+  --color-navy: #0f172a; 
   
-  --color-background: #f4f5f8; /* ApnaComplex Clean Slate Background */
+  --color-background: #f8fafc; /* Clean Light Neutral Background */
   --color-card: #ffffff;
-  --color-sidebar: #542d87; /* ApnaComplex Deep Purple */
+  --color-sidebar: #0f2942; /* TowerTech Navy Blue Sidebar */
 
-  /* Override standard blue & indigo scales to unify entire application under ApnaComplex Theme */
-  --color-indigo-50: #f5f1fa;
-  --color-indigo-100: #ece4f5;
-  --color-indigo-200: #d9c8eb;
-  --color-indigo-300: #be9fdd;
-  --color-indigo-400: #9f72cc;
-  --color-indigo-500: #7844b5;
-  --color-indigo-600: #542d87;
-  --color-indigo-700: #462372;
-  --color-indigo-800: #391c5c;
-  --color-indigo-900: #2c1547;
-  --color-indigo-950: #1b0c2e;
+  /* Clean Navy/Indigo and Slate scales */
+  --color-indigo-50: #f0fdfa;
+  --color-indigo-100: #ccfbf1;
+  --color-indigo-200: #99f6e4;
+  --color-indigo-300: #5eead4;
+  --color-indigo-400: #2dd4bf;
+  --color-indigo-500: #14b8a6;
+  --color-indigo-600: #0d9488;
+  --color-indigo-700: #0f766e;
+  --color-indigo-800: #115e59;
+  --color-indigo-900: #134e4a;
+  --color-indigo-950: #042f2e;
 
-  --color-blue-50: #f5f1fa;
-  --color-blue-100: #ece4f5;
-  --color-blue-200: #d9c8eb;
-  --color-blue-300: #be9fdd;
-  --color-blue-400: #9f72cc;
-  --color-blue-500: #7844b5;
-  --color-blue-600: #542d87;
-  --color-blue-700: #462372;
-  --color-blue-800: #391c5c;
-  --color-blue-900: #2c1547;
+  --color-blue-50: #f0f9ff;
+  --color-blue-100: #e0f2fe;
+  --color-blue-200: #bae6fd;
+  --color-blue-300: #7dd3fc;
+  --color-blue-400: #38bdf8;
+  --color-blue-500: #0ea5e9;
+  --color-blue-600: #0284c7;
+  --color-blue-700: #0369a1;
+  --color-blue-800: #075985;
+  --color-blue-900: #0c4a6e;
 }
 
 @layer base {
@@ -53,7 +54,7 @@
   }
 
   body {
-    @apply bg-[#f4f5f8] text-slate-900 font-sans antialiased selection:bg-[#542d87]/15 selection:text-[#542d87];
+    @apply bg-slate-50 text-slate-900 font-sans antialiased selection:bg-teal-100 selection:text-teal-900;
   }
   
   h1, h2, h3, h4, h5, h6 {

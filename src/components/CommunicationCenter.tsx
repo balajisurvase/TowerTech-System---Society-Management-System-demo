@@ -337,7 +337,7 @@ export default function CommunicationCenter({ user, onSwitchTab, onRefresh }: Co
             </div>
           </div>
 
-          {/* ApnaComplex Quick Actions: Document, Gallery, Camera (Screen 1 in screenshot) */}
+          {/* Quick Actions: Document, Gallery, Camera */}
           <div className="px-5 py-3 bg-white border-b border-slate-100 flex items-center justify-around sm:justify-start sm:gap-6">
             <button
               type="button"
@@ -381,7 +381,7 @@ export default function CommunicationCenter({ user, onSwitchTab, onRefresh }: Co
               }}
               className="flex flex-col items-center gap-1 group cursor-pointer"
             >
-              <div className="w-10 h-10 rounded-xl bg-purple-100 text-[#542d87] flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
+              <div className="w-10 h-10 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
                 <Camera className="w-5 h-5" />
               </div>
               <span className="text-[11px] font-bold text-slate-600 group-hover:text-slate-900">Camera</span>

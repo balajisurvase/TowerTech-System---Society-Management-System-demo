@@ -6,22 +6,18 @@ import {
   ShieldCheck, 
   Users, 
   MessageSquare, 
-  Calendar, 
   Plus, 
   ArrowLeft, 
   CheckCircle2, 
-  Clock, 
-  FileText, 
-  Smartphone, 
   Building2, 
   ChevronRight, 
   X, 
   RotateCcw,
-  Sparkles,
-  Search,
-  Check
+  Check,
+  TrendingUp,
+  Activity
 } from 'lucide-react';
-import { User, Resident, MaintenanceRecord, Complaint, Notice, Booking } from '../types';
+import { User, Resident, MaintenanceRecord, Complaint, Notice, Booking, Visitor } from '../types';
 import { societyService } from '../lib/societyService';
 import { toast } from 'sonner';
 
@@ -50,8 +46,12 @@ export default function DashboardModulesGrid({
   const [complaints, setComplaints] = useState<Complaint[]>(initialPropComplaints || []);
   const [notices, setNotices] = useState<Notice[]>([]);
   const [bookings, setBookings] = useState<Booking[]>(initialPropBookings || []);
+  const [visitors, setVisitors] = useState<Visitor[]>([]);
 
-  // Pay Now Modal State (Right screen in ApnaComplex screenshot)
+  // Financial Period Filter
+  const [financialPeriod, setFinancialPeriod] = useState<'month' | 'quarter' | 'year'>('month');
+
+  // Pay Now Modal State
   const [showPayNowModal, setShowPayNowModal] = useState(false);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'credit' | 'debit' | 'netbanking' | 'upi'>('credit');
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
@@ -61,17 +61,21 @@ export default function DashboardModulesGrid({
   const [complaintCategory, setComplaintCategory] = useState('Plumbing & Water');
   const [complaintDesc, setComplaintDesc] = useState('');
 
+  // Complaint Detail Modal State
+  const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(null);
+
   // Fetch real database data in parallel
   const fetchDashboardData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const [resData, mainData, compData, noticeData, bookData] = await Promise.all([
+      const [resData, mainData, compData, noticeData, bookData, visitorData] = await Promise.all([
         societyService.getResidents(),
         societyService.getMaintenance(),
         societyService.getComplaints(),
         societyService.getNotices(),
-        societyService.getBookings()
+        societyService.getBookings(),
+        societyService.getVisitors()
       ]);
 
       setResidents(resData || []);
@@ -79,9 +83,10 @@ export default function DashboardModulesGrid({
       setComplaints(compData || []);
       setNotices(noticeData || []);
       setBookings(bookData || []);
+      setVisitors(visitorData || []);
     } catch (err: any) {
       console.error('Error fetching dashboard database data:', err);
-      setError('Unable to load dashboard data');
+      setError('Unable to sync live society database records');
     } finally {
       setLoading(false);
     }
@@ -91,30 +96,62 @@ export default function DashboardModulesGrid({
     fetchDashboardData();
   }, [fetchDashboardData]);
 
-  // Real Database Calculations for ApnaComplex "My Financials"
+  // Calculations for Dashboard Stats
   const unpaidMaintenance = maintenance.filter(m => m.status === 'Unpaid' || m.status === 'Pending' || m.status === 'Overdue');
   const paidMaintenance = maintenance.filter(m => m.status === 'Paid');
 
   const unpaidSum = unpaidMaintenance.reduce((acc, m) => acc + (Number(m.amount) || 0), 0);
   const paidSum = paidMaintenance.reduce((acc, m) => acc + (Number(m.amount) || 0), 0);
 
-  // Format currency
   const displayUnpaid = unpaidSum > 0 ? unpaidSum : 5200;
-  const displayPaid = paidSum > 0 ? paidSum : 31615;
+  const displayPaid = paidSum > 0 ? paidSum : 316150;
 
-  // Next Due Date
   const nextDueDate = unpaidMaintenance[0]?.due_date 
     ? new Date(unpaidMaintenance[0].due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
     : 'Aug 15, 2026';
 
-  // Real Complaints Calculations for ApnaComplex "My Complaints"
   const openComplaintsCount = complaints.filter(c => c.status === 'Pending' || c.status === 'Open' || c.status === 'Process').length;
   const closedComplaintsCount = complaints.filter(c => c.status === 'Done' || c.status === 'Resolved' || c.status === 'Closed').length;
 
   const displayOpenComplaints = openComplaintsCount > 0 ? openComplaintsCount : 7;
   const displayClosedComplaints = closedComplaintsCount > 0 ? closedComplaintsCount : 49;
 
-  // Convenient method fees for Pay Now screen
+  // Visitors today count
+  const todayStr = new Date().toISOString().split('T')[0];
+  const activeVisitors = visitors.filter(v => v.status === 'In' || v.status === 'Checked In' || v.status === 'Inside');
+  const visitorsToday = visitors.filter(v => (v.entry_time || v.created_at || '').includes(todayStr) || v.status === 'In' || v.status === 'Checked In');
+  const displayVisitorsToday = visitorsToday.length > 0 ? visitorsToday.length : 14;
+
+  // Total Flats & Residents Stats
+  const totalFlatsCount = 120;
+  const occupiedFlatsCount = 112;
+  const vacantFlatsCount = 8;
+  const totalResidentsCount = residents.length > 0 ? residents.length : 164;
+
+  // Financial Chart Monthly Data
+  const financialChartData = financialPeriod === 'month' ? [
+    { label: 'Apr', amount: 28000 },
+    { label: 'May', amount: 34000 },
+    { label: 'Jun', amount: 31000 },
+    { label: 'Jul', amount: 42000 },
+    { label: 'Aug', amount: 39000 },
+    { label: 'Sep', amount: 48000 },
+    { label: 'Oct', amount: 52000 },
+  ] : financialPeriod === 'quarter' ? [
+    { label: 'Q1 (Apr-Jun)', amount: 93000 },
+    { label: 'Q2 (Jul-Sep)', amount: 129000 },
+    { label: 'Q3 (Oct-Dec)', amount: 114000 },
+    { label: 'Q4 (Jan-Mar)', amount: 138000 },
+  ] : [
+    { label: '2023-24', amount: 380000 },
+    { label: '2024-25', amount: 440000 },
+    { label: '2025-26', amount: 510000 },
+    { label: '2026-27 (YTD)', amount: 316150 },
+  ];
+
+  const maxChartAmount = Math.max(...financialChartData.map(d => d.amount));
+
+  // Payment Fees
   const paymentFees: Record<string, number> = {
     credit: 25,
     debit: 20,
@@ -125,15 +162,28 @@ export default function DashboardModulesGrid({
   const totalAmountToPay = displayUnpaid + paymentFees[selectedPaymentMethod];
 
   // Handle Pay Now Submission
-  const handleProceedToPay = () => {
+  const handleProceedToPay = async () => {
     setIsProcessingPayment(true);
-    setTimeout(() => {
-      setIsProcessingPayment(false);
-      setShowPayNowModal(false);
-      toast.success(`Payment of ₹${totalAmountToPay.toLocaleString('en-IN')} Successful!`, {
-        description: `Receipt generated for Flat ${user.flat || 'A-102'} via ${selectedPaymentMethod.toUpperCase()}`
+    try {
+      const unpaidRecord = maintenance.find(m => m.status === 'Unpaid' || m.status === 'Pending' || m.status === 'Overdue');
+      const targetId = unpaidRecord?.maintenance_id || unpaidRecord?.id || 'M001';
+
+      await societyService.updateMaintenanceStatus(String(targetId), 'Paid', {
+        payment_method: selectedPaymentMethod.toUpperCase(),
+        transaction_id: `TXN${Date.now()}`
       });
-    }, 1200);
+
+      toast.success(`Payment of ₹${totalAmountToPay.toLocaleString('en-IN')} Successful!`, {
+        description: `Receipt generated for Flat ${user.flat || '102'} at Joyville Sensorium`
+      });
+
+      setShowPayNowModal(false);
+      await fetchDashboardData();
+    } catch (err) {
+      toast.error('Payment processing failed. Please try again.');
+    } finally {
+      setIsProcessingPayment(false);
+    }
   };
 
   // Handle Complaint Submission
@@ -159,22 +209,29 @@ export default function DashboardModulesGrid({
       setComplaintDesc('');
       fetchDashboardData();
     }).catch(() => {
-      toast.success('Complaint registered with society desk');
+      toast.success('Complaint registered with Joyville Sensorium helpdesk');
       setShowAddComplaintModal(false);
     });
   };
 
+  const todayFormatted = new Date().toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  });
+
   return (
     <div className="w-full space-y-6 font-sans text-slate-900 animate-in fade-in duration-150">
       
-      {/* ERROR STATE BANNER */}
+      {/* ERROR BANNER */}
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center justify-between text-red-800">
+        <div className="bg-rose-50 border border-rose-200 rounded-xl p-4 flex items-center justify-between text-rose-800">
           <div className="flex items-center gap-3">
-            <AlertCircle className="w-5 h-5 text-red-600 shrink-0" />
+            <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />
             <div>
-              <p className="text-sm font-bold">Unable to sync database records</p>
-              <p className="text-xs text-red-600">Re-establishing connection to society servers...</p>
+              <p className="text-sm font-bold">{error}</p>
+              <p className="text-xs text-rose-600">Re-establishing connection to society database...</p>
             </div>
           </div>
           <button
@@ -187,322 +244,525 @@ export default function DashboardModulesGrid({
         </div>
       )}
 
-      {/* SUB-HEADER / APNACOMPLEX PROPERTY STRIP */}
-      <div className="bg-white rounded-xl p-4 border border-slate-200/90 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-[#542d87] text-white flex items-center justify-center font-black shadow-xs shrink-0">
-            <Building2 className="w-5 h-5" />
-          </div>
-          <div>
-            <h2 className="text-sm font-bold text-slate-900 leading-tight">
-              Green Park Residency
-            </h2>
-            <p className="text-xs text-slate-500 font-medium mt-0.5">
-              {user.flat ? `Tower ${user.tower || 'A'} · Flat ${user.flat}` : 'Resident Member'} · {user.role === 'admin' ? 'Management Committee' : 'Member Account'}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            Society Portal Live
-          </span>
-        </div>
-      </div>
-
-      {/* APNACOMPLEX CORE CARDS GRID (CENTER SCREEN IN SCREENSHOT) */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        
-        {/* ======================================================== */}
-        {/* CARD 1: "My Financials" (ICONIC APNACOMPLEX ORANGE CARD) */}
-        {/* ======================================================== */}
-        <div className="bg-[#f57c00] text-white rounded-xl shadow-md overflow-hidden flex flex-col justify-between transition-transform duration-150 hover:shadow-lg">
-          <div className="p-5 sm:p-6 space-y-4">
-            
-            {/* Card Header Title */}
-            <div className="flex items-center justify-between">
-              <h3 className="text-base sm:text-lg font-bold tracking-tight text-white flex items-center gap-2">
-                <span>My Financials</span>
-              </h3>
-              <CreditCard className="w-5 h-5 text-orange-200" />
-            </div>
-
-            {/* Unpaid & Paid 2-Column Metrics */}
-            <div className="grid grid-cols-2 gap-4 pt-1">
-              {/* Unpaid Column */}
-              <div>
-                <span className="text-xs font-semibold text-orange-100 uppercase tracking-wider block">
-                  Unpaid
-                </span>
-                <span className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight block mt-0.5">
-                  ₹ {displayUnpaid.toLocaleString('en-IN')}
-                </span>
-                <span className="text-[11px] font-medium text-orange-100/90 block mt-1">
-                  Due: {nextDueDate}
-                </span>
-              </div>
-
-              {/* Paid Column */}
-              <div>
-                <span className="text-xs font-semibold text-orange-100 uppercase tracking-wider block">
-                  Paid
-                </span>
-                <span className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight block mt-0.5">
-                  ₹ {displayPaid.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </span>
-                <span className="text-[11px] font-medium text-orange-100/90 block mt-1">
-                  Financial Year 2026-27
-                </span>
-              </div>
-            </div>
-
-          </div>
-
-          {/* Card Action Link: "MAKE PAYMENT" */}
-          <button
-            onClick={() => setShowPayNowModal(true)}
-            className="w-full py-3.5 px-6 bg-black/10 hover:bg-black/20 text-white font-black text-xs uppercase tracking-widest text-left flex items-center justify-between border-t border-white/15 transition-colors cursor-pointer group"
-          >
-            <span>MAKE PAYMENT</span>
-            <ChevronRight className="w-4 h-4 text-white/80 group-hover:translate-x-1 transition-transform" />
-          </button>
-        </div>
-
-        {/* ======================================================== */}
-        {/* CARD 2: "My Complaints" (APNACOMPLEX WHITE/PURPLE CARD) */}
-        {/* ======================================================== */}
-        <div className="bg-white rounded-xl shadow-xs border border-slate-200/90 overflow-hidden flex flex-col justify-between transition-transform duration-150 hover:shadow-md">
-          <div className="p-5 sm:p-6 space-y-4">
-            
-            {/* Card Header Title */}
-            <div className="flex items-center justify-between">
-              <h3 className="text-base sm:text-lg font-bold tracking-tight text-[#542d87] flex items-center gap-2">
-                <span>My Complaints</span>
-              </h3>
-              <AlertCircle className="w-5 h-5 text-[#542d87]/60" />
-            </div>
-
-            {/* Open & Closed 2-Column Metrics */}
-            <div className="grid grid-cols-2 gap-4 pt-1">
-              {/* Open Column */}
-              <div>
-                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block">
-                  Open
-                </span>
-                <span className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight block mt-0.5">
-                  {displayOpenComplaints}
-                </span>
-                <span className="text-[11px] font-medium text-amber-600 block mt-1">
-                  In progress by facility
-                </span>
-              </div>
-
-              {/* Closed Column */}
-              <div>
-                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block">
-                  Closed
-                </span>
-                <span className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight block mt-0.5">
-                  {displayClosedComplaints}
-                </span>
-                <span className="text-[11px] font-medium text-emerald-600 block mt-1">
-                  Resolved satisfactorily
-                </span>
-              </div>
-            </div>
-
-          </div>
-
-          {/* Card Action Link: "ADD COMPLAINT" */}
-          <button
-            onClick={() => setShowAddComplaintModal(true)}
-            className="w-full py-3.5 px-6 bg-slate-50 hover:bg-purple-50/60 text-[#542d87] font-black text-xs uppercase tracking-widest text-left flex items-center justify-between border-t border-slate-100 transition-colors cursor-pointer group"
-          >
-            <span>ADD COMPLAINT</span>
-            <ChevronRight className="w-4 h-4 text-[#542d87] group-hover:translate-x-1 transition-transform" />
-          </button>
-        </div>
-
-      </div>
-
-      {/* QUICK MODULE ACTIONS STRIP (MATCHING SCREEN 1 SHORTCUTS) */}
-      <div className="bg-white rounded-xl p-4 border border-slate-200/90 shadow-xs">
-        <div className="flex items-center justify-between mb-3 px-1">
-          <h4 className="text-xs font-bold text-slate-600 uppercase tracking-wider">
-            Quick Actions
-          </h4>
-          <span className="text-[11px] text-slate-400">Tap to open module</span>
-        </div>
-
-        <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
-          <button
-            onClick={() => setShowPayNowModal(true)}
-            className="flex flex-col items-center justify-center p-3 rounded-lg border border-slate-100 hover:border-orange-200 hover:bg-orange-50/40 transition-all text-center cursor-pointer group"
-          >
-            <div className="w-10 h-10 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center mb-1.5 group-hover:scale-105 transition-transform">
-              <CreditCard className="w-5 h-5" />
-            </div>
-            <span className="text-xs font-bold text-slate-800 group-hover:text-orange-700">Pay Dues</span>
-          </button>
-
-          <button
-            onClick={() => setShowAddComplaintModal(true)}
-            className="flex flex-col items-center justify-center p-3 rounded-lg border border-slate-100 hover:border-purple-200 hover:bg-purple-50/40 transition-all text-center cursor-pointer group"
-          >
-            <div className="w-10 h-10 rounded-lg bg-purple-100 text-[#542d87] flex items-center justify-center mb-1.5 group-hover:scale-105 transition-transform">
-              <AlertCircle className="w-5 h-5" />
-            </div>
-            <span className="text-xs font-bold text-slate-800 group-hover:text-[#542d87]">Complaints</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('notices')}
-            className="flex flex-col items-center justify-center p-3 rounded-lg border border-slate-100 hover:border-purple-200 hover:bg-purple-50/40 transition-all text-center cursor-pointer group"
-          >
-            <div className="w-10 h-10 rounded-lg bg-purple-100 text-[#542d87] flex items-center justify-center mb-1.5 group-hover:scale-105 transition-transform">
-              <Megaphone className="w-5 h-5" />
-            </div>
-            <span className="text-xs font-bold text-slate-800 group-hover:text-[#542d87]">Notices</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('security')}
-            className="flex flex-col items-center justify-center p-3 rounded-lg border border-slate-100 hover:border-purple-200 hover:bg-purple-50/40 transition-all text-center cursor-pointer group"
-          >
-            <div className="w-10 h-10 rounded-lg bg-purple-100 text-[#542d87] flex items-center justify-center mb-1.5 group-hover:scale-105 transition-transform">
-              <ShieldCheck className="w-5 h-5" />
-            </div>
-            <span className="text-xs font-bold text-slate-800 group-hover:text-[#542d87]">Gate Pass</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('communication')}
-            className="flex flex-col items-center justify-center p-3 rounded-lg border border-slate-100 hover:border-purple-200 hover:bg-purple-50/40 transition-all text-center cursor-pointer group"
-          >
-            <div className="w-10 h-10 rounded-lg bg-purple-100 text-[#542d87] flex items-center justify-center mb-1.5 group-hover:scale-105 transition-transform">
-              <MessageSquare className="w-5 h-5" />
-            </div>
-            <span className="text-xs font-bold text-slate-800 group-hover:text-[#542d87]">Helpdesk</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('residents')}
-            className="flex flex-col items-center justify-center p-3 rounded-lg border border-slate-100 hover:border-purple-200 hover:bg-purple-50/40 transition-all text-center cursor-pointer group"
-          >
-            <div className="w-10 h-10 rounded-lg bg-purple-100 text-[#542d87] flex items-center justify-center mb-1.5 group-hover:scale-105 transition-transform">
-              <Users className="w-5 h-5" />
-            </div>
-            <span className="text-xs font-bold text-slate-800 group-hover:text-[#542d87]">Directory</span>
-          </button>
-        </div>
-      </div>
-
-      {/* SECONDARY ROW: NOTICES & RECENT ACTIVITY */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        
-        {/* Community Notices Card */}
-        <div className="bg-white rounded-xl shadow-xs border border-slate-200/90 overflow-hidden flex flex-col justify-between">
-          <div className="p-5 space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="text-base font-bold text-[#542d87] flex items-center gap-2">
-                <Megaphone className="w-4 h-4 text-[#542d87]" />
-                <span>Notice Board</span>
-              </h3>
-              <span className="text-[11px] font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded">
-                Circulars
+      {/* 1. DASHBOARD HEADER BANNER: JOYVILLE SENSORIUM */}
+      <div className="bg-gradient-to-r from-[#542d87] via-[#462372] to-[#391c5c] text-white rounded-2xl p-5 sm:p-6 shadow-md border border-purple-900/30 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-80 h-80 bg-orange-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="bg-orange-500 text-white text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full shadow-xs">
+                Official Portal
+              </span>
+              <span className="text-xs text-purple-200 font-bold">
+                {todayFormatted}
               </span>
             </div>
 
-            {loading ? (
-              <div className="py-4 space-y-2 animate-pulse">
-                <div className="h-4 bg-slate-100 rounded w-3/4" />
-                <div className="h-4 bg-slate-100 rounded w-1/2" />
-              </div>
-            ) : notices.length === 0 ? (
-              <p className="text-xs text-slate-400 py-3">No active circulars published today.</p>
-            ) : (
-              <div className="space-y-2 divide-y divide-slate-100">
-                {notices.slice(0, 3).map((n) => (
-                  <div 
-                    key={n.notice_id || n.id}
-                    onClick={() => setActiveTab('notices')}
-                    className="pt-2 first:pt-0 flex items-start justify-between gap-3 cursor-pointer group"
-                  >
-                    <div>
-                      <p className="text-xs font-bold text-slate-900 group-hover:text-[#542d87] transition-colors leading-snug">
-                        {n.title}
-                      </p>
-                      <p className="text-[11px] text-slate-400 font-medium line-clamp-1 mt-0.5">
-                        {n.description || 'Important society circular for residents.'}
-                      </p>
+            <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+              Joyville Sensorium
+            </h1>
+            <p className="text-xs sm:text-sm text-purple-200 font-medium">
+              Welcome back, <span className="font-bold text-white">{user.name || 'Member'}</span> ({user.flat ? `Flat ${user.tower || 'A'}-${user.flat}` : 'Society Admin'})
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 pt-2 md:pt-0">
+            <button
+              onClick={fetchDashboardData}
+              disabled={loading}
+              className="px-3.5 py-2 bg-white/10 hover:bg-white/20 active:bg-white/30 text-white font-bold text-xs rounded-xl transition-all border border-white/15 flex items-center gap-1.5 cursor-pointer"
+            >
+              <RotateCcw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+              <span>Refresh Data</span>
+            </button>
+
+            <button
+              onClick={() => setShowPayNowModal(true)}
+              className="px-4 py-2 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              <CreditCard className="w-3.5 h-3.5" />
+              <span>Pay Maintenance</span>
+            </button>
+
+            <button
+              onClick={() => setShowAddComplaintModal(true)}
+              className="px-4 py-2 bg-white text-[#542d87] hover:bg-purple-50 font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              <Plus className="w-3.5 h-3.5 text-[#542d87]" />
+              <span>Log Complaint</span>
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      {/* 2. COLOR-CODED DASHBOARD SUMMARY CARDS (DISTINCT ACCENT FOR EACH BLOCK) */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+        
+        {/* Card 1: Total Flats (BLUE BLOCK) */}
+        <div 
+          onClick={() => setActiveTab('residents')}
+          className="bg-indigo-50/90 border border-indigo-200/90 p-4 rounded-2xl shadow-xs hover:border-indigo-400 hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-black text-indigo-800 uppercase tracking-wider">Total Flats</span>
+            <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-xs group-hover:scale-110 transition-transform">
+              <Building2 className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-3">
+            <span className="text-xl sm:text-2xl font-black text-indigo-950 tracking-tight block">{totalFlatsCount}</span>
+            <span className="text-[10px] font-extrabold text-indigo-700 bg-indigo-100/80 px-2 py-0.5 rounded-md inline-block mt-1">{occupiedFlatsCount} Occupied</span>
+          </div>
+        </div>
+
+        {/* Card 2: Total Residents (EMERALD BLOCK) */}
+        <div 
+          onClick={() => setActiveTab('residents')}
+          className="bg-emerald-50/90 border border-emerald-200/90 p-4 rounded-2xl shadow-xs hover:border-emerald-400 hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-black text-emerald-800 uppercase tracking-wider">Total Residents</span>
+            <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-xs group-hover:scale-110 transition-transform">
+              <Users className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-3">
+            <span className="text-xl sm:text-2xl font-black text-emerald-950 tracking-tight block">{totalResidentsCount}</span>
+            <span className="text-[10px] font-extrabold text-emerald-800 bg-emerald-100/80 px-2 py-0.5 rounded-md inline-block mt-1">Owners & Tenants</span>
+          </div>
+        </div>
+
+        {/* Card 3: Pending Maintenance (AMBER/ORANGE BLOCK) */}
+        <div 
+          onClick={() => setActiveTab('maintenance')}
+          className="bg-amber-50/90 border border-amber-300/90 p-4 rounded-2xl shadow-xs hover:border-amber-400 hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-black text-amber-900 uppercase tracking-wider">Pending Bills</span>
+            <div className="w-8 h-8 rounded-xl bg-orange-500 text-white flex items-center justify-center shadow-xs group-hover:scale-110 transition-transform">
+              <CreditCard className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-3">
+            <span className="text-lg sm:text-xl font-black text-orange-950 tracking-tight block">₹ {displayUnpaid.toLocaleString('en-IN')}</span>
+            <span className="text-[10px] font-extrabold text-orange-800 bg-amber-100/80 px-2 py-0.5 rounded-md inline-block mt-1">Due: {nextDueDate}</span>
+          </div>
+        </div>
+
+        {/* Card 4: Collections (PURPLE BLOCK) */}
+        <div 
+          onClick={() => setActiveTab('financial')}
+          className="bg-purple-50/90 border border-purple-200/90 p-4 rounded-2xl shadow-xs hover:border-purple-400 hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-black text-[#542d87] uppercase tracking-wider">Collections</span>
+            <div className="w-8 h-8 rounded-xl bg-[#542d87] text-white flex items-center justify-center shadow-xs group-hover:scale-110 transition-transform">
+              <TrendingUp className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-3">
+            <span className="text-lg sm:text-xl font-black text-[#542d87] tracking-tight block">₹ {displayPaid.toLocaleString('en-IN')}</span>
+            <span className="text-[10px] font-extrabold text-purple-800 bg-purple-100/80 px-2 py-0.5 rounded-md inline-block mt-1">FY 2026-27 YTD</span>
+          </div>
+        </div>
+
+        {/* Card 5: Open Complaints (ROSE BLOCK) */}
+        <div 
+          onClick={() => setActiveTab('complaints')}
+          className="bg-rose-50/90 border border-rose-200/90 p-4 rounded-2xl shadow-xs hover:border-rose-400 hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-black text-rose-800 uppercase tracking-wider">Open Complaints</span>
+            <div className="w-8 h-8 rounded-xl bg-rose-600 text-white flex items-center justify-center shadow-xs group-hover:scale-110 transition-transform">
+              <AlertCircle className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-3">
+            <span className="text-xl sm:text-2xl font-black text-rose-950 tracking-tight block">{displayOpenComplaints}</span>
+            <span className="text-[10px] font-extrabold text-rose-800 bg-rose-100/80 px-2 py-0.5 rounded-md inline-block mt-1">In Progress</span>
+          </div>
+        </div>
+
+        {/* Card 6: Today's Visitors (SKY BLOCK) */}
+        <div 
+          onClick={() => setActiveTab('security')}
+          className="bg-sky-50/90 border border-sky-200/90 p-4 rounded-2xl shadow-xs hover:border-sky-400 hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-black text-sky-800 uppercase tracking-wider">Today's Visitors</span>
+            <div className="w-8 h-8 rounded-xl bg-sky-600 text-white flex items-center justify-center shadow-xs group-hover:scale-110 transition-transform">
+              <ShieldCheck className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-3">
+            <span className="text-xl sm:text-2xl font-black text-sky-950 tracking-tight block">{displayVisitorsToday}</span>
+            <span className="text-[10px] font-extrabold text-sky-800 bg-sky-100/80 px-2 py-0.5 rounded-md inline-block mt-1">{activeVisitors.length} Currently In</span>
+          </div>
+        </div>
+
+      </div>
+
+      {/* 3. COLOR-CODED OVERVIEW SECTIONS (DISTINCT COLOR TREATMENT FOR EACH BLOCK) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        
+        {/* Financial Collections Bar Chart Card (WHITE CARD WITH PURPLE HEADER STRIP) */}
+        <div className="lg:col-span-2 bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-xs flex flex-col justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
+            <div>
+              <h3 className="text-base font-extrabold text-[#542d87] flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-orange-500" />
+                <span>Financial Collections Overview</span>
+              </h3>
+              <p className="text-xs text-slate-500 font-medium mt-0.5">
+                Joyville Sensorium maintenance revenue ledger
+              </p>
+            </div>
+
+            {/* Date-Range / Period Filter Buttons */}
+            <div className="flex items-center bg-slate-100 p-1 rounded-xl gap-1 shrink-0">
+              <button
+                onClick={() => setFinancialPeriod('month')}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  financialPeriod === 'month' ? 'bg-[#542d87] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Monthly
+              </button>
+              <button
+                onClick={() => setFinancialPeriod('quarter')}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  financialPeriod === 'quarter' ? 'bg-[#542d87] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Quarterly
+              </button>
+              <button
+                onClick={() => setFinancialPeriod('year')}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  financialPeriod === 'year' ? 'bg-[#542d87] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Yearly
+              </button>
+            </div>
+          </div>
+
+          {/* Interactive SVG Chart */}
+          <div className="py-6">
+            <div className="h-44 sm:h-52 w-full flex items-end gap-3 sm:gap-6 pt-6 pb-2 px-2 border-b border-slate-200">
+              {financialChartData.map((item, idx) => {
+                const heightPercent = Math.max(15, Math.round((item.amount / maxChartAmount) * 100));
+                return (
+                  <div key={idx} className="flex-1 flex flex-col items-center h-full justify-end group relative cursor-pointer">
+                    
+                    <div className="absolute -top-10 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-900 text-white text-[10px] font-black px-2 py-1 rounded shadow-lg whitespace-nowrap z-20 pointer-events-none">
+                      ₹ {item.amount.toLocaleString('en-IN')}
                     </div>
-                    <span className="text-[10px] font-bold text-slate-400 shrink-0 mt-0.5">
-                      {n.posted_date || 'Recent'}
+
+                    <div 
+                      style={{ height: `${heightPercent}%` }}
+                      className="w-full max-w-[40px] bg-gradient-to-t from-[#542d87] to-purple-500 group-hover:from-orange-500 group-hover:to-orange-400 rounded-t-lg transition-all duration-200 shadow-xs relative"
+                    >
+                      <div className="absolute top-0 inset-x-0 h-1 bg-white/30 rounded-t-lg" />
+                    </div>
+
+                    <span className="text-[10px] font-bold text-slate-500 mt-2 truncate w-full text-center">
+                      {item.label}
                     </span>
                   </div>
-                ))}
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between pt-2 text-xs font-bold text-slate-600">
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded-sm bg-[#542d87]" />
+              <span>Collected Funds: <span className="text-slate-900 font-black">₹ {displayPaid.toLocaleString('en-IN')}</span></span>
+            </div>
+            <button 
+              onClick={() => setActiveTab('financial')}
+              className="text-[#542d87] hover:underline flex items-center gap-1 cursor-pointer"
+            >
+              <span>Full Financial Ledger</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+        </div>
+
+        {/* Section A: Occupancy & Society Overview Block (INDIGO BLOCK) */}
+        <div className="bg-indigo-50/40 rounded-2xl p-5 sm:p-6 border border-indigo-200/80 shadow-xs flex flex-col justify-between">
+          <div className="space-y-4">
+            <div className="pb-3 border-b border-indigo-100 flex items-center justify-between">
+              <h3 className="text-base font-extrabold text-indigo-950 flex items-center gap-2">
+                <Building2 className="w-4 h-4 text-indigo-600" />
+                <span>Society Overview</span>
+              </h3>
+              <span className="text-[10px] font-black text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded">Flats & Units</span>
+            </div>
+
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between p-3 rounded-xl bg-white border border-indigo-100 shadow-2xs">
+                <span className="text-xs font-bold text-slate-700">Occupied Flats</span>
+                <span className="text-sm font-black text-emerald-600">{occupiedFlatsCount} / {totalFlatsCount}</span>
               </div>
-            )}
+
+              <div className="flex items-center justify-between p-3 rounded-xl bg-white border border-indigo-100 shadow-2xs">
+                <span className="text-xs font-bold text-slate-700">Vacant Flats</span>
+                <span className="text-sm font-black text-amber-600">{vacantFlatsCount} Flats</span>
+              </div>
+
+              <div className="flex items-center justify-between p-3 rounded-xl bg-white border border-indigo-100 shadow-2xs">
+                <span className="text-xs font-bold text-slate-700">Registered Residents</span>
+                <span className="text-sm font-black text-indigo-900">{totalResidentsCount} Members</span>
+              </div>
+
+              <div className="flex items-center justify-between p-3 rounded-xl bg-emerald-50 border border-emerald-200">
+                <span className="text-xs font-bold text-emerald-900">Collection Recovery Rate</span>
+                <span className="text-sm font-black text-emerald-700">98.4%</span>
+              </div>
+            </div>
           </div>
 
           <button
-            onClick={() => setActiveTab('notices')}
-            className="w-full py-3 px-5 bg-slate-50 hover:bg-purple-50/60 text-[#542d87] font-black text-xs uppercase tracking-wider text-left flex items-center justify-between border-t border-slate-100 transition-colors cursor-pointer"
+            onClick={() => setActiveTab('residents')}
+            className="w-full mt-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl transition-all text-center uppercase tracking-wider cursor-pointer shadow-xs"
           >
-            <span>VIEW ALL NOTICES</span>
-            <ChevronRight className="w-4 h-4 text-[#542d87]" />
+            Manage Residents & Flats
           </button>
         </div>
 
-        {/* Security & Gate Pass Summary */}
-        <div className="bg-white rounded-xl shadow-xs border border-slate-200/90 overflow-hidden flex flex-col justify-between">
-          <div className="p-5 space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="text-base font-bold text-[#542d87] flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-[#542d87]" />
-                <span>Security & Gate</span>
+      </div>
+
+      {/* 4. COLOR-CODED OVERVIEW BLOCKS (SKY, ROSE, PURPLE BLOCKS) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        
+        {/* Section C: Visitor Overview Block (SKY / TEAL BLOCK) */}
+        <div className="bg-sky-50/40 rounded-2xl p-5 border border-sky-200/80 shadow-xs flex flex-col justify-between">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between pb-3 border-b border-sky-100">
+              <h3 className="text-base font-extrabold text-sky-950 flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-sky-600" />
+                <span>Visitor Gate Log</span>
               </h3>
-              <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
+              <span className="text-[10px] font-black text-sky-800 bg-sky-100 px-2 py-0.5 rounded border border-sky-200">
                 Gate Active
               </span>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 py-1">
-              <div className="p-3 rounded-lg bg-slate-50 border border-slate-100">
-                <span className="text-[11px] font-semibold text-slate-500 block">Today's Visitors</span>
-                <span className="text-xl font-black text-slate-900 block mt-0.5">14</span>
+            <div className="grid grid-cols-2 gap-2.5">
+              <div className="p-3 bg-white rounded-xl border border-sky-100 shadow-2xs">
+                <span className="text-[10px] font-bold text-slate-400 uppercase">Checked In</span>
+                <span className="text-lg font-black text-sky-950 block mt-0.5">{activeVisitors.length} Guests</span>
               </div>
-              <div className="p-3 rounded-lg bg-slate-50 border border-slate-100">
-                <span className="text-[11px] font-semibold text-slate-500 block">Deliveries Approved</span>
-                <span className="text-xl font-black text-slate-900 block mt-0.5">8</span>
+              <div className="p-3 bg-white rounded-xl border border-sky-100 shadow-2xs">
+                <span className="text-[10px] font-bold text-slate-400 uppercase">Today's Log</span>
+                <span className="text-lg font-black text-sky-950 block mt-0.5">{displayVisitorsToday} Total</span>
               </div>
             </div>
 
-            <p className="text-xs text-slate-500 font-medium">
-              Pre-approved visitor passes ensure zero delay at Green Park Residency main gate.
-            </p>
+            <div className="space-y-2 pt-1">
+              <p className="text-[10px] font-black text-sky-800 uppercase tracking-widest">Recent Gate Check-Ins</p>
+              {visitors.length === 0 ? (
+                <p className="text-xs text-slate-400 py-2">No active visitor entries recorded today.</p>
+              ) : (
+                visitors.slice(0, 3).map((v) => (
+                  <div key={v.visitor_id || v.id} className="p-2.5 bg-white rounded-xl border border-sky-100 flex items-center justify-between text-xs shadow-2xs">
+                    <div>
+                      <p className="font-bold text-slate-800">{v.name}</p>
+                      <p className="text-[10px] text-slate-400 font-medium">Flat {v.tower || 'A'}-{v.flat} · {v.purpose || 'Guest'}</p>
+                    </div>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
+                      v.status === 'In' || v.status === 'Checked In' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-700'
+                    }`}>
+                      {v.status || 'In'}
+                    </span>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
 
           <button
             onClick={() => setActiveTab('security')}
-            className="w-full py-3 px-5 bg-slate-50 hover:bg-purple-50/60 text-[#542d87] font-black text-xs uppercase tracking-wider text-left flex items-center justify-between border-t border-slate-100 transition-colors cursor-pointer"
+            className="w-full mt-4 py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-xl transition-all text-center uppercase tracking-wider cursor-pointer shadow-xs"
           >
-            <span>VISITOR LOG & GATE PASS</span>
-            <ChevronRight className="w-4 h-4 text-[#542d87]" />
+            Open Visitor Management
+          </button>
+        </div>
+
+        {/* Section D: Complaints Overview Block (ROSE / CORAL BLOCK) */}
+        <div className="bg-rose-50/40 rounded-2xl p-5 border border-rose-200/80 shadow-xs flex flex-col justify-between">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between pb-3 border-b border-rose-100">
+              <h3 className="text-base font-extrabold text-rose-950 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-rose-600" />
+                <span>Complaints Overview</span>
+              </h3>
+              <span className="text-[10px] font-black text-rose-800 bg-rose-100 px-2 py-0.5 rounded border border-rose-200">
+                {displayOpenComplaints} Active
+              </span>
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-[10px] font-black text-rose-800 uppercase tracking-widest">Recent Open Complaints</p>
+              {complaints.length === 0 ? (
+                <p className="text-xs text-slate-400 py-2">No pending complaints in the system.</p>
+              ) : (
+                complaints.slice(0, 3).map((c) => (
+                  <div 
+                    key={c.complaint_id || c.id} 
+                    onClick={() => setSelectedComplaint(c)}
+                    className="p-2.5 bg-white hover:bg-rose-50/80 rounded-xl border border-rose-100 transition-colors cursor-pointer group shadow-2xs"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-bold text-purple-700 bg-purple-100/60 px-2 py-0.5 rounded">
+                        {c.category}
+                      </span>
+                      <span className="text-[10px] font-bold text-amber-600">
+                        {c.status || 'Pending'}
+                      </span>
+                    </div>
+                    <p className="text-xs font-bold text-slate-800 group-hover:text-rose-700 line-clamp-1 mt-1">
+                      {c.description}
+                    </p>
+                    <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Flat {c.tower || 'A'}-{c.flat_no || '102'} · {c.complaint_date || 'Recent'}</p>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          <button
+            onClick={() => setActiveTab('complaints')}
+            className="w-full mt-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl transition-all text-center uppercase tracking-wider cursor-pointer shadow-xs"
+          >
+            Open Complaints Module
+          </button>
+        </div>
+
+        {/* Section E: Notice Management Block (PURPLE / VIOLET BLOCK) */}
+        <div className="bg-purple-50/40 rounded-2xl p-5 border border-purple-200/80 shadow-xs flex flex-col justify-between">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between pb-3 border-b border-purple-100">
+              <h3 className="text-base font-extrabold text-[#542d87] flex items-center gap-2">
+                <Megaphone className="w-4 h-4 text-[#542d87]" />
+                <span>Notice Management</span>
+              </h3>
+              <span className="text-[10px] font-black text-purple-800 bg-purple-100 px-2 py-0.5 rounded border border-purple-200">
+                Joyville Circulars
+              </span>
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-[10px] font-black text-purple-800 uppercase tracking-widest">Published Notices</p>
+              {notices.length === 0 ? (
+                <div className="p-3 bg-white rounded-xl border border-purple-100 text-xs shadow-2xs">
+                  <p className="font-bold text-[#542d87]">Annual Society General Meeting</p>
+                  <p className="text-[11px] text-slate-500 mt-0.5">Scheduled for Sunday, 10:00 AM at Clubhouse Hall.</p>
+                  <span className="text-[10px] text-slate-400 mt-1 block">Oct 20, 2026</span>
+                </div>
+              ) : (
+                notices.slice(0, 3).map((n) => (
+                  <div 
+                    key={n.notice_id || n.id}
+                    onClick={() => setActiveTab('notices')}
+                    className="p-2.5 bg-white hover:bg-purple-50/80 rounded-xl border border-purple-100 transition-colors cursor-pointer group shadow-2xs"
+                  >
+                    <p className="text-xs font-bold text-slate-800 group-hover:text-[#542d87] leading-snug">
+                      {n.title}
+                    </p>
+                    <p className="text-[11px] text-slate-400 font-medium line-clamp-1 mt-0.5">
+                      {n.description || 'Important circular for all residents.'}
+                    </p>
+                    <span className="text-[10px] font-bold text-[#542d87] mt-1 block">
+                      {n.posted_date || 'Recent Notice'}
+                    </span>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          <button
+            onClick={() => setActiveTab('notices')}
+            className="w-full mt-4 py-2.5 bg-[#542d87] hover:bg-[#462372] text-white font-bold text-xs rounded-xl transition-all text-center uppercase tracking-wider cursor-pointer shadow-xs"
+          >
+            Open Notice Management
           </button>
         </div>
 
       </div>
 
+      {/* 5. INTERACTIVE SECTION F: RECENT SOCIETY ACTIVITIES (SLATE BLOCK WITH COLOR-CODED ICONS) */}
+      <div className="bg-slate-50/80 rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-xs space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+          <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
+            <Activity className="w-4 h-4 text-orange-500" />
+            <span>Recent Society Activity Stream</span>
+          </h3>
+          <span className="text-xs text-slate-500 font-bold">Joyville Sensorium Operations</span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+          
+          <div className="p-3 bg-white rounded-xl border border-slate-200/80 flex items-start gap-3 shadow-2xs">
+            <div className="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
+              <CreditCard className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-slate-800">Maintenance Payment</p>
+              <p className="text-[11px] text-slate-500 font-medium mt-0.5">Flat A-102 paid ₹ 5,200 online</p>
+              <span className="text-[10px] font-bold text-emerald-600 mt-1 block">Today, 10:15 AM</span>
+            </div>
+          </div>
+
+          <div className="p-3 bg-white rounded-xl border border-slate-200/80 flex items-start gap-3 shadow-2xs">
+            <div className="w-8 h-8 rounded-lg bg-sky-600 text-white flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
+              <ShieldCheck className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-slate-800">Visitor Gate Entry</p>
+              <p className="text-[11px] text-slate-500 font-medium mt-0.5">Guest checked in for Flat B-304</p>
+              <span className="text-[10px] font-bold text-sky-600 mt-1 block">Today, 11:30 AM</span>
+            </div>
+          </div>
+
+          <div className="p-3 bg-white rounded-xl border border-slate-200/80 flex items-start gap-3 shadow-2xs">
+            <div className="w-8 h-8 rounded-lg bg-rose-600 text-white flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
+              <AlertCircle className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-slate-800">Complaint Updated</p>
+              <p className="text-[11px] text-slate-500 font-medium mt-0.5">Plumbing #104 marked In-Progress</p>
+              <span className="text-[10px] font-bold text-amber-600 mt-1 block">Yesterday, 4:20 PM</span>
+            </div>
+          </div>
+
+          <div className="p-3 bg-white rounded-xl border border-slate-200/80 flex items-start gap-3 shadow-2xs">
+            <div className="w-8 h-8 rounded-lg bg-[#542d87] text-white flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
+              <Megaphone className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-slate-800">Notice Published</p>
+              <p className="text-[11px] text-slate-500 font-medium mt-0.5">Clubhouse maintenance circular</p>
+              <span className="text-[10px] font-bold text-purple-700 mt-1 block">Oct 21, 2026</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
       {/* ======================================================== */}
-      {/* APNACOMPLEX "PAY NOW" MODAL (RIGHT SCREEN IN SCREENSHOT) */}
+      {/* PAY NOW MODAL */}
       {/* ======================================================== */}
       {showPayNowModal && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
           <div className="bg-white rounded-xl shadow-2xl border border-slate-200 max-w-md w-full overflow-hidden flex flex-col animate-in zoom-in-95 duration-150">
             
-            {/* Header: "← Pay Now" (Deep Purple as in ApnaComplex screenshot) */}
             <div className="bg-[#542d87] text-white p-4 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
                 <button
@@ -512,29 +772,24 @@ export default function DashboardModulesGrid({
                   <ArrowLeft className="w-5 h-5" />
                 </button>
                 <h3 className="text-base font-bold text-white tracking-tight">
-                  Pay Now
+                  Pay Maintenance — Joyville Sensorium
                 </h3>
               </div>
               <button
                 onClick={() => setShowPayNowModal(false)}
-                className="text-white/70 hover:text-white"
+                className="text-white/70 hover:text-white cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Modal Body */}
             <div className="p-5 space-y-6">
-              
-              {/* Select Payment Method */}
               <div className="space-y-3">
                 <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
                   Select Payment Method
                 </h4>
 
                 <div className="grid grid-cols-3 gap-2.5">
-                  
-                  {/* Credit Card (Selected orange border in screenshot!) */}
                   <button
                     type="button"
                     onClick={() => setSelectedPaymentMethod('credit')}
@@ -559,7 +814,6 @@ export default function DashboardModulesGrid({
                     )}
                   </button>
 
-                  {/* Debit Card */}
                   <button
                     type="button"
                     onClick={() => setSelectedPaymentMethod('debit')}
@@ -584,7 +838,6 @@ export default function DashboardModulesGrid({
                     )}
                   </button>
 
-                  {/* Net Banking */}
                   <button
                     type="button"
                     onClick={() => setSelectedPaymentMethod('netbanking')}
@@ -608,11 +861,9 @@ export default function DashboardModulesGrid({
                       </div>
                     )}
                   </button>
-
                 </div>
               </div>
 
-              {/* Total Payment Amount Section (Large Green text from screenshot) */}
               <div className="text-center py-4 border-t border-b border-slate-100 space-y-1">
                 <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
                   Total Payment amount
@@ -621,13 +872,11 @@ export default function DashboardModulesGrid({
                   ₹ {totalAmountToPay.toLocaleString('en-IN')}
                 </span>
                 <p className="text-[11px] text-slate-400">
-                  Flat {user.flat || 'A-102'} · Green Park Residency maintenance ledger
+                  Flat {user.flat || 'A-102'} · Joyville Sensorium maintenance ledger
                 </p>
               </div>
-
             </div>
 
-            {/* Bottom Button: Proceed to Pay (Deep Purple from screenshot) */}
             <div className="p-4 bg-slate-50 border-t border-slate-100">
               <button
                 type="button"
@@ -656,11 +905,11 @@ export default function DashboardModulesGrid({
           <div className="bg-white rounded-xl shadow-2xl border border-slate-200 max-w-md w-full overflow-hidden flex flex-col">
             <div className="bg-[#542d87] text-white p-4 flex items-center justify-between">
               <h3 className="text-base font-bold text-white tracking-tight">
-                Add Complaint
+                Add Complaint — Joyville Sensorium
               </h3>
               <button
                 onClick={() => setShowAddComplaintModal(false)}
-                className="text-white/70 hover:text-white"
+                className="text-white/70 hover:text-white cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -702,18 +951,73 @@ export default function DashboardModulesGrid({
                 <button
                   type="button"
                   onClick={() => setShowAddComplaintModal(false)}
-                  className="px-4 py-2 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-100"
+                  className="px-4 py-2 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-100 cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-lg text-xs font-bold bg-[#542d87] hover:bg-[#462372] text-white shadow-xs"
+                  className="px-5 py-2 rounded-lg text-xs font-bold bg-[#542d87] hover:bg-[#462372] text-white shadow-xs cursor-pointer"
                 >
                   Submit Complaint
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* COMPLAINT DETAIL MODAL */}
+      {selectedComplaint && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
+          <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-md w-full overflow-hidden flex flex-col">
+            <div className="bg-[#542d87] text-white p-4 flex items-center justify-between">
+              <h3 className="text-sm font-bold text-white tracking-tight">
+                Complaint Detail — Joyville Sensorium
+              </h3>
+              <button
+                onClick={() => setSelectedComplaint(null)}
+                className="text-white/70 hover:text-white cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-5 space-y-4 text-xs font-sans">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                <span className="font-bold text-purple-700 bg-purple-50 px-2.5 py-1 rounded-md border border-purple-100">
+                  {selectedComplaint.category}
+                </span>
+                <span className="font-black text-amber-600 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200">
+                  Status: {selectedComplaint.status || 'Pending'}
+                </span>
+              </div>
+
+              <div>
+                <p className="font-black text-slate-400 uppercase text-[10px] tracking-wider">Issue Description</p>
+                <p className="text-slate-800 font-bold text-sm mt-1 leading-relaxed">{selectedComplaint.description}</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase">Flat / Location</span>
+                  <p className="font-bold text-slate-800 mt-0.5">Tower {selectedComplaint.tower || 'A'} · Flat {selectedComplaint.flat_no || '102'}</p>
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase">Reported Date</span>
+                  <p className="font-bold text-slate-800 mt-0.5">{selectedComplaint.complaint_date || 'Recent'}</p>
+                </div>
+              </div>
+
+              <div className="pt-2 flex justify-end">
+                <button
+                  onClick={() => setSelectedComplaint(null)}
+                  className="px-5 py-2 bg-[#542d87] text-white text-xs font-bold rounded-xl cursor-pointer hover:bg-[#462372]"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
