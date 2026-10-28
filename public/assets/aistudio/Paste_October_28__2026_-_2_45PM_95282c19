@@ -1,0 +1,1406 @@
+# MASTER IMPLEMENTATION PROMPT — TOWERTECH SOCIETY MANAGEMENT SYSTEM
+
+## Project Overview
+
+Develop, improve, and integrate all requested features into the existing **TowerTech Residential Society Management System**, using the current application, database, authentication, role assignments, UI components, and design system.
+
+The society name throughout the application must be:
+
+**Joyville Sensorium**
+
+The objective is to make TowerTech a functional, secure, professional, and fully integrated residential society management platform.
+
+## CRITICAL IMPLEMENTATION INSTRUCTIONS
+
+1. Work on the existing TowerTech application. Do not create a separate application or rebuild it from scratch.
+2. Implement all requirements in Sections 1–14, including every requested module change and the complete Financial Management Module.
+3. Preserve the existing theme, colors, typography, sidebar, navigation style, layout conventions, and responsive design. Do not redesign the application unnecessarily.
+4. Inspect the existing codebase, database schema, authentication system, and current module implementations before making changes.
+5. Reuse existing components, database tables, APIs, relationships, and authentication wherever appropriate.
+6. Preserve all unrelated working functionality. Make targeted changes instead of replacing entire modules without need.
+7. All forms, buttons, filters, approvals, calculations, charts, notifications, and reports must work. Do not create static mockups or fake functionality.
+8. Use actual database records. Do not introduce hardcoded financial totals, fake residents, fake visitors, fake transactions, or fabricated payment confirmations.
+9. Enforce role permissions in backend APIs and database security policies, not just by hiding buttons in the frontend.
+10. Test every changed module and its interactions with the other modules before considering implementation complete.
+
+---
+
+# SECTION 1 — DASHBOARD IMPROVEMENTS
+
+## 1.1 Remove unwanted dashboard elements
+
+Remove the following from the dashboard:
+
+- Refresh Data
+- Pay Maintenance
+- Log Complaint
+
+Remove the card or statistic displaying:
+
+- Total Flats: 120
+- Occupied: 112
+
+Remove these specific dashboard elements without deleting the underlying maintenance, complaint, or flat-management functionality from their respective modules.
+
+Do not remove other useful dashboard features unless they directly conflict with the requirements.
+
+## 1.2 Personalized greeting and role
+
+Display the authenticated user's name and actual assigned role.
+
+Example:
+
+"Welcome back, Arya Sonawane (Society Admin)"
+
+Requirements:
+
+- Fetch the name from the authenticated user's profile.
+- Fetch the role from the actual role assignment.
+- Do not hardcode Arya Sonawane or any other person's name.
+- Remove redundant or duplicate administrator-name labels elsewhere on the dashboard.
+- Display the correct assigned role for Admin, Resident, Owner, Tenant, or Security Staff as applicable.
+- Do not grant permissions merely because a role label is displayed.
+
+## 1.3 Active resident count
+
+Add a dashboard statistic showing the number of active residents.
+
+Requirements:
+
+- Calculate the count from actual resident records.
+- Count only residents whose status is active.
+- Exclude inactive, deactivated, deleted, or otherwise ineligible resident accounts.
+- Avoid counting the same resident multiple times.
+- Use the actual database relationship between residents and flats.
+- Update the statistic when a resident's status changes.
+- Display a clear label such as "Active Residents".
+- Do not confuse total flats, occupied flats, registered users, and active residents.
+
+If the application distinguishes owners, tenants, and residents, apply the existing data model's rules for identifying active residents consistently.
+
+## 1.4 Maintenance bill generation
+
+Remove the existing **Single Flat** maintenance-bill generation workflow from the dashboard or bill-generation interface where it is currently offered.
+
+Replace it with an automatic all-eligible-flats monthly billing workflow.
+
+Requirements:
+
+- Generate maintenance bills for all eligible flats in the selected billing period.
+- Determine the responsible owner or resident using existing society records.
+- Apply the configured maintenance amount for each flat.
+- Support different maintenance rates for different flats.
+- Respect active occupancy and existing billing eligibility rules.
+- Do not generate bills for inactive or ineligible records.
+- Prevent duplicate bills for the same flat and billing period.
+- Provide a clear billing-period selector and due-date configuration.
+- Display a preview of eligible flats and the calculated totals before final dispatch.
+- Provide a confirmation step before generating and dispatching bills.
+- Save all bills to the database.
+- Display success, failure, and skipped-flat information.
+- Ensure that retrying a failed operation does not create duplicate bills.
+- Maintain a record of the billing run, including the billing period, initiating user, timestamp, number of bills created, and failures.
+
+Keep any administrative correction process that may be necessary for exceptional cases, but do not expose the old single-flat generation workflow as the normal bill-generation feature.
+
+Use a scheduled job or existing scheduling infrastructure for recurring monthly generation where supported. Provide an authorized manual trigger for administrators when necessary. Never claim that automatic scheduling is active unless it has been configured and tested.
+
+---
+
+# SECTION 2 — DOCUMENT MANAGEMENT AND APPROVALS
+
+## 2.1 Resident document uploads
+
+Update the Upload Document feature in the Resident Module.
+
+Requirements:
+
+- Residents must be able to upload documents through their assigned resident interface.
+- Store uploaded files securely using the existing storage infrastructure.
+- Associate each document with the authenticated resident and relevant flat.
+- Record document type, filename, upload date, status, and relevant metadata.
+- Validate file types, sizes, and upload permissions.
+- Prevent unauthorized access to another resident's private documents.
+
+## 2.2 Remove administrator document-upload access
+
+Remove the Admin's ability to upload resident documents through the resident-facing Upload Document workflow.
+
+This restriction must not remove an administrator's ability to review, approve, or reject documents submitted by residents.
+
+Do not disable unrelated administrative document management features if they already exist for a separate, legitimate purpose.
+
+## 2.3 Admin approval and rejection
+
+Add a document-review interface for the authorized administrator.
+
+The Admin must be able to:
+
+- View submitted documents.
+- Open or preview documents securely.
+- View the associated resident and flat number.
+- Review the document type and submission date.
+- Approve a document.
+- Reject a document.
+- Provide a rejection reason.
+- View pending, approved, and rejected documents.
+- View the document review history.
+
+Requirements:
+
+- Store the review status in the database.
+- Record the reviewer, timestamp, and decision.
+- Display the current status to the submitting resident.
+- Notify the resident when a decision is made, using the existing notification infrastructure where available.
+- Prevent unauthorized users from approving or rejecting documents.
+- Do not allow a resident to change a document's approval status.
+- Preserve previous review records when a document is resubmitted or its status changes.
+
+Use a clear workflow:
+
+Pending Review → Approved or Rejected.
+
+If rejected, allow the resident to submit a corrected document where appropriate.
+
+---
+
+# SECTION 3 — COMPLAINT MANAGEMENT
+
+Improve the existing Complaint Module without changing its underlying purpose or the overall application theme.
+
+## 3.1 Single-frame layout
+
+Fit the complaint interface into one well-organized frame or viewport wherever practical.
+
+Requirements:
+
+- Avoid unnecessary page-level scrolling.
+- Keep complaint information, controls, and filters visible and organized.
+- Use compact spacing and readable typography.
+- If the complaint list exceeds the available space, use pagination or a contained list area rather than forcing the entire page to scroll.
+- Maintain responsiveness on smaller screens. Do not shrink text to an unreadable size just to eliminate scrolling.
+
+## 3.2 Category filter
+
+Add a working Category filter.
+
+Requirements:
+
+- Use the categories already supported by the application.
+- Include an All Categories option.
+- Update the complaint list according to the selected category.
+- Allow category filtering to work alongside existing search, date, status, and other supported filters.
+- Preserve existing complaint records and status workflows.
+- Fetch the results from the actual data source.
+
+Do not create an unrelated complaint workflow or remove existing complaint functionality.
+
+---
+
+# SECTION 4 — AMENITIES MANAGEMENT
+
+Improve the existing Amenities Module.
+
+Requirements:
+
+- Fit the main amenities interface into a clean, compact frame where practical.
+- Avoid unnecessary page-level scrolling on normal desktop layouts.
+- Organize amenity information, availability, bookings, and controls clearly.
+- Use existing amenity data and booking records.
+- Preserve existing booking, cancellation, and availability rules.
+- Maintain readable typography and responsive behavior.
+- Use pagination or contained scrolling for large lists when required.
+- Do not invent new amenities or booking records.
+- Do not remove existing working features.
+
+Keep the existing UI theme consistent with the rest of TowerTech.
+
+---
+
+# SECTION 5 — REAL-TIME VISITOR MANAGEMENT
+
+Rebuild the Visitor Management Module into a functional, role-based visitor authorization workflow.
+
+This is one of the highest-priority modules.
+
+## 5.1 Security Staff visitor registration
+
+Security Staff must be able to:
+
+- Register a new visitor.
+- Enter visitor name.
+- Enter mobile number where required.
+- Enter visitor type or purpose.
+- Enter the destination flat number.
+- Select the correct wing or building where applicable.
+- Enter the expected visit details.
+- Capture or upload a visitor photograph using a supported interface.
+- Submit the visitor permission request.
+- View the request status.
+- Record entry after authorization.
+- Record exit when the visitor leaves.
+- View permitted visitor records and history.
+
+Validate visitor information before submission.
+
+If camera capture is supported, request the necessary browser or device permission. Provide a secure photo-upload fallback where appropriate.
+
+Store photographs in private storage. Do not expose visitor images through public URLs.
+
+## 5.2 Permission routing
+
+When Security Staff submits visitor details, the request must be routed according to the selected destination flat number.
+
+The system must:
+
+1. Identify the correct flat.
+2. Identify the resident or owner associated with that flat using the existing data model.
+3. Identify the authorized Admin account or review queue.
+4. Save the visitor request.
+5. Notify the appropriate Resident and Admin.
+6. Display the same request status consistently across their authorized interfaces.
+
+Avoid sending requests to unrelated residents or displaying them to the wrong flat owner.
+
+If the existing application has separate owner, tenant, and resident relationships, follow its established rules to identify who is authorized to approve a visitor.
+
+## 5.3 Resident approval interface
+
+Residents must be able to:
+
+- View incoming visitor requests for their own flat.
+- View visitor photographs and details.
+- Approve a request.
+- Reject a request.
+- See pending, approved, and rejected requests.
+- View their own visitor history.
+- See entry and exit information where authorized.
+
+Residents must not be able to approve or reject visitor requests for another flat.
+
+## 5.4 Admin approval interface
+
+The Admin must be able to:
+
+- View visitor requests across the society.
+- View the visitor's photograph and submitted details.
+- View the destination flat and assigned resident.
+- Approve requests.
+- Reject requests.
+- Record rejection reasons.
+- Monitor pending requests.
+- View visitor entry and exit history.
+- Search and filter visitor records.
+
+The Admin and concerned Resident must both have the requested approval and rejection options, subject to their assigned permissions.
+
+Maintain a single authoritative visitor request record so decisions cannot silently contradict each other.
+
+If either authorized reviewer makes a decision, synchronize the status across the system. If the Resident and Admin submit conflicting decisions concurrently, apply a server-side rule that prevents inconsistent final states and records the conflict for review.
+
+## 5.5 Real-time functionality
+
+Implement actual real-time or near-real-time updates using the existing backend's supported capabilities.
+
+Requirements:
+
+- Update request status after approval or rejection.
+- Update the Security Staff interface when a decision is received.
+- Notify the concerned parties when a request changes status.
+- Update visitor lists without requiring repeated manual refreshes when supported.
+- Use database-backed state as the source of truth.
+- Handle connection loss and retry or refresh safely.
+- Do not simulate real-time functionality using fake data.
+
+If Supabase Realtime is already used, integrate with the existing configuration instead of introducing an unnecessary second system.
+
+## 5.6 Visitor authorization rules
+
+- Security Staff cannot approve their own visitor permission requests.
+- Security Staff must check the final permission status before recording an authorized entry.
+- Rejected visitors must not be marked as authorized.
+- Record the actual entry and exit timestamps.
+- Prevent duplicate active entry records for the same visit.
+- Preserve the decision history and reviewer identity.
+- Provide an appropriate workflow for emergency or exceptional access only if an authorized, documented society policy exists.
+- Do not automatically mark a visitor as approved simply because a request was submitted.
+
+---
+
+# SECTION 6 — NOTICES AND COMMUNICATION
+
+## 6.1 Notice calendar filter
+
+Add a working calendar-based filter to the Notices Module.
+
+Requirements:
+
+- Allow users to filter notices by date or date range.
+- Support relevant existing fields such as publication date, effective date, or expiry date.
+- Include a clear way to reset the filter.
+- Allow calendar filtering to work alongside category and search filters.
+- Display only notices that the user is authorized to view.
+
+Do not confuse notice publication dates with notice expiry dates.
+
+## 6.2 Notice view counts
+
+Add the ability to calculate and display notice-view counts.
+
+Requirements:
+
+- Track actual notice views.
+- Associate views with authenticated users when appropriate.
+- Avoid inflating counts through repeated page rendering or automatic background refreshes.
+- Define whether the displayed metric represents unique viewers or total views.
+- Show an appropriate count such as "Viewed by 24 residents".
+- Restrict access to detailed viewer identities according to privacy and role permissions.
+
+Do not display invented view counts.
+
+## 6.3 Notice profile logos and identity
+
+Each notice should display an appropriate profile image or avatar for its author.
+
+Requirements:
+
+- Use the authenticated author's profile image when available.
+- Use a consistent fallback avatar if no image exists.
+- Display the author's name and role.
+- Do not create fake profile identities.
+
+## 6.4 Correct notice author display
+
+Remove the generic author label "Admin" when the system can identify the actual person who posted the notice.
+
+Display the actual authenticated person's name and assigned role.
+
+Example:
+
+"Posted by Arya Sonawane · Society Admin"
+
+The example is illustrative only. Fetch the actual name and role from authenticated user records.
+
+Store the author ID on each notice and preserve it when the notice is edited.
+
+Do not attribute a notice to the person currently logged in if someone else originally created it.
+
+---
+
+# SECTION 7 — SOCIETY NAME CONSISTENCY
+
+Replace the incorrect society name:
+
+"Green Valley Co-operative Housing Society"
+
+with:
+
+**"Joyville Sensorium"**
+
+Apply this replacement to all relevant locations, including:
+
+- Dashboard
+- Financial Module
+- Visitor Module
+- Notices Module
+- Communication Module
+- Complaint Module
+- Amenities Module
+- Resident interfaces
+- Owner interfaces
+- Tenant interfaces
+- Security interfaces
+- Society-related reports
+- Maintenance bills and receipts
+- Document headers and society information
+- Any other existing society-facing screens
+
+Requirements:
+
+- Use the existing society configuration or database field as the source of truth.
+- Do not hardcode a different society name in individual modules.
+- Ensure all generated documents use the correct society name.
+- Do not overwrite unrelated historical records or user-generated text indiscriminately.
+- If multiple societies are supported, resolve the name using the authenticated user's society assignment rather than globally forcing every society to use the same name.
+
+For this deployment, the configured society must be Joyville Sensorium.
+
+---
+
+# SECTION 8 — COMMUNICATION MODULE REBUILD
+
+Improve the Communication Module's functionality and UI/UX while preserving the existing application theme.
+
+The module must support organized community discussions, wing-specific communication, business-related categories, and administrator community chat.
+
+## 8.1 Communication categories
+
+Organize conversations by the following categories where applicable:
+
+- Society Announcements
+- Wing-wise Community
+- General Community
+- Society Business
+- Administrative Communication
+
+Use actual wing and business-related information already stored in the application.
+
+Do not create unsupported wing names or invent business listings.
+
+## 8.2 Wing-based communication
+
+Allow residents to access the communication group associated with their assigned flat and wing.
+
+Requirements:
+
+- Resolve wing membership using the flat-to-wing relationship in the database.
+- Prevent residents from accessing private groups for unrelated wings unless explicitly authorized.
+- Allow administrators to manage appropriate community groups.
+- Support existing owner, resident, and tenant relationships without granting unintended access.
+- Handle flats that do not have a wing assignment gracefully.
+
+## 8.3 Admin community chat
+
+Provide an administrator-accessible community chat interface for authorized society-wide communication.
+
+Requirements:
+
+- Support creating or managing appropriate community channels.
+- Support wing-wise groups where authorized.
+- Allow authorized participants to send and receive messages.
+- Display the sender's profile image, actual name, role, and timestamp.
+- Maintain chat history.
+- Support search or pagination for older messages.
+- Provide clear separation between announcements and ordinary conversations.
+- Apply backend membership and role checks.
+
+A society-wide chat must not expose private conversations or restricted administrative information to all residents.
+
+## 8.4 Media and attachment support
+
+Allow authorized users to attach supported media and documents.
+
+Requirements:
+
+- Support suitable image and document attachments.
+- Validate allowed file types and sizes.
+- Store attachments securely.
+- Enforce access permissions on both messages and files.
+- Display upload progress and errors.
+- Prevent unauthorized users from accessing private attachments.
+- Retain the sender, upload timestamp, and message association.
+- Avoid exposing private files through permanent public links.
+
+Do not claim audio, video, or other attachment formats work unless implemented and tested.
+
+## 8.5 Chat history and real-time updates
+
+- Store messages in the actual database.
+- Display existing chat history.
+- Deliver new messages using the existing real-time infrastructure where available.
+- Preserve message order and timestamps.
+- Handle connection interruptions.
+- Avoid duplicate messages during retry operations.
+- Provide appropriate loading, empty, and error states.
+
+---
+
+# SECTION 9 — COMPLETE FINANCIAL MANAGEMENT MODULE
+
+Develop and integrate a professional, secure, database-backed Financial Management Module.
+
+Unlike the previous module-specific restrictions, this master implementation covers all requested modules. The Financial Module must be implemented as a dedicated workstream and must not be used as a reason to skip the dashboard, visitor, document, complaint, amenities, notices, or communication requirements.
+
+## 9.1 Financial implementation principles
+
+- Integrate with the existing TowerTech application.
+- Preserve the existing design system and navigation.
+- Reuse existing society, flat, resident, owner, tenant, and authentication records.
+- Inspect the current database before creating or changing tables.
+- Use migrations for necessary schema changes.
+- Do not create a separate application.
+- Do not replace unrelated modules or database structures unnecessarily.
+- Do not introduce fake financial records.
+- Use backend validation and database-enforced permissions.
+- Maintain accurate calculations and a reliable audit trail.
+
+## 9.2 Financial dashboard
+
+Create a professional dashboard containing:
+
+1. Total Income
+2. Total Expenses
+3. Current Society Balance
+4. Pending Maintenance Payments
+5. Pending Vendor Payments
+6. Society Fund Balance
+
+Include:
+
+- Monthly income-versus-expenses chart
+- Expense-category chart
+- Recent financial transactions
+- Pending payments
+- Upcoming bill due dates
+- Financial-year filter
+- Month filter
+- Transaction search
+- Transaction filters
+
+All figures must come from actual database records.
+
+Financial definitions must be consistent:
+
+- Total Income represents actual recorded income under the defined accounting rules.
+- Total Expenses represents actual recorded expenses.
+- Pending Maintenance Payments represent outstanding receivables, not received income.
+- Pending Vendor Payments represent outstanding payables, not completed payments.
+- Society Fund Balance must be shown separately from bank and cash balances.
+- Current Society Balance must use a documented, consistent balance calculation.
+
+Do not count internal fund transfers as new income or expenses.
+
+## 9.3 Income management
+
+Support the following income categories:
+
+- Monthly Maintenance
+- Parking Charges
+- Facility Booking Charges
+- Penalties
+- Donations
+- Society Contributions
+- Interest Income
+- Other Income
+
+Features:
+
+- Add income transactions.
+- Edit permitted transactions with authorization.
+- View transaction details.
+- Search and filter income.
+- Upload supporting documents.
+- Record payment dates.
+- Record payment methods.
+- Record transaction/reference numbers.
+- Generate payment receipts.
+- Download reports.
+
+Store:
+
+- Transaction ID
+- Receipt Number, when applicable
+- Resident ID, when applicable
+- Resident Name
+- Flat Number
+- Income Category
+- Amount
+- Payment Date
+- Payment Method
+- Reference Number
+- Financial Year
+- Description
+- Created By
+- Transaction Status
+- Supporting Document
+
+Payment methods:
+
+- UPI
+- Bank Transfer
+- Cash
+- Cheque
+- Other
+
+Never mark a payment as completed unless the payment has actually been confirmed or properly recorded by an authorized person.
+
+## 9.4 Maintenance management
+
+Provide a dedicated Maintenance Management section.
+
+Features:
+
+- Generate monthly maintenance bills for all eligible flats.
+- Configure maintenance amounts per flat.
+- Support different rates for different flats.
+- Track paid, unpaid, partially paid, and overdue bills.
+- Record partial payments.
+- Record full payments.
+- Calculate outstanding balances.
+- Apply authorized late-payment penalties.
+- View resident payment histories.
+- Search by flat, resident, and billing month.
+- Generate and download receipts.
+- Send payment reminders through supported notification integrations.
+
+Each bill must contain:
+
+- Bill ID
+- Bill Number
+- Flat Number
+- Owner or Responsible Resident
+- Billing Month
+- Due Date
+- Maintenance Amount
+- Additional Charges
+- Penalty
+- Discount, when authorized
+- Total Amount
+- Paid Amount
+- Outstanding Amount
+- Payment Status
+
+Supported payment statuses:
+
+- Unpaid
+- Partially Paid
+- Paid
+- Overdue
+- Cancelled
+
+Rules:
+
+- Prevent duplicate bills for the same flat and billing period.
+- Calculate outstanding balances correctly after partial payments.
+- Never count an unpaid bill as received income.
+- Maintain a reliable payment allocation history.
+- Preserve cancelled bills and their audit history.
+- Generate bills only for eligible flats according to the society's configured billing policy.
+- Use the same monthly billing logic as the dashboard's all-flats workflow.
+
+## 9.5 Expense management
+
+Expense categories:
+
+- Electricity
+- Water
+- Garbage Collection
+- Plumbing
+- Electrical Maintenance
+- Lift Maintenance
+- Security
+- Housekeeping
+- Gardening
+- Fire Safety
+- CCTV Maintenance
+- Generator/DG Maintenance
+- Building Repairs
+- Staff Salaries
+- Vendor Payments
+- Insurance
+- Administrative Expenses
+- Equipment Purchases
+- Other Expenses
+
+Features:
+
+- Add expenses.
+- Edit expenses with authorization.
+- View expense details.
+- Upload invoices and supporting documents.
+- Record vendor information.
+- Record payment details.
+- Filter by category, date, vendor, and status.
+- View expense history.
+- Generate expense reports.
+
+Expense fields:
+
+- Expense ID
+- Expense Number
+- Expense Category
+- Description
+- Vendor/Payee
+- Vendor Contact
+- Invoice Number
+- Invoice Date
+- Expense Date
+- Amount
+- Payment Due Date
+- Payment Date
+- Payment Method
+- Transaction Reference
+- Financial Year
+- Approval Status
+- Payment Status
+- Invoice Attachment
+- Created By
+- Approved By
+
+Expense approval statuses:
+
+- Draft
+- Pending Approval
+- Approved
+- Rejected
+- Paid
+- Partially Paid
+- Overdue
+- Cancelled
+
+Separate approval status from payment status in the database and UI. Do not confuse an approved expense with a paid expense.
+
+## 9.6 Society services and vendor management
+
+Support the following services:
+
+- Electricity
+- Water
+- Garbage Collection
+- Plumbing
+- Security
+- Housekeeping
+- Lift Maintenance
+- Gardening
+- Fire Safety
+- CCTV Maintenance
+- Generator Maintenance
+- Pest Control
+- Internet/Intercom
+- Other Services
+
+Store for each vendor:
+
+- Vendor ID
+- Vendor Name
+- Service Category
+- Contact Person
+- Phone Number
+- Email
+- Address
+- Contract Start Date
+- Contract End Date
+- Payment Frequency
+- Contract Amount
+- Agreement Document
+- Vendor Status
+
+Features:
+
+- Manage vendor records.
+- Track contracts.
+- Track recurring bills.
+- Track payment due dates.
+- Record invoices.
+- Track paid and pending amounts.
+- View vendor payment history.
+- Notify authorized users of upcoming contract expiries.
+
+Recurring expenses must not automatically be marked as paid.
+
+## 9.7 Staff salaries and payments
+
+Support staff categories:
+
+- Security Guards
+- Housekeeping Staff
+- Gardeners
+- Maintenance Staff
+- Other Society Employees
+
+Store:
+
+- Staff ID
+- Staff Name
+- Role
+- Salary Month
+- Basic Salary
+- Allowances
+- Deductions
+- Net Payable
+- Amount Paid
+- Remaining Amount
+- Payment Date
+- Payment Method
+- Transaction Reference
+- Payment Status
+- Approved By
+
+Features:
+
+- Monthly salary records.
+- Partial salary payments.
+- Payment history.
+- Pending salary reports.
+- Downloadable salary statements.
+
+Restrict confidential salary information to authorized roles. Security Staff, Maintenance Staff, and Housekeeping Staff must not have access to financial records or other employees' salary details.
+
+## 9.8 Society fund management
+
+Create a separate Society Fund section for:
+
+- General Fund
+- Reserve Fund
+- Sinking Fund
+- Repair and Maintenance Fund
+- Emergency Fund
+- Other Society Funds
+
+Features:
+
+- View fund-wise balances.
+- Record approved fund contributions.
+- Record authorized transfers between funds.
+- Record approved fund utilization.
+- View fund transaction history.
+- Upload supporting documents.
+- Generate fund reports.
+
+Store:
+
+- Fund Transaction ID
+- Fund Name
+- Transaction Type
+- Amount
+- Transaction Date
+- Purpose
+- Description
+- Approval Status
+- Payment Reference
+- Supporting Document
+- Created By
+- Approved By
+
+Rules:
+
+- Do not count internal transfers between funds as new society income or expenses.
+- Prevent double-counting.
+- Show fund balances separately from cash and bank balances.
+- Require authorization for fund transfers and utilization.
+- Maintain a complete audit trail.
+
+## 9.9 Payment receipts
+
+Generate professional downloadable PDF receipts for actual recorded payments.
+
+Receipt fields:
+
+- Society Name
+- Society Address
+- Receipt Number
+- Payment Date
+- Resident Name
+- Flat Number
+- Payment Category
+- Billing Period
+- Total Bill Amount
+- Previous Outstanding
+- Amount Paid
+- Remaining Balance
+- Payment Method
+- Transaction Reference
+- Issued By
+- Receipt Status
+
+Features:
+
+- Download receipts as PDF.
+- View receipt history.
+- Search by receipt number.
+- Print receipts.
+- Reprint receipts.
+- Maintain unique receipt numbers.
+
+Rules:
+
+- Generate receipts only for actual recorded payments.
+- Do not issue paid receipts for unpaid bills.
+- Clearly show partial payments and remaining balances.
+- Preserve voided receipts in the audit history.
+- Use Joyville Sensorium as the configured society name for this deployment.
+- Generate receipt numbers safely to avoid duplicates during concurrent operations.
+
+## 9.10 Financial audit trail
+
+Implement an append-only audit trail for:
+
+- Transaction creation
+- Transaction updates
+- Approvals and rejections
+- Payment recording
+- Receipt generation
+- Receipt cancellation
+- Fund transfers
+- Refunds
+- Record cancellations
+- Changes to maintenance rates
+- Changes to vendor details
+
+Each audit entry must contain:
+
+- Audit ID
+- Action
+- Entity Type
+- Entity ID
+- User ID
+- User Role
+- Timestamp
+- Previous Values
+- New Values
+- Reason
+- Reference ID
+
+Rules:
+
+- Do not allow ordinary users to edit or delete audit entries.
+- Do not permanently delete completed financial transactions.
+- Use cancellation or reversal entries instead.
+- Require reasons for sensitive financial changes.
+- Record the actual authenticated user in the backend.
+- Protect audit history against unauthorized modification.
+- Record approval and rejection decisions.
+- Use server-generated timestamps and trusted identity information.
+
+## 9.11 Financial reports
+
+Create these reports:
+
+1. Income Report
+2. Expense Report
+3. Monthly Financial Report
+4. Maintenance Collection Report
+5. Pending Dues Report
+6. Vendor Payment Report
+7. Staff Salary Report
+8. Society Fund Report
+9. Cash Flow Report
+10. Financial Year Summary
+
+Features:
+
+- Date-range filter
+- Month filter
+- Financial-year filter
+- Category filter
+- Search
+- Export CSV
+- Export PDF
+- Print reports
+
+Display where applicable:
+
+- Opening Balance
+- Total Income
+- Total Expenses
+- Net Surplus/Deficit
+- Closing Balance
+- Pending Receivables
+- Pending Payables
+
+Clearly distinguish actual cash/bank balances from receivables, payables, and fund balances. Define reporting calculations consistently and prevent double-counting.
+
+---
+
+# SECTION 10 — ROLE-BASED ACCESS AND APPROVALS
+
+## 10.1 General rules
+
+Inspect the existing TowerTech role definitions before modifying permissions.
+
+Do not create a new Super Admin role or duplicate existing roles.
+
+Preserve existing Admin, Resident, Owner, Tenant, and Security Staff assignments. If the application already has roles such as Secretary, Treasurer, Chairperson, or Committee Member, preserve and use them according to the existing role model.
+
+Do not invent additional users or roles simply to make the implementation easier.
+
+If the financial specification refers to a role that does not exist in the application, map the corresponding permissions to existing authorized roles only when appropriate. Do not create the missing role without explicit approval.
+
+## 10.2 Admin permissions
+
+The society Admin must have the following permissions according to the assigned role:
+
+- Manage society income and expenses.
+- Manage maintenance rates and monthly bill generation.
+- Manage society services and vendor information.
+- Manage staff salary records when authorized.
+- Manage society funds when authorized.
+- View financial reports according to assigned permissions.
+- Review resident document uploads.
+- Approve or reject resident documents.
+- View visitor requests across the society.
+- Approve or reject visitor permission requests.
+- Create, publish, and manage notices.
+- Manage authorized community groups.
+- View and manage society-wide operational records.
+
+Do not automatically grant the Admin unrestricted access to every sensitive financial action. Apply approval thresholds, maker-checker rules, and assigned financial permissions where required.
+
+## 10.3 Resident permissions
+
+Residents must be able to:
+
+- View their own permitted visitor requests and visitor records.
+- Approve or reject requests for their own flat.
+- View notices and announcements.
+- Access their assigned communication groups.
+- Upload their own documents.
+- View the status of their document submissions.
+- View complaints and amenities according to existing resident permissions.
+- View their own maintenance bills, payment history, outstanding dues, and receipts where financial access is permitted.
+
+Residents must not have access to administrative financial management functions, other residents' financial records, other flats' private visitor information, or other residents' private documents.
+
+**Important:** The Resident Module must not expose a Financial Management Module for managing society-wide finances. A resident-facing maintenance and payment history view is permitted when it already exists or is needed for the resident's own bills and receipts.
+
+## 10.4 Security Staff permissions
+
+Security Staff must be able to:
+
+- Register visitors.
+- Upload or capture visitor photographs.
+- Submit permission requests to the concerned Resident and authorized Admin.
+- View visitor request status.
+- Record authorized entry and exit.
+- View permitted visitor records.
+- View notices and announcements through the Notices Module.
+
+Security Staff must not:
+
+- Access financial records.
+- Manage society income or expenses.
+- Generate or alter financial transactions.
+- Access confidential salary details.
+- Create, publish, edit, or delete notices unless separately authorized by an existing explicit permission.
+
+Security Staff should have access to the Notices Module for viewing notices, not for managing their publication.
+
+## 10.5 Financial role permissions
+
+For existing financial roles, preserve the following intended responsibilities where those roles are already configured:
+
+**Secretary**
+- View financial summaries and permitted reports.
+- Review designated financial requests.
+
+**Treasurer**
+- Create income and expense records.
+- Manage maintenance collections and receipts.
+- Manage vendors and service payments.
+- Manage staff payment records and fund transactions within assigned permissions.
+- Initiate transactions and submit them for approval.
+
+**Chairperson**
+- Review and approve assigned financial transactions.
+- View permitted financial reports.
+- Review major expenditures.
+
+**Committee Member**
+- View permitted financial reports.
+- Participate in assigned approval workflows.
+
+**Owner/Resident**
+- View own maintenance bills, payment history, receipts, and outstanding dues when permitted.
+
+**Tenant**
+- Access only financial information specifically permitted by the existing society policy and tenancy arrangements.
+
+**Security, Maintenance Staff, and Housekeeping Staff**
+- No access to financial records unless an existing explicit, authorized policy grants a narrowly scoped permission.
+
+Do not grant any of these permissions solely on the basis of a display name. Enforce them using actual role assignments and backend policies.
+
+## 10.6 Maker-checker approval
+
+Implement configurable approval thresholds and maker-checker controls for important financial transactions.
+
+Requirements:
+
+- The person creating a transaction must not approve their own transaction when maker-checker approval is required.
+- Approval thresholds must be configurable rather than hardcoded to arbitrary amounts.
+- Store approval decisions, reviewers, timestamps, and reasons.
+- Prevent unauthorized approval.
+- Maintain transaction history after rejection, cancellation, or reversal.
+- Prevent concurrent approval requests from creating inconsistent financial records.
+
+---
+
+# SECTION 11 — DATABASE, BACKEND, AND INTEGRATION
+
+## 11.1 Existing database
+
+Inspect the current schema and relationships before making changes.
+
+Reuse the existing database and authentication system.
+
+If Supabase is already the backend, use the existing Supabase project and configuration.
+
+Create or modify the necessary tables only after determining what already exists.
+
+Potential financial tables include:
+
+- financial_categories
+- maintenance_bills
+- maintenance_payments
+- income_transactions
+- expense_transactions
+- vendors
+- vendor_invoices
+- staff_payments
+- society_funds
+- fund_transactions
+- payment_receipts
+- financial_approvals
+- financial_audit_logs
+
+For other modules, reuse or extend the existing tables for:
+
+- Residents and flats
+- Resident documents and approvals
+- Visitor requests and decisions
+- Visitor photographs and entry/exit records
+- Complaints and categories
+- Amenities and bookings
+- Notices and notice views
+- Communication groups and memberships
+- Chat messages and attachments
+
+These names are illustrative. Do not create duplicate tables if equivalent tables already exist.
+
+## 11.2 Database requirements
+
+Use appropriate:
+
+- Primary keys
+- Foreign keys
+- Unique constraints
+- Database indexes
+- Created-at and updated-at timestamps
+- Backend validation
+- Row Level Security
+- Role-aware access policies
+
+Implement migrations carefully and preserve existing records.
+
+Do not reset the database or replace production data to simplify implementation.
+
+## 11.3 Secure storage
+
+Store resident documents, visitor photographs, financial invoices, receipts, agreements, and chat attachments in appropriate private storage locations.
+
+Requirements:
+
+- Apply least-privilege storage policies.
+- Validate access on the backend.
+- Use temporary signed URLs where supported.
+- Prevent public access to sensitive files.
+- Verify ownership or role authorization before providing downloads.
+- Do not expose secrets, service-role keys, or privileged credentials in client-side code.
+
+## 11.4 Financial data integrity
+
+Use reliable database transactions or equivalent mechanisms for:
+
+- Recording payments
+- Allocating payments to bills
+- Calculating outstanding balances
+- Reversing or cancelling transactions
+- Generating unique receipt numbers
+- Performing fund transfers
+- Creating monthly bills
+
+Use precision-safe monetary handling for INR values. Do not rely on unsafe floating-point calculations for financial balances.
+
+Do not store payment card details or UPI PINs.
+
+Do not claim payment gateway integration unless it has actually been implemented and tested.
+
+## 11.5 Real-time integration
+
+Reuse the existing real-time system wherever available.
+
+Integrate real-time updates for:
+
+- Visitor request status
+- Visitor entry/exit records where relevant
+- Chat messages
+- Document review status
+- Notice updates where supported
+- Financial approval status where appropriate
+
+Real-time notifications must respect user authorization. A real-time subscription must not bypass database access controls.
+
+---
+
+# SECTION 12 — UI/UX AND DESIGN CONSISTENCY
+
+Preserve the existing TowerTech design system.
+
+Do not introduce a new color palette, unrelated typography, or a completely different navigation layout.
+
+Requirements:
+
+- Reuse existing buttons, cards, tables, forms, badges, and dialogs.
+- Keep the existing theme colors.
+- Maintain consistent spacing and typography.
+- Make all changed screens responsive.
+- Keep tables readable.
+- Use clear status badges for pending, approved, rejected, paid, unpaid, overdue, and cancelled records.
+- Provide meaningful empty states.
+- Provide loading indicators.
+- Display understandable error messages.
+- Use confirmation dialogs for sensitive actions.
+- Prevent accidental duplicate submissions.
+- Provide accessible form labels and keyboard-friendly controls.
+- Keep interfaces compact without sacrificing readability.
+- Use pagination or contained scrolling for large data sets.
+- Ensure the interface remains usable on mobile and desktop.
+
+Do not use visual changes as a substitute for implementing actual functionality.
+
+---
+
+# SECTION 13 — TESTING AND ACCEPTANCE CRITERIA
+
+Test the implementation against real development or staging data.
+
+Do not claim success merely because the application compiles or the pages render.
+
+## 13.1 Dashboard
+
+Verify:
+
+- Unwanted dashboard elements are removed.
+- The correct society name appears.
+- The greeting uses the actual authenticated user and role.
+- Active resident counts are calculated correctly.
+- Monthly bills are generated for eligible flats.
+- Duplicate billing periods are prevented.
+- Billing results are stored in the database.
+
+## 13.2 Documents
+
+Verify:
+
+- Residents can upload their own documents.
+- Admin can review, approve, and reject submissions.
+- Unauthorized users cannot approve documents.
+- Residents can view their own document status.
+- Private files are not publicly accessible.
+
+## 13.3 Complaints and amenities
+
+Verify:
+
+- The complaint category filter works.
+- Existing complaint workflows remain functional.
+- The amenities interface is compact and usable.
+- Existing booking and availability rules still work.
+
+## 13.4 Visitor management
+
+Verify the complete workflow:
+
+1. Security Staff enters visitor details and a photograph.
+2. The system identifies the correct flat.
+3. The request is routed to the concerned Resident and authorized Admin.
+4. Both authorized interfaces show the correct request.
+5. The Resident or Admin approves or rejects the request.
+6. The final status is synchronized.
+7. Security Staff receives the updated status.
+8. Authorized entry and exit records are saved.
+9. Unauthorized users cannot view unrelated visitor records.
+10. Duplicate and conflicting requests are handled safely.
+
+## 13.5 Notices and communication
+
+Verify:
+
+- Calendar filters return correct results.
+- Notice-view counts reflect actual views.
+- Author names and roles are accurate.
+- The correct profile avatar is displayed.
+- Wing membership is respected.
+- Community chat messages are stored and retrieved.
+- Attachments are securely accessible.
+- Chat history and real-time updates work.
+
+## 13.6 Financial management
+
+Verify:
+
+- Dashboard totals match the underlying transactions.
+- Partial and full payments update outstanding balances correctly.
+- Unpaid bills are not recorded as received income.
+- Vendor payments are not marked paid prematurely.
+- Fund transfers do not inflate income or expenses.
+- Receipts are generated only for recorded payments.
+- Receipt numbers are unique.
+- Financial reports reconcile with the underlying records.
+- Unauthorized financial operations are rejected by the backend.
+- Audit records are retained and protected against ordinary user modification.
+
+## 13.7 Regression testing
+
+Verify that:
+
+- Existing login and logout flows still work.
+- Existing authentication is not broken.
+- Resident, Owner, Tenant, Security, and other existing role interfaces continue to work.
+- Existing navigation and unrelated modules remain functional.
+- Existing data remains intact.
+- Database migrations do not introduce destructive changes.
+- No secrets or privileged credentials are exposed.
+- No critical errors remain in the browser console or backend logs.
+
+Use automated tests where appropriate, along with manual role-based testing.
+
+---
+
+# SECTION 14 — FINAL IMPLEMENTATION DELIVERABLES
+
+Before implementation:
+
+1. Inspect the existing application.
+2. Identify the existing modules, database schema, authentication model, role assignments, and UI components.
+3. Map every requested change to the relevant existing screen, API, and database structure.
+4. Identify dependencies and potential conflicts.
+5. Create a safe implementation plan.
+
+During implementation:
+
+1. Update the requested modules.
+2. Reuse existing components wherever possible.
+3. Implement backend logic and database changes.
+4. Apply role-based authorization.
+5. Integrate real-time updates where supported.
+6. Preserve existing design and unrelated functionality.
+7. Test each feature as it is implemented.
+
+After implementation, provide:
+
+- A summary of all implemented features.
+- A module-by-module list of changes.
+- A list of database migrations and schema changes.
+- A list of new or modified backend endpoints and services.
+- Any new environment variables or integrations required.
+- Setup and deployment instructions.
+- Testing performed and actual results.
+- Known limitations and remaining tasks.
+- Any features that could not be completed and the precise reason.
+
+Do not report unimplemented functionality as completed.
+
+Do not claim successful real-time updates, scheduled billing, document security, financial calculations, or approval workflows unless they have been verified.
+
+---
+
+# FINAL EXPECTED RESULT
+
+Deliver a fully integrated, professional TowerTech Society Management System configured for **Joyville Sensorium**, with:
+
+- A clean and accurate dashboard.
+- Correct personalized greetings and role permissions.
+- Active resident counting.
+- Automatic monthly maintenance billing for eligible flats.
+- Resident document uploads with Admin review.
+- Compact complaint and amenities interfaces.
+- Real-time visitor registration and approval workflows.
+- Calendar-filtered notices with real view counts and author identity.
+- Wing-based communication, community chat, history, and secure attachments.
+- Complete Financial Management covering income, expenses, maintenance, services, vendors, salaries, society funds, receipts, approvals, audit trails, and reports.
+- Secure backend authorization and database integration.
+- Consistent existing UI theme.
+- Verified functionality without fake data or broken unrelated features.
+
+**Implementation priority:** Preserve existing working functionality, implement all requested changes, enforce permissions in the backend, maintain financial and visitor data integrity, and test the complete end-to-end workflows before declaring the project finished.

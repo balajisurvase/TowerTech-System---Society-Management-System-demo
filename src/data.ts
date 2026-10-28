@@ -94,9 +94,9 @@ export const initialResidents: Resident[] = [
 ];
 
 export const initialAdmins: Admin[] = [
-  { id: 'A001', admin_id: 'A001', name: 'Arya Sonawane', email: 'admin@gvsociety.com', phone: '9876543210', role: 'admin', society_id: 'GV2026', password: 'admin123' },
-  { id: 'A002', admin_id: 'A002', name: 'Balaji Survase', email: 'Secretary@gvsociety.com', phone: '8665493244', role: 'admin', society_id: 'GV2026', password: 'admin123' },
-  { id: 'A003', admin_id: 'A003', name: 'Rohit Patil', email: 'maintenance@gvsociety.com', phone: '9001000003', role: 'admin', society_id: 'GV2026', password: 'admin123' },
+  { id: 'A001', admin_id: 'A001', name: 'Arya Sonawane', email: 'Chairman@gvsociety.com', phone: '9876543210', role: 'Chairman', society_id: 'GV2026', password: 'admin123' },
+  { id: 'A002', admin_id: 'A002', name: 'Balaji Survase', email: 'Secretary@gvsociety.com', phone: '8665493244', role: 'Secretary', society_id: 'GV2026', password: 'admin123' },
+  { id: 'A003', admin_id: 'A003', name: 'Karan Bodake', email: 'Treasurer@gvsociety.com', phone: '8977654300', role: 'Treasurer', society_id: 'GV2026', password: 'admin123' },
 ];
 
 export const initialMaintenance: MaintenanceRecord[] = Array.from({ length: 80 }, (_, i) => {

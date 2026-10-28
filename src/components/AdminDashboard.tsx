@@ -1044,7 +1044,7 @@ export default function AdminDashboard({
                   </div>
                   <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-xl border border-white/10 text-xs font-bold text-white">
                     <Star className="w-3.5 h-3.5 text-amber-300" />
-                    <span>Role: Chairman</span>
+                    <span>Role: {user.admin_role || user.role || 'Chairman'}</span>
                   </div>
                   <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-xl border border-white/10 text-xs font-bold text-white">
                     <Shield className="w-3.5 h-3.5 text-emerald-300" />

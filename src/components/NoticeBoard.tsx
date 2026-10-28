@@ -57,7 +57,10 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [selectedPriority, setSelectedPriority] = useState<string>('All');
   const [selectedAudience, setSelectedAudience] = useState<string>('All');
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [fromDate, setFromDate] = useState<string>('');
+  const [toDate, setToDate] = useState<string>('');
+  const [calendarMonth, setCalendarMonth] = useState<Date>(new Date());
+  const [viewMode, setViewMode] = useState<'grid' | 'list' | 'calendar'>('grid');
 
   // Modals
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -145,9 +148,11 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
         });
         toast.success('Notice updated successfully!');
       } else {
+        const adminRole = ('admin_role' in user && user.admin_role) || user.role || 'Chairman';
+        const publisherName = user.name ? `${user.name} (${adminRole})` : `Arya Sonawane (${adminRole})`;
         await societyService.createNotice({
           ...formData,
-          posted_by: user.name || 'Society Admin',
+          posted_by: publisherName,
           society_id: user.society_id || 'GV2026'
         });
         toast.success('Notice published successfully!');
@@ -242,10 +247,21 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
     const matchesPriority = selectedPriority === 'All' || n.priority === selectedPriority;
     const matchesAudience = selectedAudience === 'All' || n.target_audience === selectedAudience || n.target_audience === 'All Residents';
     
-    // Non-admin can only see active notices
+    let matchesDate = true;
+    if (fromDate) {
+      const noticeDate = new Date(n.posted_date || n.created_at || 0);
+      const start = new Date(fromDate);
+      if (noticeDate < start) matchesDate = false;
+    }
+    if (toDate) {
+      const noticeDate = new Date(n.posted_date || n.created_at || 0);
+      const end = new Date(toDate);
+      end.setHours(23, 59, 59, 999);
+      if (noticeDate > end) matchesDate = false;
+    }
     const matchesStatus = isAdmin ? true : (n.status === 'Active');
 
-    return matchesSearch && matchesCategory && matchesPriority && matchesAudience && matchesStatus;
+    return matchesSearch && matchesCategory && matchesPriority && matchesAudience && matchesStatus && matchesDate;
   }).sort((a, b) => {
     // Pinned notices first
     if (a.is_pinned && !b.is_pinned) return -1;
@@ -258,6 +274,136 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
   const activeCount = notices.filter(n => n.status === 'Active').length;
   const urgentCount = notices.filter(n => n.priority === 'Urgent' || n.priority === 'Important').length;
   const pinnedCount = notices.filter(n => n.is_pinned).length;
+
+  const renderCalendar = () => {
+    const year = calendarMonth.getFullYear();
+    const month = calendarMonth.getMonth();
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const monthName = calendarMonth.toLocaleString('default', { month: 'long' });
+
+    const days = [];
+    for (let i = 0; i < firstDay; i++) {
+      days.push(null);
+    }
+    for (let i = 1; i <= daysInMonth; i++) {
+      days.push(i);
+    }
+
+    const getNoticesForDay = (day: number) => {
+      return filteredNotices.filter(n => {
+        const d = new Date(n.posted_date || n.created_at || 0);
+        return d.getFullYear() === year && d.getMonth() === month && d.getDate() === day;
+      });
+    };
+
+    return (
+      <div className="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden animate-in fade-in duration-200">
+        <div className="bg-[#542d87] text-white p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <Calendar className="w-5 h-5 text-orange-400" />
+              <h3 className="text-xl font-black tracking-tight text-white">Joyville Sensorium • Notice Calendar</h3>
+            </div>
+            <p className="text-purple-200 text-xs font-semibold mt-1">
+              Visual publication timeline for society circulars, maintenance cuts, and events
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCalendarMonth(new Date(year, month - 1, 1))}
+              className="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 text-white font-black flex items-center justify-center transition-all cursor-pointer"
+              title="Previous Month"
+            >
+              ←
+            </button>
+            <span className="text-sm font-black uppercase tracking-wider text-orange-300 min-w-[140px] text-center font-mono">
+              {monthName} {year}
+            </span>
+            <button
+              onClick={() => setCalendarMonth(new Date(year, month + 1, 1))}
+              className="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 text-white font-black flex items-center justify-center transition-all cursor-pointer"
+              title="Next Month"
+            >
+              →
+            </button>
+            <button
+              onClick={() => setCalendarMonth(new Date())}
+              className="px-3.5 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-black transition-all ml-2 cursor-pointer shadow-sm uppercase tracking-wider"
+            >
+              Today
+            </button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-7 bg-[#542d87]/10 border-b border-[#542d87]/20 text-center py-3 font-black text-xs text-[#542d87] uppercase tracking-wider">
+          <span>SUN</span>
+          <span>MON</span>
+          <span>TUE</span>
+          <span>WED</span>
+          <span>THU</span>
+          <span>FRI</span>
+          <span>SAT</span>
+        </div>
+
+        <div className="grid grid-cols-7 divide-x divide-y divide-slate-200 bg-slate-50/50">
+          {days.map((day, idx) => {
+            if (day === null) {
+              return <div key={`empty-${idx}`} className="min-h-[120px] bg-slate-100/40 p-2" />;
+            }
+
+            const dayNotices = getNoticesForDay(day);
+            const isToday = new Date().getFullYear() === year && new Date().getMonth() === month && new Date().getDate() === day;
+
+            return (
+              <div
+                key={`day-${day}`}
+                className={`min-h-[120px] p-2.5 flex flex-col justify-between transition-colors hover:bg-purple-50/50 ${
+                  isToday ? 'bg-orange-50/80 ring-2 ring-orange-400 z-10' : 'bg-white'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className={`text-xs font-black px-2 py-0.5 rounded-lg ${
+                    isToday ? 'bg-orange-500 text-white font-mono shadow-xs' : 'text-slate-800 font-mono'
+                  }`}>
+                    {day}
+                  </span>
+                  {dayNotices.length > 0 && (
+                    <span className="text-[10px] font-black text-[#542d87] bg-purple-100 px-1.5 py-0.5 rounded-full border border-purple-200">
+                      {dayNotices.length} {dayNotices.length === 1 ? 'Notice' : 'Notices'}
+                    </span>
+                  )}
+                </div>
+
+                <div className="space-y-1.5 overflow-y-auto max-h-[90px] custom-scrollbar">
+                  {dayNotices.map((n) => (
+                    <button
+                      key={n.notice_id}
+                      onClick={() => setViewingNotice(n)}
+                      className={`w-full text-left p-1.5 rounded-lg border text-[10px] font-bold leading-tight transition-all truncate block cursor-pointer ${
+                        n.priority === 'Urgent'
+                          ? 'bg-rose-50 border-rose-300 text-rose-900 hover:bg-rose-100'
+                          : 'bg-indigo-50 border-indigo-200 text-indigo-900 hover:bg-indigo-100'
+                      }`}
+                      title={n.title}
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <span className={`w-2 h-2 rounded-full shrink-0 ${
+                          n.priority === 'Urgent' ? 'bg-rose-600' : 'bg-[#542d87]'
+                        }`} />
+                        <span className="truncate">{n.title}</span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
 
   if (showCreateModal || editingNotice) {
     return (
@@ -492,21 +638,59 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
             ))}
           </select>
 
+          {/* Date Range Filters */}
+          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200/80 px-2 py-1 rounded-xl text-xs font-bold text-slate-600">
+            <span className="text-[10px] uppercase text-slate-400 font-black">From:</span>
+            <input
+              type="date"
+              value={fromDate}
+              onChange={(e) => setFromDate(e.target.value)}
+              className="bg-transparent outline-none text-slate-800 text-xs font-medium cursor-pointer"
+            />
+            {fromDate && (
+              <button onClick={() => setFromDate('')} className="text-slate-400 hover:text-slate-600">
+                <X className="w-3 h-3" />
+              </button>
+            )}
+          </div>
+
+          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200/80 px-2 py-1 rounded-xl text-xs font-bold text-slate-600">
+            <span className="text-[10px] uppercase text-slate-400 font-black">To:</span>
+            <input
+              type="date"
+              value={toDate}
+              onChange={(e) => setToDate(e.target.value)}
+              className="bg-transparent outline-none text-slate-800 text-xs font-medium cursor-pointer"
+            />
+            {toDate && (
+              <button onClick={() => setToDate('')} className="text-slate-400 hover:text-slate-600">
+                <X className="w-3 h-3" />
+              </button>
+            )}
+          </div>
+
           {/* View Toggle */}
           <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200/60 ml-auto">
             <button
               onClick={() => setViewMode('grid')}
-              className={`p-1.5 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+              className={`p-1.5 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-[#542d87] text-white shadow-xs font-black' : 'text-slate-400 hover:text-slate-600'}`}
               title="Grid View"
             >
               <Layers className="w-4 h-4" />
             </button>
             <button
               onClick={() => setViewMode('list')}
-              className={`p-1.5 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+              className={`p-1.5 rounded-lg transition-all ${viewMode === 'list' ? 'bg-[#542d87] text-white shadow-xs font-black' : 'text-slate-400 hover:text-slate-600'}`}
               title="List View"
             >
               <FileText className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setViewMode('calendar')}
+              className={`p-1.5 rounded-lg transition-all ${viewMode === 'calendar' ? 'bg-[#542d87] text-white shadow-xs font-black' : 'text-slate-400 hover:text-slate-600'}`}
+              title="Notice Calendar View"
+            >
+              <Calendar className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -538,6 +722,8 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
             </button>
           )}
         </div>
+      ) : viewMode === 'calendar' ? (
+        renderCalendar()
       ) : viewMode === 'grid' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredNotices.map((notice) => {
@@ -617,7 +803,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                         Posted By:
                       </span>
                       <span className="font-bold text-slate-700">
-                        {notice.posted_by}
+                        {notice.posted_by?.includes('(') ? notice.posted_by : `${notice.posted_by || 'Arya Sonawane'} (Chairman)`}
                       </span>
                     </div>
                   </div>

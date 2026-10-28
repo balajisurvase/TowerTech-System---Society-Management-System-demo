@@ -1,0 +1,1262 @@
+# TOWERTECH — COMPLETE FINANCIAL MANAGEMENT MODULE IMPLEMENTATION PROMPT
+
+## Project Overview
+
+Develop, integrate, and complete a professional, secure, fully functional Financial Management Module for the existing **TowerTech Society Management System**.
+
+**Society Name:** Joyville Sensorium
+
+The module must provide complete financial management capabilities for residential society operations, including maintenance billing, income collection, expenses, services and vendors, staff salaries, society funds, payment receipts, approvals, financial audit trails, and financial reports.
+
+The final implementation must use the existing application's database, authentication system, role assignments, UI components, and design system.
+
+---
+
+# CRITICAL SCOPE RESTRICTIONS
+
+**Work ONLY on the Financial Management Module.**
+
+Do not redesign, modify, or break any other module.
+
+Do not modify the following unless a minimal, necessary integration dependency requires it and the change can be made without altering existing behavior:
+
+- Login and authentication screens
+- Main dashboard outside the Financial Module
+- Resident Module
+- Owner Module
+- Tenant Module
+- Security Module
+- Visitor Management Module
+- Complaint Module
+- Amenities Module
+- Notices and Communication Module
+- Existing navigation and unrelated pages
+- Existing database structures unrelated to financial functionality
+
+Additional rules:
+
+1. Do not create a separate application.
+2. Do not rebuild the entire TowerTech project.
+3. Do not change existing colors, typography, UI components, or responsive design conventions.
+4. Do not introduce new user roles such as Super Admin.
+5. Inspect the current codebase and database before implementation.
+6. Reuse existing tables, APIs, components, authentication, and society records wherever possible.
+7. Add only the database tables, fields, policies, indexes, and relationships that are genuinely required.
+8. Do not delete or overwrite existing data.
+9. Do not use fake financial records, hardcoded dashboard totals, sample transactions presented as real data, or fabricated payment confirmations.
+10. All calculations, forms, filters, approvals, receipts, reports, and permissions must work with actual backend data.
+11. If a required integration is unavailable, implement a safe fallback where possible and clearly report the limitation.
+12. Do not claim a feature is complete unless it has been implemented and tested.
+
+The Financial Management Module must be a dedicated, integrated part of the existing TowerTech application.
+
+---
+
+# 1. FINANCIAL MODULE DASHBOARD
+
+Create a professional Financial Management Dashboard using the existing TowerTech UI theme.
+
+## 1.1 Summary Cards
+
+Display the following summary cards:
+
+1. Total Income
+2. Total Expenses
+3. Current Society Balance
+4. Pending Maintenance Payments
+5. Pending Vendor Payments
+6. Society Fund Balance
+
+All values must be calculated from actual database records.
+
+### Financial calculation rules
+
+**Total Income**
+- Include actual recorded income according to the configured accounting rules.
+- Do not include unpaid maintenance bills.
+- Avoid counting the same payment twice.
+
+**Total Expenses**
+- Include actual recorded expenses according to the configured accounting rules.
+- Do not treat internal fund transfers as expenses.
+
+**Current Society Balance**
+- Use a consistent, documented balance calculation based on the existing opening balance and recorded financial transactions.
+- Clearly distinguish actual cash/bank balances from receivables, payables, and fund balances.
+- Do not calculate a cash balance by simply subtracting all outstanding bills from income.
+
+**Pending Maintenance Payments**
+- Calculate the outstanding amounts on maintenance bills.
+- Exclude fully paid and cancelled bills.
+- Account for partial payments correctly.
+
+**Pending Vendor Payments**
+- Calculate approved outstanding vendor liabilities.
+- Account for partial payments, credits, cancellations, and completed payments correctly.
+
+**Society Fund Balance**
+- Display the balance of the society's tracked funds.
+- Do not add fund balances to bank balances in a way that double-counts the same money.
+
+## 1.2 Dashboard Visualizations
+
+Include:
+
+- Monthly income versus expenses chart
+- Expense category chart
+- Recent financial transactions
+- Pending payments
+- Upcoming bill due dates
+
+## 1.3 Dashboard Filters
+
+Provide:
+
+- Financial Year filter
+- Month filter
+- Date range filter where appropriate
+- Transaction search
+- Transaction category filter
+- Payment status filter
+
+All charts, summary cards, lists, and totals must update according to the selected filters.
+
+## 1.4 Dashboard Data Integrity
+
+- Fetch figures from the actual database.
+- Use consistent financial calculation rules across dashboard cards and reports.
+- Handle empty datasets gracefully.
+- Show loading and error states.
+- Prevent duplicate records from inflating totals.
+- Do not silently replace missing data with invented values.
+- Use the configured society and authenticated user's permissions when loading financial data.
+
+---
+
+# 2. INCOME MANAGEMENT
+
+Create a dedicated Income Management section.
+
+## 2.1 Income Categories
+
+Support:
+
+- Monthly Maintenance
+- Parking Charges
+- Facility Booking Charges
+- Penalties
+- Donations
+- Society Contributions
+- Interest Income
+- Other Income
+
+Reuse existing category records where available.
+
+## 2.2 Required Features
+
+Authorized financial users must be able to:
+
+- Add an income transaction.
+- Edit transactions according to their permissions.
+- View complete transaction details.
+- Search income records.
+- Filter by category, date, payment method, status, and financial year.
+- Upload supporting documents.
+- Record the actual payment date.
+- Record payment method.
+- Record transaction/reference number.
+- Generate a payment receipt for an actual recorded payment.
+- Download income reports.
+- View the transaction history.
+
+## 2.3 Income Transaction Fields
+
+Store:
+
+- Transaction ID
+- Receipt Number, when applicable
+- Resident ID, when applicable
+- Resident Name
+- Flat Number
+- Income Category
+- Amount
+- Payment Date
+- Payment Method
+- Reference Number
+- Financial Year
+- Description
+- Created By
+- Transaction Status
+- Supporting Document
+- Created At
+- Updated At
+
+Use foreign keys to reference existing residents, flats, users, and categories rather than duplicating data unnecessarily.
+
+## 2.4 Payment Methods
+
+Support:
+
+- UPI
+- Bank Transfer
+- Cash
+- Cheque
+- Other
+
+## 2.5 Payment Rules
+
+- Record actual payments only.
+- Do not mark an income transaction as paid without a valid payment record or authorized confirmation.
+- Prevent duplicate transaction submission.
+- Validate amounts and required fields.
+- Preserve transaction history.
+- Restrict edits to authorized roles.
+- Use cancellation or reversal entries for completed transactions rather than permanently deleting them.
+- Do not store UPI PINs or payment card details.
+- Do not claim payment gateway integration unless it is actually implemented.
+
+---
+
+# 3. MAINTENANCE MANAGEMENT
+
+Create a complete Maintenance Management section.
+
+This section must integrate with the existing TowerTech flat, resident, and owner records without redesigning those modules.
+
+## 3.1 Maintenance Billing Features
+
+Implement:
+
+- Automatic monthly maintenance bill generation for all eligible flats
+- Configurable maintenance amount per flat
+- Different maintenance rates for different flats
+- Configurable billing period and due date
+- Paid, unpaid, partially paid, overdue, and cancelled bill tracking
+- Partial payment recording
+- Full payment recording
+- Outstanding balance calculation
+- Authorized late-payment penalties
+- Authorized discounts
+- Resident payment history
+- Search by flat number
+- Search by resident name
+- Search by billing month
+- Downloadable maintenance bills
+- Downloadable payment receipts
+- Payment reminders through existing supported notification integrations
+
+## 3.2 Automatic Monthly Bill Generation
+
+The standard billing process must generate bills for all eligible flats in the selected billing period.
+
+Requirements:
+
+1. Determine eligible flats from existing society records.
+2. Identify the responsible owner or resident using the existing relationship model.
+3. Apply the configured maintenance rate for each flat.
+4. Apply additional charges, discounts, and penalties only when authorized and applicable.
+5. Calculate the final bill amount.
+6. Check whether a bill already exists for the same flat and billing period.
+7. Create only the missing eligible bills.
+8. Record the billing run and its outcome.
+9. Provide a preview of eligible flats and calculated totals before final dispatch.
+10. Provide a confirmation step before generating and dispatching bills.
+
+Do not expose the old Single Flat bill-generation workflow as the normal billing feature.
+
+Do not generate bills for ineligible or inactive records contrary to the existing society's billing rules.
+
+Do not create duplicate bills when a billing operation is retried.
+
+### Scheduling
+
+Where the existing infrastructure supports scheduled jobs, configure recurring monthly bill generation.
+
+If automatic scheduling cannot be configured in the current environment, provide an authorized manual trigger and clearly document the scheduling requirement.
+
+Do not claim recurring billing is active unless the scheduled job has been configured and tested.
+
+### Billing Safety
+
+- Use database transactions or equivalent reliable mechanisms.
+- Ensure concurrent billing operations cannot create duplicate bills.
+- Use a unique database constraint for the applicable flat and billing period.
+- Record failures without duplicating already-created bills.
+- Maintain a history of billing runs.
+- Do not dispatch bills before the authorized generation process completes.
+
+## 3.3 Maintenance Bill Fields
+
+Each bill must include:
+
+- Bill ID
+- Bill Number
+- Flat Number
+- Owner/Responsible Resident
+- Billing Month
+- Due Date
+- Maintenance Amount
+- Additional Charges
+- Penalty
+- Discount, if authorized
+- Total Amount
+- Paid Amount
+- Outstanding Amount
+- Payment Status
+- Created At
+- Updated At
+
+## 3.4 Maintenance Payment Statuses
+
+Support:
+
+- Unpaid
+- Partially Paid
+- Paid
+- Overdue
+- Cancelled
+
+The overdue status must be calculated using the due date and outstanding balance.
+
+A bill that is fully paid must not remain overdue.
+
+A cancelled bill must not contribute to active outstanding dues.
+
+## 3.5 Partial Payments
+
+For each payment:
+
+- Store the amount received.
+- Associate it with the appropriate bill or bills.
+- Record the payment date and method.
+- Record the transaction/reference number where applicable.
+- Update the paid amount.
+- Recalculate the outstanding balance.
+- Update the bill's status.
+- Generate a receipt for the actual payment.
+- Preserve the payment allocation history.
+
+Never overwrite previous payment records when a partial payment is made.
+
+---
+
+# 4. EXPENSE MANAGEMENT
+
+Create a complete Expense Management section.
+
+## 4.1 Expense Categories
+
+Support:
+
+- Electricity
+- Water
+- Garbage Collection
+- Plumbing
+- Electrical Maintenance
+- Lift Maintenance
+- Security
+- Housekeeping
+- Gardening
+- Fire Safety
+- CCTV Maintenance
+- Generator/DG Maintenance
+- Building Repairs
+- Staff Salaries
+- Vendor Payments
+- Insurance
+- Administrative Expenses
+- Equipment Purchases
+- Other Expenses
+
+## 4.2 Features
+
+Authorized users must be able to:
+
+- Add an expense.
+- Edit an expense according to their permissions.
+- View expense details.
+- Upload invoices and supporting documents.
+- Record vendor information.
+- Record invoice information.
+- Record payment details.
+- Filter by category, date, vendor, approval status, and payment status.
+- Search expense records.
+- View expense history.
+- Generate expense reports.
+
+## 4.3 Expense Fields
+
+Store:
+
+- Expense ID
+- Expense Number
+- Expense Category
+- Description
+- Vendor/Payee
+- Vendor Contact
+- Invoice Number
+- Invoice Date
+- Expense Date
+- Amount
+- Payment Due Date
+- Payment Date
+- Payment Method
+- Transaction Reference
+- Financial Year
+- Approval Status
+- Payment Status
+- Invoice Attachment
+- Created By
+- Approved By
+- Created At
+- Updated At
+
+## 4.4 Approval Status and Payment Status
+
+Maintain separate fields for approval status and payment status.
+
+Approval statuses:
+
+- Draft
+- Pending Approval
+- Approved
+- Rejected
+- Cancelled
+
+Payment statuses:
+
+- Unpaid
+- Partially Paid
+- Paid
+- Overdue
+- Cancelled
+
+Do not confuse an approved expense with a paid expense.
+
+An approved expense may remain unpaid until an actual payment is recorded.
+
+## 4.5 Expense Approval Rules
+
+- Only authorized users may approve expenses.
+- Apply configurable approval thresholds.
+- Require maker-checker approval where configured.
+- Prevent the creator from approving their own transaction when maker-checker rules apply.
+- Record approval decisions and reasons.
+- Do not delete completed expense records.
+- Use reversal or cancellation entries when necessary.
+
+---
+
+# 5. SOCIETY SERVICES AND VENDOR PAYMENTS
+
+Create a Services & Vendors section inside the Financial Management Module.
+
+Do not modify the separate existing Services or Amenities modules.
+
+## 5.1 Supported Services
+
+- Electricity
+- Water
+- Garbage Collection
+- Plumbing
+- Security
+- Housekeeping
+- Lift Maintenance
+- Gardening
+- Fire Safety
+- CCTV Maintenance
+- Generator Maintenance
+- Pest Control
+- Internet/Intercom
+- Other Services
+
+## 5.2 Vendor Information
+
+Store:
+
+- Vendor ID
+- Vendor Name
+- Service Category
+- Contact Person
+- Phone Number
+- Email
+- Address
+- Contract Start Date
+- Contract End Date
+- Payment Frequency
+- Contract Amount
+- Agreement Document
+- Vendor Status
+- Created At
+- Updated At
+
+## 5.3 Vendor Features
+
+Implement:
+
+- Add and update vendor records with authorization.
+- View vendor details.
+- Track service contracts.
+- Track contract start and end dates.
+- Track recurring bills.
+- Track payment due dates.
+- Record vendor invoices.
+- Record actual payments.
+- Calculate paid and pending amounts.
+- View vendor payment history.
+- Upload agreements and supporting documents.
+- Notify authorized users of upcoming contract expiries using supported notification infrastructure.
+
+## 5.4 Vendor Payment Rules
+
+- Do not mark a vendor invoice as paid automatically.
+- Record payment transactions separately from invoice creation.
+- Support partial payments where applicable.
+- Prevent duplicate payments and duplicate invoice records where the business rules require uniqueness.
+- Maintain invoice and payment histories.
+- Keep contract status separate from invoice status.
+- Apply the existing approval rules before payment.
+
+Recurring invoices must not automatically become completed payments.
+
+---
+
+# 6. STAFF SALARY AND PAYMENTS
+
+Create a Staff Payments section within the Financial Management Module.
+
+Do not redesign or change the existing staff-management interface outside this module.
+
+## 6.1 Staff Categories
+
+Support:
+
+- Security Guards
+- Housekeeping Staff
+- Gardeners
+- Maintenance Staff
+- Other Society Employees
+
+Reuse existing staff records where available.
+
+## 6.2 Salary Fields
+
+Store:
+
+- Staff ID
+- Staff Name
+- Role
+- Salary Month
+- Basic Salary
+- Allowances
+- Deductions
+- Net Payable
+- Amount Paid
+- Remaining Amount
+- Payment Date
+- Payment Method
+- Transaction Reference
+- Payment Status
+- Approved By
+- Created At
+- Updated At
+
+## 6.3 Features
+
+Implement:
+
+- Monthly salary records.
+- Salary calculations.
+- Partial salary payments.
+- Full salary payments.
+- Payment history.
+- Pending salary reports.
+- Downloadable salary statements.
+- Search by staff member and salary month.
+- Approval workflows where required.
+
+## 6.4 Salary Security
+
+- Restrict salary details to authorized financial roles.
+- Do not expose salary records to ordinary Security Staff, Maintenance Staff, or Housekeeping Staff.
+- Do not expose one employee's confidential salary information to another employee.
+- Verify permissions in the backend.
+- Avoid placing confidential salary information in public URLs, logs, or unprotected client-side data.
+
+---
+
+# 7. SOCIETY FUND MANAGEMENT
+
+Create a separate Society Fund section.
+
+## 7.1 Supported Funds
+
+- General Fund
+- Reserve Fund
+- Sinking Fund
+- Repair and Maintenance Fund
+- Emergency Fund
+- Other Society Funds
+
+Reuse existing fund records if available.
+
+## 7.2 Features
+
+Implement:
+
+- View fund-wise balances.
+- Record approved fund contributions.
+- Record authorized transfers between funds.
+- Record approved fund utilization.
+- View fund transaction history.
+- Upload supporting documents.
+- Generate fund reports.
+- Search and filter fund transactions.
+
+## 7.3 Fund Transaction Fields
+
+Store:
+
+- Fund Transaction ID
+- Fund Name
+- Transaction Type
+- Amount
+- Transaction Date
+- Purpose
+- Description
+- Approval Status
+- Payment Reference
+- Supporting Document
+- Created By
+- Approved By
+- Created At
+- Updated At
+
+## 7.4 Fund Accounting Rules
+
+- Do not count internal transfers between society funds as new income or expenses.
+- Prevent double-counting of fund transactions.
+- Display fund balances separately from bank and cash balances.
+- Require appropriate authorization for transfers and fund utilization.
+- Maintain a complete audit trail.
+- Ensure a transfer out of one fund and into another is recorded as one linked internal transfer.
+- Ensure the consolidated society balance does not increase or decrease merely because funds are reclassified internally.
+
+---
+
+# 8. PAYMENT RECEIPTS
+
+Implement professional, downloadable PDF payment receipts.
+
+## 8.1 Receipt Fields
+
+Include:
+
+- Society Name
+- Society Address
+- Receipt Number
+- Payment Date
+- Resident Name
+- Flat Number
+- Payment Category
+- Billing Period
+- Total Bill Amount
+- Previous Outstanding
+- Amount Paid
+- Remaining Balance
+- Payment Method
+- Transaction Reference
+- Issued By
+- Receipt Status
+
+Use the configured society information for Joyville Sensorium.
+
+Do not invent a society address if it is unavailable in the existing configuration.
+
+## 8.2 Receipt Features
+
+Implement:
+
+- Download receipt as PDF.
+- View receipt history.
+- Search by receipt number.
+- Print receipt.
+- Reprint receipts.
+- Maintain unique receipt numbers.
+- Display partial payment details.
+- Display remaining balances.
+- Preserve receipt history.
+
+## 8.3 Receipt Safety Rules
+
+- Generate receipts only for actual recorded payments.
+- Never issue a paid receipt for an unpaid bill.
+- Distinguish partial payments from full payments.
+- Ensure receipt numbers remain unique during concurrent operations.
+- Do not create duplicate receipts when a request is retried.
+- Preserve voided receipts in the audit history.
+- Use cancellation or reversal workflows rather than deleting completed receipt records.
+- Ensure receipt generation cannot bypass payment validation.
+
+---
+
+# 9. FINANCIAL AUDIT TRAIL
+
+Implement a reliable, append-only audit trail for all important financial actions.
+
+## 9.1 Audited Events
+
+Track:
+
+- Transaction creation
+- Transaction updates
+- Approvals
+- Rejections
+- Payment recording
+- Receipt generation
+- Receipt cancellation
+- Fund transfers
+- Refunds
+- Record cancellations
+- Maintenance rate changes
+- Vendor detail changes
+- Expense changes
+- Staff payment changes
+- Financial permission changes where applicable
+
+## 9.2 Audit Fields
+
+Each audit record must include:
+
+- Audit ID
+- Action
+- Entity Type
+- Entity ID
+- User ID
+- User Role
+- Timestamp
+- Previous Values
+- New Values
+- Reason
+- Reference ID
+
+## 9.3 Audit Requirements
+
+- Audit entries must be append-only for ordinary application users.
+- Do not allow normal users to edit or delete audit records.
+- Do not permanently delete completed financial transactions.
+- Use cancellation or reversal entries instead.
+- Require reasons for sensitive financial changes.
+- Record the actual authenticated user in the backend.
+- Use trusted server timestamps.
+- Store enough information to reconstruct the history of a financial record.
+- Restrict access to audit logs according to assigned financial permissions.
+
+Where supported, enforce append-only behavior using database permissions, controlled backend functions, or triggers rather than relying only on frontend restrictions.
+
+---
+
+# 10. FINANCIAL REPORTS
+
+Create the following reports:
+
+1. Income Report
+2. Expense Report
+3. Monthly Financial Report
+4. Maintenance Collection Report
+5. Pending Dues Report
+6. Vendor Payment Report
+7. Staff Salary Report
+8. Society Fund Report
+9. Cash Flow Report
+10. Financial Year Summary
+
+## 10.1 Report Filters
+
+Support:
+
+- Date range
+- Month
+- Financial year
+- Category
+- Search
+- Payment status
+- Vendor
+- Resident or flat, where applicable
+
+## 10.2 Report Exports
+
+Implement:
+
+- CSV export
+- PDF export
+- Print-friendly reports
+
+Exports must use the same authorized dataset and filters as the displayed report.
+
+Do not expose confidential salary data or other restricted records through downloadable files.
+
+## 10.3 Financial Summary Fields
+
+Where applicable, display:
+
+- Opening Balance
+- Total Income
+- Total Expenses
+- Net Surplus/Deficit
+- Closing Balance
+- Pending Receivables
+- Pending Payables
+
+## 10.4 Reporting Rules
+
+- Use consistent accounting rules across reports and dashboard cards.
+- Do not treat pending maintenance bills as received income.
+- Do not treat unpaid vendor invoices as completed payments.
+- Do not count internal fund transfers as new income or expenses.
+- Avoid duplicate transaction counting.
+- Clearly distinguish cash/bank balances, receivables, payables, and fund balances.
+- Make financial-year boundaries configurable according to the society's accounting policy.
+- Verify that report totals reconcile with the underlying records.
+
+---
+
+# 11. EXISTING ROLES AND FINANCIAL PERMISSIONS
+
+## 11.1 Permission Design
+
+Inspect the existing TowerTech role model before implementing permissions.
+
+Do not introduce Super Admin or new duplicate roles.
+
+Use the existing society roles and map financial permissions appropriately.
+
+If the application already includes Secretary, Treasurer, Chairperson, or Committee Member roles, preserve those roles and use their existing assignments.
+
+If these roles do not exist, do not create them automatically. Identify the existing authorized roles and configure financial permissions accordingly, without changing unrelated user roles.
+
+Enforce all permissions in the backend and database.
+
+## 11.2 Secretary
+
+Where this role exists and is authorized:
+
+- View financial summaries.
+- View permitted financial reports.
+- Review designated financial requests.
+- Access society financial information according to assigned permissions.
+
+Do not automatically grant transaction-creation or approval permissions beyond the assigned role.
+
+## 11.3 Treasurer
+
+Where this role exists and is authorized:
+
+- Create income and expense records.
+- Manage maintenance collections.
+- Manage payment receipts.
+- Manage vendor and service payments.
+- Manage staff payment records.
+- Manage society fund transactions.
+- View financial reports.
+- Initiate transactions and submit them for approval.
+
+Apply maker-checker controls where required.
+
+## 11.4 Chairperson
+
+Where this role exists and is authorized:
+
+- Review and approve assigned financial transactions.
+- View permitted financial reports.
+- Review major expenditures.
+- Participate in configured approval workflows.
+
+## 11.5 Committee Member
+
+Where this role exists and is authorized:
+
+- View permitted financial reports.
+- Participate in assigned approval workflows.
+- Access only records covered by their permissions.
+
+## 11.6 Owner/Resident
+
+Allow access only to permitted personal financial information:
+
+- Own maintenance bills.
+- Own payment history.
+- Own receipts.
+- Own outstanding dues.
+
+Residents must not receive access to society-wide financial management or other residents' financial information.
+
+Do not add a separate financial administration section to the Resident Module.
+
+## 11.7 Tenant
+
+Allow only the financial information explicitly permitted by the existing society policy and tenancy arrangements.
+
+Do not assume that every tenant has the same financial permissions.
+
+## 11.8 Security and Other Staff
+
+Security Staff, Maintenance Staff, and Housekeeping Staff must not have access to financial records unless a narrowly scoped, explicitly authorized existing policy requires it.
+
+## 11.9 Admin Permissions
+
+Use the existing Admin role and its assigned financial permissions.
+
+Do not introduce a new Admin role or automatically grant every sensitive financial operation to all administrators.
+
+Where the system distinguishes financial operators and approvers, enforce those distinctions.
+
+## 11.10 Maker-Checker Controls
+
+Implement configurable approval thresholds for important financial transactions.
+
+Requirements:
+
+- The transaction creator must not approve their own transaction when maker-checker approval is required.
+- Store approval decisions, reviewer identity, timestamps, and reasons.
+- Reject unauthorized approval requests.
+- Handle concurrent approval attempts safely.
+- Preserve rejected, cancelled, and reversed transaction histories.
+
+---
+
+# 12. DATABASE INTEGRATION AND BACKEND ARCHITECTURE
+
+## 12.1 Inspect Before Changing
+
+Before implementation:
+
+1. Inspect the existing database schema.
+2. Identify existing financial tables and fields.
+3. Inspect authentication and user-role relationships.
+4. Inspect resident, owner, tenant, flat, vendor, and staff relationships.
+5. Inspect existing backend APIs and business logic.
+6. Identify reusable UI components.
+7. Document necessary changes before applying migrations.
+
+Do not create duplicate tables if equivalent structures already exist.
+
+## 12.2 Potential Financial Tables
+
+Create or extend tables only where necessary.
+
+Potential entities include:
+
+- financial_categories
+- maintenance_bills
+- maintenance_payments
+- income_transactions
+- expense_transactions
+- vendors
+- vendor_invoices
+- staff_payments
+- society_funds
+- fund_transactions
+- payment_receipts
+- financial_approvals
+- financial_audit_logs
+
+These are suggested logical entities, not mandatory names.
+
+Reuse the existing database naming conventions and relationships.
+
+## 12.3 Database Requirements
+
+Use appropriate:
+
+- Primary keys
+- Foreign keys
+- Unique constraints
+- Indexes
+- Created-at and updated-at timestamps
+- Database validation
+- Role-based policies
+- Row Level Security where supported
+
+Add constraints that prevent duplicate bills, duplicate receipt numbers, invalid payment allocations, and unauthorized financial state changes.
+
+## 12.4 Supabase Integration
+
+If Supabase is already the project's backend:
+
+- Reuse the existing Supabase project.
+- Use the existing authentication system.
+- Add migrations for required schema changes.
+- Apply Row Level Security policies.
+- Use secure server-side functions for privileged operations.
+- Reuse existing storage and realtime infrastructure where suitable.
+- Never expose a service-role key in client-side code.
+
+Do not migrate the application to a different backend without explicit authorization.
+
+## 12.5 Secure File Storage
+
+Store financial invoices, supporting documents, vendor agreements, and receipt-related files in private storage.
+
+Requirements:
+
+- Use appropriate access policies.
+- Verify authorization before download.
+- Use temporary signed URLs where supported.
+- Validate file type and size.
+- Do not expose confidential documents through public links.
+
+## 12.6 Financial Data Integrity
+
+Use reliable transactions or equivalent mechanisms for:
+
+- Recording payments
+- Allocating payments
+- Updating outstanding balances
+- Reversing transactions
+- Generating receipt numbers
+- Performing fund transfers
+- Generating monthly bills
+- Approving financial transactions
+
+Use precision-safe monetary handling for INR amounts.
+
+Do not rely on unsafe floating-point arithmetic for financial balances.
+
+Prevent concurrent operations from creating duplicate payments, bills, or receipts.
+
+---
+
+# 13. UI/UX REQUIREMENTS
+
+Preserve the existing TowerTech UI design system.
+
+## 13.1 Design
+
+Use:
+
+- Existing light/dark theme configuration, as currently implemented
+- Existing color palette
+- Existing typography
+- Existing buttons and form controls
+- Existing card styles
+- Existing table styles
+- Existing navigation patterns
+- Existing responsive layout
+
+Do not redesign the rest of the application.
+
+## 13.2 Financial Navigation
+
+Organize the Financial Module into the following sections:
+
+Financial Management
+- Dashboard
+- Income
+- Maintenance
+- Expenses
+- Services & Vendors
+- Staff Payments
+- Society Fund
+- Receipts
+- Approvals
+- Financial Audit
+- Reports
+
+Use the existing navigation conventions and ensure the financial navigation is scoped to the Financial Module.
+
+Do not replace the application's global navigation.
+
+## 13.3 Interface Behavior
+
+Implement:
+
+- Searchable tables
+- Working filters
+- Pagination for large datasets
+- Clear financial status badges
+- Loading states
+- Empty states
+- Error messages
+- Form validation
+- Confirmation dialogs for sensitive actions
+- Clear success messages after confirmed operations
+- Responsive desktop and mobile layouts
+
+## 13.4 Form Validation
+
+Validate:
+
+- Required fields
+- Positive monetary amounts where required
+- Valid dates
+- Billing-period uniqueness
+- Vendor and resident references
+- Payment allocations
+- Approval status transitions
+- File upload types and sizes
+- Payment reference requirements according to the selected payment method
+
+Do not rely solely on frontend validation.
+
+Repeat critical validation in the backend and database.
+
+---
+
+# 14. TESTING AND ACCEPTANCE CRITERIA
+
+The Financial Management Module is complete only when its key operations work end to end.
+
+## 14.1 Dashboard Tests
+
+Verify:
+
+- All six summary cards use real database values.
+- Filters update the dashboard consistently.
+- Income and expense charts reconcile with the underlying records.
+- Outstanding maintenance and vendor payments are calculated correctly.
+- Society fund balances are not double-counted.
+
+## 14.2 Income Tests
+
+Verify:
+
+- Authorized users can create income records.
+- Invalid transactions are rejected.
+- Duplicate submissions are prevented.
+- Payment dates and references are saved.
+- Receipts are generated only for actual recorded payments.
+- Reports reflect the saved records.
+
+## 14.3 Maintenance Tests
+
+Verify:
+
+- Bills are generated for eligible flats.
+- Different flat rates are respected.
+- Duplicate bills cannot be created for the same flat and billing period.
+- Partial payments update outstanding balances correctly.
+- Full payments mark bills as paid.
+- Overdue statuses are calculated correctly.
+- Cancelled bills do not inflate outstanding dues.
+- Receipt amounts match actual payments.
+
+## 14.4 Expense Tests
+
+Verify:
+
+- Expenses can be created and reviewed according to permissions.
+- Approval and payment statuses remain separate.
+- Unauthorized users cannot approve transactions.
+- Partial and full payments are recorded correctly.
+- Reports match the underlying expense data.
+
+## 14.5 Vendor and Staff Payment Tests
+
+Verify:
+
+- Vendor records and invoices can be managed.
+- Pending liabilities are calculated correctly.
+- Recurring invoices are not automatically marked paid.
+- Staff salary calculations are correct.
+- Partial salary payments update remaining balances.
+- Confidential records remain restricted.
+
+## 14.6 Society Fund Tests
+
+Verify:
+
+- Fund balances update correctly.
+- Transfers between funds are recorded consistently.
+- Internal transfers do not create artificial income or expenses.
+- Fund utilization requires appropriate authorization.
+- Fund reports reconcile with fund transactions.
+
+## 14.7 Receipt Tests
+
+Verify:
+
+- Receipt numbers are unique.
+- Receipts reflect actual payments.
+- Partial payment receipts display remaining balances.
+- Voided receipts remain in the audit history.
+- PDF downloads and printing work.
+- Unauthorized users cannot download other residents' receipts.
+
+## 14.8 Audit Tests
+
+Verify:
+
+- Important financial actions produce audit entries.
+- The authenticated user is recorded accurately.
+- Audit records cannot be modified by ordinary application users.
+- Reversals and cancellations preserve the original transaction history.
+- Approval and rejection reasons are recorded where required.
+
+## 14.9 Permission Tests
+
+Test each existing authorized role.
+
+Verify that:
+
+- Residents can access only their own permitted financial information.
+- Unauthorized roles cannot access financial records.
+- Salary data is restricted.
+- Approval thresholds are enforced.
+- Maker-checker restrictions work.
+- Backend endpoints reject unauthorized requests even if called directly.
+- Database policies prevent unauthorized access.
+
+## 14.10 Regression Tests
+
+Verify:
+
+- Existing login and authentication still work.
+- Existing navigation remains unchanged.
+- The Resident Module is unchanged.
+- The Owner Module is unchanged.
+- The Tenant Module is unchanged.
+- The Security Module is unchanged.
+- Visitor Management remains unchanged.
+- Complaints, Amenities, Notices, and Communication remain unchanged.
+- Existing database records are preserved.
+- No unrelated UI or business logic has been changed.
+
+If an integration dependency requires a change outside the Financial Module, make only the smallest necessary change, preserve existing behavior, and document it.
+
+---
+
+# 15. FINAL IMPLEMENTATION DELIVERABLES
+
+Before implementation, inspect the existing codebase and provide a brief plan identifying the relevant financial components, tables, APIs, permissions, and necessary changes.
+
+Then implement the module fully.
+
+At completion, provide:
+
+1. Summary of implemented financial features.
+2. List of created or modified files.
+3. Database migrations and schema changes.
+4. Backend APIs or functions added or modified.
+5. Permission policies and approval rules implemented.
+6. Required environment variables or integrations.
+7. Setup and deployment instructions.
+8. Tests performed and their actual results.
+9. Any remaining limitations or incomplete features.
+10. Confirmation of which unrelated modules were left unchanged.
+
+Do not report a test as passed unless it was actually executed.
+
+Do not claim that scheduled billing, payment integration, real-time updates, PDF generation, or security policies work unless verified.
+
+---
+
+# FINAL ACCEPTANCE REQUIREMENT
+
+The final result must be a functional, secure, professional Financial Management Module integrated into the existing TowerTech Society Management System for Joyville Sensorium.
+
+It must provide accurate financial dashboards, income management, automatic monthly maintenance billing, expense management, vendor and service payments, staff salaries, society funds, PDF receipts, approval workflows, financial audit logs, and downloadable reports.
+
+All financial data must be database-backed, all calculations must be accurate, all sensitive operations must be authorized, and all completed transactions must retain a reliable history.
+
+**Most importantly: modify only the Financial Management Module and its necessary backend/database dependencies. Preserve the existing TowerTech UI theme and leave all unrelated modules and their functionality unchanged.**

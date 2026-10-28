@@ -23,7 +23,10 @@ import {
   Siren,
   PhoneCall,
   CheckCircle2,
-  Calendar
+  Calendar,
+  Camera,
+  Check,
+  Ban
 } from 'lucide-react';
 import { User, Resident, Visitor } from '../types';
 import { societyService } from '../lib/societyService';
@@ -54,6 +57,7 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
   const [showResidentCallModal, setShowResidentCallModal] = useState(false);
   const [selectedCallResident, setSelectedCallResident] = useState<Resident | null>(null);
   
+  const [visitorPhoto, setVisitorPhoto] = useState<string>('');
   const [registerLoading, setRegisterLoading] = useState(false);
   const [residentSearch, setResidentSearch] = useState('');
   const [selectedResident, setSelectedResident] = useState<Resident | null>(null);
@@ -65,6 +69,74 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
     purpose: '',
     notes: ''
   });
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error('Photo size should be less than 2MB');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setVisitorPhoto(reader.result as string);
+        toast.success('Visitor photo captured successfully');
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleApproveVisitor = async (visitorId: string | number) => {
+    try {
+      const updates: Partial<Visitor> = {
+        approval_status: 'Approved',
+        approval_time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+      setVisitors(prev => prev.map(v => (String(v.visitor_id) === String(visitorId) || String(v.id) === String(visitorId)) ? { ...v, ...updates } : v));
+      await societyService.updateVisitor(visitorId, updates);
+      toast.success('Visitor entry approved. Security officer can now record gate entry.');
+      await fetchVisitors();
+    } catch (err) {
+      console.error('Failed to approve visitor:', err);
+      toast.error('Failed to approve visitor');
+    }
+  };
+
+  const handleRejectVisitor = async (visitorId: string | number) => {
+    const reason = window.prompt('Enter reason for denying entry (optional):', 'Resident declined visitor entry');
+    if (reason === null) return;
+    try {
+      const updates: Partial<Visitor> = {
+        approval_status: 'Rejected',
+        status: 'Rejected',
+        notes: reason || 'Entry denied'
+      };
+      setVisitors(prev => prev.map(v => (String(v.visitor_id) === String(visitorId) || String(v.id) === String(visitorId)) ? { ...v, ...updates } : v));
+      await societyService.updateVisitor(visitorId, updates);
+      toast.info('Visitor entry denied.');
+      await fetchVisitors();
+    } catch (err) {
+      console.error('Failed to deny visitor:', err);
+      toast.error('Failed to deny visitor');
+    }
+  };
+
+  const handleRecordEntry = async (visitorId: string | number) => {
+    try {
+      const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const updates: Partial<Visitor> = {
+        status: 'Inside',
+        entry_time: timeStr
+      };
+      setVisitors(prev => prev.map(v => (String(v.visitor_id) === String(visitorId) || String(v.id) === String(visitorId)) ? { ...v, ...updates } : v));
+      await societyService.updateVisitor(visitorId, updates);
+      toast.success('Visitor entry recorded. Gate barrier access granted.');
+      await fetchVisitors();
+    } catch (err) {
+      console.error('Failed to record visitor entry:', err);
+      toast.error('Failed to record entry');
+    }
+  };
 
   const fetchVisitors = async () => {
     try {
@@ -173,6 +245,7 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
         visitor_type: formData.visitor_type || 'Guest',
         vehicle_number: formData.vehicle_number?.trim() || undefined,
         purpose: formData.purpose?.trim() || 'Pre-Approved Guest Entry',
+        profile_photo: visitorPhoto || undefined,
         resident_id: user.resident_id || user.id,
         resident_name: user.name,
         tower: user.tower || 'A',
@@ -190,6 +263,7 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
       await fetchVisitors();
 
       setShowPreApproveModal(false);
+      setVisitorPhoto('');
       setFormData({
         visitor_name: '',
         visitor_mobile: '',
@@ -215,17 +289,17 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
 
     setRegisterLoading(true);
     try {
-      const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       const newVisitorData: Partial<Visitor> = {
         visitor_name: formData.visitor_name,
         visitor_mobile: formData.visitor_mobile,
         visitor_type: formData.visitor_type,
         vehicle_number: formData.vehicle_number || undefined,
         purpose: formData.purpose,
+        profile_photo: visitorPhoto || undefined,
         resident_id: selectedResident.resident_id,
-        status: 'Inside',
-        approval_status: 'Approved',
-        entry_time: timeStr,
+        status: 'Pending',
+        approval_status: 'Pending',
+        entry_time: 'Awaiting Authorization',
         security_id: user.security_id || user.id,
         security_user_name: user.name,
         security_user_shift: user.shift || 'General',
@@ -237,10 +311,11 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
       };
 
       await societyService.addVisitor(newVisitorData);
-      toast.success(`Checked in ${formData.visitor_name} to Flat ${selectedResident.tower}-${selectedResident.flat}`);
+      toast.success(`Visitor logged for Flat ${selectedResident.tower}-${selectedResident.flat}. Approval request routed to Resident and Admin.`);
       await fetchVisitors();
 
       setShowRegisterModal(false);
+      setVisitorPhoto('');
       setFormData({
         visitor_name: '',
         visitor_mobile: '',
@@ -535,50 +610,135 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
             filteredVisitors.map(v => {
               const isInside = v.status === 'Inside';
               const isExited = v.status === 'Exited';
+              const isPendingApproval = v.approval_status === 'Pending' || (!v.approval_status && v.status === 'Pending');
+              const isApproved = v.approval_status === 'Approved';
+              const isDenied = v.approval_status === 'Rejected' || v.status === 'Rejected';
+
+              // Current user can approve if Admin OR if Resident of destination flat
+              const canApprove = isAdminRole || (isResidentRole && (
+                (user.resident_id && String(v.resident_id) === String(user.resident_id)) ||
+                (user.flat && String(v.flat).toLowerCase().trim() === String(user.flat).toLowerCase().trim())
+              ));
 
               return (
                 <div 
                   key={v.visitor_id || v.id}
-                  className="p-4 rounded-xl border border-slate-200/80 hover:border-slate-300 bg-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 transition-colors"
+                  className="p-4 rounded-xl border border-slate-200/80 hover:border-slate-300 bg-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 transition-colors shadow-2xs"
                 >
                   <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 ${
-                      isInside ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' : 'bg-slate-100 text-slate-600'
-                    }`}>
-                      {v.visitor_name ? v.visitor_name.charAt(0).toUpperCase() : 'V'}
-                    </div>
+                    {v.profile_photo ? (
+                      <img 
+                        src={v.profile_photo} 
+                        alt={v.visitor_name} 
+                        className="w-11 h-11 rounded-xl object-cover border border-slate-200 shrink-0 shadow-2xs" 
+                      />
+                    ) : (
+                      <div className={`w-11 h-11 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 ${
+                        isInside ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' : 'bg-slate-100 text-slate-600'
+                      }`}>
+                        {v.visitor_name ? v.visitor_name.charAt(0).toUpperCase() : 'V'}
+                      </div>
+                    )}
                     <div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <span className="text-xs font-bold text-slate-900">{v.visitor_name}</span>
                         <span className="text-[10px] font-semibold text-slate-500">({v.visitor_mobile})</span>
+                        
+                        {/* Approval Status Badge */}
+                        {isDenied ? (
+                          <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200">
+                            Entry Denied
+                          </span>
+                        ) : isApproved ? (
+                          <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            Authorized
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200">
+                            Pending Approval
+                          </span>
+                        )}
+
+                        {/* Premises Status Badge */}
                         <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${
                           isInside 
                             ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
                             : isExited 
                               ? 'bg-slate-100 text-slate-600' 
-                              : 'bg-amber-50 text-amber-700'
+                              : 'bg-indigo-50 text-indigo-700 border border-indigo-200'
                         }`}>
-                          ● {v.status || 'Pending'}
+                          ● {v.status || 'Pending Gate In'}
                         </span>
                       </div>
-                      <p className="text-xs text-slate-600 mt-0.5">
-                        Visiting: <strong className="text-indigo-700 font-bold">{v.resident_name || 'Resident'}</strong> (Flat {v.tower}-{v.flat}) • Purpose: {v.purpose || 'Visit'}
+                      <p className="text-xs text-slate-600 mt-1">
+                        Visiting: <strong className="text-indigo-700 font-bold">{v.resident_name || 'Resident'}</strong> (Flat {v.tower}-{v.flat}) • Type: {v.visitor_type || 'Guest'} • Purpose: {v.purpose || 'Visit'}
+                        {v.vehicle_number ? ` • Vehicle: ${v.vehicle_number}` : ''}
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-100">
-                    <div className="text-right text-[11px] text-slate-400">
-                      <span>Entry: <strong className="text-slate-700">{v.entry_time || '10:30 AM'}</strong></span>
+                  <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-between sm:justify-end border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-100">
+                    <div className="text-right text-[11px] text-slate-400 mr-1">
+                      <span>Entry: <strong className="text-slate-700">{v.entry_time || 'Pending'}</strong></span>
                       {v.exit_time && <span> • Exit: <strong className="text-slate-700">{v.exit_time}</strong></span>}
                     </div>
 
-                    {isInside && (
+                    {/* Resident & Admin Approve / Deny Action Buttons */}
+                    {isPendingApproval && canApprove && (
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={() => handleApproveVisitor(v.visitor_id || v.id!)}
+                          className="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 shadow-2xs transition"
+                          title="Authorize gate entry for this visitor"
+                        >
+                          <Check className="w-3.5 h-3.5" /> Approve
+                        </button>
+                        <button
+                          onClick={() => handleRejectVisitor(v.visitor_id || v.id!)}
+                          className="px-2.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 shadow-2xs transition"
+                          title="Deny gate entry"
+                        >
+                          <Ban className="w-3.5 h-3.5" /> Deny
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Security Staff: Record Entry after resident authorization */}
+                    {isApproved && !isInside && !isExited && (isSecurityRole || isAdminRole) && (
+                      <button
+                        onClick={() => handleRecordEntry(v.visitor_id || v.id!)}
+                        className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5"
+                        title="Record physical gate barrier entry"
+                      >
+                        <LogIn className="w-3.5 h-3.5" /> Record Entry
+                      </button>
+                    )}
+
+                    {/* Security Staff: Prompt flat if visitor still pending authorization */}
+                    {isPendingApproval && isSecurityRole && (
+                      <button
+                        onClick={() => {
+                          const res = residents.find(r => r.resident_id === v.resident_id);
+                          if (res) {
+                            setSelectedCallResident(res);
+                            setShowResidentCallModal(true);
+                          } else {
+                            toast.info(`Intercom dialed to Flat ${v.flat}`);
+                          }
+                        }}
+                        className="px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-lg text-xs font-bold flex items-center gap-1 transition"
+                      >
+                        <PhoneCall className="w-3 h-3" /> Call Flat
+                      </button>
+                    )}
+
+                    {/* Inside Premises -> Check Out Button */}
+                    {isInside && (isSecurityRole || isAdminRole) && (
                       <button
                         onClick={() => handleMarkExit(v.visitor_id || v.id!)}
-                        className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all shadow-2xs"
+                        className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5"
                       >
-                        Check Out
+                        <LogOutIcon className="w-3.5 h-3.5" /> Check Out
                       </button>
                     )}
                   </div>
@@ -680,6 +840,52 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
                     </button>
                   </div>
                 )}
+              </div>
+
+              {/* Visitor Photo Capture / Upload */}
+              <div className="space-y-1.5 p-3 rounded-2xl bg-slate-50 border border-slate-200">
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center justify-between">
+                  <span className="flex items-center gap-1.5">
+                    <Camera className="w-3.5 h-3.5 text-indigo-600" />
+                    Visitor Photo Verification (Optional)
+                  </span>
+                  {visitorPhoto && (
+                    <button 
+                      type="button" 
+                      onClick={() => setVisitorPhoto('')}
+                      className="text-rose-600 hover:text-rose-700 text-[10px] font-bold"
+                    >
+                      Remove Photo
+                    </button>
+                  )}
+                </label>
+                <div className="flex items-center gap-3">
+                  {visitorPhoto ? (
+                    <img 
+                      src={visitorPhoto} 
+                      alt="Captured visitor" 
+                      className="w-14 h-14 rounded-xl object-cover border-2 border-indigo-500 shadow-sm" 
+                    />
+                  ) : (
+                    <div className="w-14 h-14 rounded-xl border-2 border-dashed border-slate-300 flex items-center justify-center text-slate-400 bg-white">
+                      <Camera className="w-6 h-6" />
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <label className="cursor-pointer inline-flex items-center gap-2 px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl border border-slate-200 shadow-2xs transition">
+                      <Camera className="w-4 h-4 text-indigo-600" />
+                      <span>{visitorPhoto ? 'Change Photo' : 'Capture / Upload Photo'}</span>
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        capture="user" 
+                        className="hidden" 
+                        onChange={handlePhotoUpload} 
+                      />
+                    </label>
+                    <p className="text-[10px] text-slate-400 mt-1">Camera snapshot or image file (max 2MB)</p>
+                  </div>
+                </div>
               </div>
 
               {/* Visitor Details */}

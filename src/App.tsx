@@ -219,32 +219,32 @@ export default function App() {
   const isAdmin = user.role === 'admin' || !!user.admin_id;
 
   return (
-    <div className="min-h-screen bg-[#f4f5f8] font-sans text-slate-900 flex flex-col w-full min-w-0">
+    <div className="min-h-screen bg-[#f3f6fa] font-sans text-slate-900 flex w-full min-w-0">
       <Toaster position="top-center" richColors />
       
-      {/* TowerTech Deep Purple Top Header Bar */}
-      <TopHeader 
-        user={user}
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
+      {/* Responsive Sidebar on the Left (Figma Dash Theme) */}
+      <Sidebar 
+        isAdmin={isAdmin} 
+        userRole={user.role} 
+        activeTab={activeTab} 
+        setActiveTab={setActiveTab} 
         onLogout={handleLogout}
-        onToggleMobileNav={() => setIsMobileNavOpen(!isMobileNavOpen)}
+        isMobileOpen={isMobileNavOpen}
+        onCloseMobile={() => setIsMobileNavOpen(false)}
       />
 
-      <div className="flex-1 flex w-full min-w-0">
-        {/* Responsive Sidebar */}
-        <Sidebar 
-          isAdmin={isAdmin} 
-          userRole={user.role} 
-          activeTab={activeTab} 
-          setActiveTab={setActiveTab} 
+      {/* Main Workspace Column with TopHeader */}
+      <div className="flex-1 flex flex-col min-w-0 min-h-screen overflow-x-hidden">
+        <TopHeader 
+          user={user}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
           onLogout={handleLogout}
-          isMobileOpen={isMobileNavOpen}
-          onCloseMobile={() => setIsMobileNavOpen(false)}
+          onToggleMobileNav={() => setIsMobileNavOpen(!isMobileNavOpen)}
         />
 
-        {/* Main Workspace Area */}
-        <main className="flex-1 w-full max-w-7xl mx-auto p-3 sm:p-5 md:p-6 overflow-y-auto">
+        {/* Main Content Area */}
+        <main className="flex-1 w-full max-w-7xl mx-auto p-4 sm:p-6 md:p-8 overflow-y-auto">
           {/* Main Dashboard Module Grid View */}
           {activeTab === 'dashboard' ? (
             <DashboardModulesGrid 
@@ -258,16 +258,16 @@ export default function App() {
           ) : (
             <div className="space-y-6">
               {/* Top Back Navigation Bar for Module Views */}
-              <div className="flex items-center justify-between bg-white p-3.5 px-5 rounded-xl border border-slate-200/90 shadow-xs">
+              <div className="flex items-center justify-between bg-white p-3.5 px-5 rounded-2xl border border-slate-200/80 shadow-xs">
                 <button
                   onClick={() => setActiveTab('dashboard')}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#542d87] hover:bg-[#462372] text-white font-bold text-xs transition-all shadow-xs active:scale-95 cursor-pointer"
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#1d72fe] hover:bg-blue-600 text-white font-bold text-xs transition-all shadow-xs active:scale-95 cursor-pointer"
                 >
                   <ArrowLeft className="w-4 h-4 text-white" />
                   <span>Back to Dashboard</span>
                 </button>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-[#542d87] bg-purple-50 border border-purple-100 px-3 py-1 rounded-full uppercase tracking-wider">
+                  <span className="text-xs font-bold text-[#1d72fe] bg-blue-50 border border-blue-100 px-3 py-1 rounded-full uppercase tracking-wider">
                     {activeTab === 'security' ? 'VISITOR MANAGEMENT' : activeTab === 'notices' ? 'NOTICE MANAGEMENT' : activeTab === 'communication' ? 'COMMUNICATION' : activeTab === 'financial' ? 'FINANCIAL MANAGEMENT' : activeTab.toUpperCase()} MODULE
                   </span>
                 </div>

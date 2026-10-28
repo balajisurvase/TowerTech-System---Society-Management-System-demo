@@ -161,11 +161,11 @@ export function GenerateBillWorkspace({
                 Generate Maintenance Bill
               </h1>
               <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold border uppercase tracking-wider bg-blue-50 text-blue-800 border-blue-200">
-                {billMode === 'single' ? 'Single Flat' : 'Bulk Society'}
+                All Resident Bills
               </span>
             </div>
             <p className="text-xs font-semibold text-slate-500 mt-0.5">
-              Create and dispatch official monthly maintenance invoices for society flats.
+              Generate and dispatch official monthly maintenance invoices for all society residents.
             </p>
           </div>
         </div>
@@ -190,7 +190,7 @@ export function GenerateBillWorkspace({
             ) : (
               <>
                 <CreditCard className="w-4 h-4" />
-                <span>Generate Bill</span>
+                <span>Generate All Bills</span>
               </>
             )}
           </button>
@@ -198,7 +198,7 @@ export function GenerateBillWorkspace({
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* SECTION 1: Bill Information */}
+        {/* SECTION 1: Bill Schedule & Generation */}
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="px-6 py-4 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -207,28 +207,25 @@ export function GenerateBillWorkspace({
               </div>
               <div>
                 <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">
-                  Section 1: Bill Schedule & Generation Type
+                  Section 1: Bill Schedule & Calculation Method
                 </h3>
-                <p className="text-[11px] text-slate-500 font-medium">Select bill period and target units</p>
+                <p className="text-[11px] text-slate-500 font-medium">Configure billing period and rates for all society residents</p>
               </div>
             </div>
-            <span className="text-[11px] font-bold text-slate-400">Step 1 of 5</span>
+            <span className="text-[11px] font-bold text-slate-400">Step 1 of 2</span>
           </div>
 
           <div className="p-6 space-y-6">
-            {/* Mode Selector */}
-            <div className="w-full">
-              <div
-                className="p-4 rounded-xl border-2 border-blue-600 bg-blue-50/50 shadow-xs"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-black uppercase tracking-wider text-slate-800">Single Resident Bill</span>
-                  <div className="w-4 h-4 rounded-full border-2 border-blue-600 bg-blue-600 flex items-center justify-center">
-                    <div className="w-1.5 h-1.5 rounded-full bg-white" />
-                  </div>
-                </div>
-                <p className="text-xs text-slate-500 mt-1">Generate a maintenance invoice for a specific individual flat.</p>
+            <div className="p-4 rounded-xl bg-indigo-50/70 border border-indigo-200 flex items-center justify-between">
+              <div>
+                <h4 className="text-sm font-black text-indigo-950">Society Bulk Maintenance Invoicing</h4>
+                <p className="text-xs text-indigo-800/80 mt-0.5">
+                  Generates monthly bills for all {residents.length} resident units across all towers for {billingMonth} {billingYear}.
+                </p>
               </div>
+              <span className="px-3.5 py-1.5 rounded-xl bg-indigo-600 text-white font-black text-xs">
+                {residents.length} Flats Selected
+              </span>
             </div>
 
             {/* Month, Year, and Calculation Method */}
@@ -275,146 +272,7 @@ export function GenerateBillWorkspace({
           </div>
         </div>
 
-        {/* SECTION 2: Resident / Property Information */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold">
-                <Building2 className="w-4 h-4" />
-              </div>
-              <div>
-                <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">
-                  Section 2: Resident & Apartment Information
-                </h3>
-                <p className="text-[11px] text-slate-500 font-medium">Target unit specifications</p>
-              </div>
-            </div>
-            <span className="text-[11px] font-bold text-slate-400">Step 2 of 5</span>
-          </div>
-
-          <div className="p-6">
-            {billMode === 'single' ? (
-              <div className="space-y-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-700">Select Resident / Flat *</label>
-                  <select
-                    value={selectedResidentId}
-                    onChange={(e) => handleResidentChange(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-xs font-bold text-slate-800 bg-white"
-                  >
-                    {residents.map(r => (
-                      <option key={r.resident_id} value={r.resident_id}>
-                        Tower {r.tower} - Flat {r.flat} • {r.name} ({r.resident_id}) • {r.bhk || '2 BHK'}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {selectedResident && (
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs">
-                    <div>
-                      <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Resident Name</p>
-                      <p className="font-black text-slate-900 mt-0.5">{selectedResident.name}</p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Unit Number</p>
-                      <p className="font-bold text-slate-800 mt-0.5">Tower {selectedResident.tower}, Flat {selectedResident.flat}</p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Configuration</p>
-                      <p className="font-bold text-slate-800 mt-0.5">{selectedResident.bhk || '2 BHK'} ({selectedResident.square_feet || 620} sq.ft.)</p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Occupancy Type</p>
-                      <p className="font-bold text-indigo-700 mt-0.5">{selectedResident.role || selectedResident.occupancy_type || 'Owner'}</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="p-4 rounded-xl bg-indigo-50/70 border border-indigo-200 flex items-center justify-between">
-                <div>
-                  <h4 className="text-sm font-black text-indigo-950">Bulk Society Invoicing</h4>
-                  <p className="text-xs text-indigo-800/80 mt-0.5">
-                    Will generate bills for all {residents.length} units across all registered towers according to their BHK configuration.
-                  </p>
-                </div>
-                <span className="px-3 py-1 rounded-xl bg-indigo-600 text-white font-black text-xs">
-                  {residents.length} Flats Selected
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* SECTION 3: Billing Information */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
-                <IndianRupee className="w-4 h-4" />
-              </div>
-              <div>
-                <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">
-                  Section 3: Billing Breakdown
-                </h3>
-                <p className="text-[11px] text-slate-500 font-medium">Itemized charges configuration</p>
-              </div>
-            </div>
-            <span className="text-[11px] font-bold text-slate-400">Step 3 of 5</span>
-          </div>
-
-          <div className="p-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700">Base Maintenance (₹) *</label>
-                <input
-                  type="number"
-                  required
-                  min="0"
-                  value={baseAmount}
-                  onChange={(e) => setBaseAmount(Number(e.target.value) || 0)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 outline-none text-xs font-bold text-slate-800 bg-white"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700">Sinking Fund (₹)</label>
-                <input
-                  type="number"
-                  min="0"
-                  value={sinkingFund}
-                  onChange={(e) => setSinkingFund(Number(e.target.value) || 0)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 outline-none text-xs font-bold text-slate-800 bg-white"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700">Water / Sewerage (₹)</label>
-                <input
-                  type="number"
-                  min="0"
-                  value={waterCharges}
-                  onChange={(e) => setWaterCharges(Number(e.target.value) || 0)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 outline-none text-xs font-bold text-slate-800 bg-white"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700">Previous Unpaid Dues (₹)</label>
-                <input
-                  type="number"
-                  min="0"
-                  value={previousDue}
-                  onChange={(e) => setPreviousDue(Number(e.target.value) || 0)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 outline-none text-xs font-bold text-slate-800 bg-white"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* SECTION 4: Payment Information */}
+        {/* SECTION 2: Payment Terms & Due Dates */}
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="px-6 py-4 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -423,16 +281,28 @@ export function GenerateBillWorkspace({
               </div>
               <div>
                 <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">
-                  Section 4: Payment Terms & Due Dates
+                  Section 2: Base Rate & Payment Due Terms
                 </h3>
                 <p className="text-[11px] text-slate-500 font-medium">Timelines and overdue penalties</p>
               </div>
             </div>
-            <span className="text-[11px] font-bold text-slate-400">Step 4 of 5</span>
+            <span className="text-[11px] font-bold text-slate-400">Step 2 of 2</span>
           </div>
 
           <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700">Base Maintenance Rate (₹) *</label>
+                <input
+                  type="number"
+                  required
+                  min="0"
+                  value={baseAmount}
+                  onChange={(e) => setBaseAmount(Number(e.target.value) || 0)}
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-xs font-bold text-slate-800 bg-white"
+                />
+              </div>
+
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-slate-700">Payment Due Date *</label>
                 <input
@@ -445,7 +315,7 @@ export function GenerateBillWorkspace({
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700">Late Fee Penalty if Unpaid after Due Date (₹)</label>
+                <label className="text-xs font-bold text-slate-700">Late Fee Penalty if Unpaid (₹)</label>
                 <input
                   type="number"
                   min="0"
@@ -454,56 +324,6 @@ export function GenerateBillWorkspace({
                   className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none text-xs font-bold text-slate-800 bg-white"
                 />
               </div>
-            </div>
-          </div>
-        </div>
-
-        {/* SECTION 5: Summary & Instructions */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center font-bold">
-                <FileText className="w-4 h-4" />
-              </div>
-              <div>
-                <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">
-                  Section 5: Summary & Invoice Notes
-                </h3>
-                <p className="text-[11px] text-slate-500 font-medium">Review net payable and add notes</p>
-              </div>
-            </div>
-            <span className="text-[11px] font-bold text-slate-400">Step 5 of 5</span>
-          </div>
-
-          <div className="p-6 space-y-5">
-            {/* Total Highlight Card */}
-            <div className="p-5 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
-              <div>
-                <span className="text-[10px] font-black uppercase tracking-wider bg-white/20 px-2.5 py-0.5 rounded-full">
-                  Total Payable Amount
-                </span>
-                <h2 className="text-3xl font-black mt-2 font-mono">₹{totalPayable.toLocaleString('en-IN')}</h2>
-                <p className="text-white/80 text-xs mt-1">
-                  Billing Period: {billingMonth} {billingYear} • Due on {dueDate}
-                </p>
-              </div>
-              <div className="text-right text-xs space-y-1">
-                <div className="text-white/80">Base: ₹{baseAmount.toLocaleString('en-IN')}</div>
-                <div className="text-white/80">Sinking Fund: ₹{sinkingFund.toLocaleString('en-IN')}</div>
-                <div className="text-white/80">Water/Common: ₹{waterCharges.toLocaleString('en-IN')}</div>
-                {previousDue > 0 && <div className="text-amber-200 font-bold">Previous Due: ₹{previousDue.toLocaleString('en-IN')}</div>}
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700">Invoice Notes / Payment Instructions</label>
-              <textarea
-                rows={2}
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-xs text-slate-800 bg-white"
-                placeholder="Add special instructions, society bank account or UPI details..."
-              />
             </div>
           </div>
         </div>

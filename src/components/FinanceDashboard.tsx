@@ -201,7 +201,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
           The Financial module contains sensitive society balance sheets, revenue streams, and expenditures. Only authorized Administrators have permission to view or manage financial records.
         </p>
         <div className="inline-flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-xl text-xs font-bold text-slate-600 border border-slate-200">
-          <span>Logged in role: <strong className="uppercase text-slate-900">{user.role}</strong></span>
+          <span>Logged in role: <strong className="uppercase text-slate-900">{user.admin_role || user.role}</strong></span>
         </div>
       </div>
     );

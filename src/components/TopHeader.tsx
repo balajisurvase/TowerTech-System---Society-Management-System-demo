@@ -170,7 +170,7 @@ export default function TopHeader({
               <div className="absolute top-full right-0 mt-2 w-48 bg-white text-slate-800 rounded-xl shadow-2xl border border-slate-200 p-2 z-50 animate-in fade-in duration-100">
                 <div className="px-3 py-2 border-b border-slate-100">
                   <p className="text-xs font-bold text-slate-900 truncate">{user.name}</p>
-                  <p className="text-[10px] text-slate-400 truncate">{user.role || 'Resident'}</p>
+                  <p className="text-[10px] font-bold text-[#542d87] truncate">{user.admin_role || user.role || 'Resident'}</p>
                 </div>
                 <button
                   onClick={() => {

@@ -39,7 +39,7 @@ import {
   IndianRupee
 } from 'lucide-react';
 import AmenityBooking from './AmenityBooking';
-import { Resident, MaintenanceRecord, Complaint, Booking } from '../types';
+import { User, Resident, MaintenanceRecord, Complaint, Booking } from '../types';
 import { societyService } from '../lib/societyService';
 import { toast } from 'sonner';
 import { format } from 'date-fns';

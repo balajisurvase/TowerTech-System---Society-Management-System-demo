@@ -141,6 +141,7 @@ export const societyService = {
                 email: found.email || '',
                 phone: found.phone ? String(found.phone) : '',
                 role: 'admin',
+                admin_role: found.role || (found.admin_id === 'A001' ? 'Chairman' : found.admin_id === 'A002' ? 'Secretary' : 'Treasurer'),
                 society_id: found.society_id || societyId || 'GV2026'
               }
             };
@@ -275,6 +276,7 @@ export const societyService = {
           email: localAdmin.email || '',
           phone: localAdmin.phone || '',
           role: 'admin',
+          admin_role: localAdmin.role || (localAdmin.admin_id === 'A001' ? 'Chairman' : localAdmin.admin_id === 'A002' ? 'Secretary' : 'Treasurer'),
           society_id: localAdmin.society_id || societyId || 'GV2026'
         }
       };

@@ -22,9 +22,40 @@ import { Finance, FinanceType, PaymentMode, PaymentStatus } from '../../types';
 import { format } from 'date-fns';
 
 const CATEGORY_SUGGESTIONS: Record<FinanceType, string[]> = {
-  Income: ['Maintenance Collection', 'Clubhouse Booking', 'Parking Charges', 'Transfer Fee', 'Interest Income', 'Event Sponsorship', 'Other Income'],
-  Expense: ['Electricity Bill', 'Security Services', 'Housekeeping', 'Lift AMC & Maintenance', 'Water Tanker', 'Gardening & Landscaping', 'Audit & Legal', 'Office Admin', 'Diesel for DG Set', 'Plumbing & Repairs', 'Other Expense'],
-  Maintenance: ['Monthly Maintenance', 'Sinking Fund', 'Special Amenity Charge', 'Water Utility'],
+  Income: [
+    'Maintenance Collection',
+    'Monthly Maintenance',
+    'Parking Charges',
+    'Facility Booking Charges',
+    'Clubhouse Booking',
+    'Penalties',
+    'Donations',
+    'Society Contributions',
+    'Interest Income',
+    'Other Income'
+  ],
+  Expense: [
+    'Electricity',
+    'Water',
+    'Garbage Collection',
+    'Plumbing',
+    'Electrical Maintenance',
+    'Lift Maintenance',
+    'Security',
+    'Housekeeping',
+    'Gardening',
+    'Fire Safety',
+    'CCTV Maintenance',
+    'Generator/DG Maintenance',
+    'Building Repairs',
+    'Staff Salaries',
+    'Vendor Payments',
+    'Insurance',
+    'Administrative Expenses',
+    'Equipment Purchases',
+    'Other Expenses'
+  ],
+  Maintenance: ['Monthly Maintenance', 'Maintenance Collection', 'Sinking Fund', 'Special Amenity Charge', 'Water Utility'],
   Fine: ['Late Payment Penalty', 'Improper Parking Fine', 'Noise Violation', 'Renovation Overdue Fine', 'Garbage Mismanagement']
 };
 
@@ -478,10 +509,10 @@ export function ViewFinanceVoucherWorkspace({
           <div>
             <div className="flex items-center gap-2 text-indigo-700 font-black text-xl tracking-tight">
               <Building2 className="w-6 h-6" />
-              <span>TowerTech Co-operative Housing Society</span>
+              <span>Joyville Sensorium Co-operative Housing Society</span>
             </div>
-            <p className="text-xs text-slate-600 mt-1">Baner Road, Pune - 411045, Maharashtra</p>
-            <p className="text-xs text-slate-500">Reg. No: MAH/PUN/2026/GV • Society ID: {record.society_id}</p>
+            <p className="text-xs text-slate-600 mt-1">Hinjawadi Phase 1, Pune - 411057, Maharashtra</p>
+            <p className="text-xs text-slate-500">Reg. No: MAH/PUN/2026/JS • Society ID: {record.society_id}</p>
           </div>
           <div className="text-right">
             <span className={`text-[11px] font-black uppercase tracking-wider px-3 py-1 rounded-full ${
@@ -604,7 +635,7 @@ export function FinanceStatementWorkspace({
         <div className="border-b border-slate-200 pb-6 flex justify-between items-start">
           <div>
             <h2 className="text-2xl font-black text-slate-900">Financial Ledger Statement</h2>
-            <p className="text-slate-500 text-xs font-medium mt-0.5">Green Park Residency • Official Financial Report</p>
+            <p className="text-slate-500 text-xs font-medium mt-0.5">Joyville Sensorium • Official Financial Report</p>
           </div>
           <span className="px-3 py-1 bg-indigo-50 text-indigo-700 font-bold rounded-lg text-xs border border-indigo-200">
             Current Term

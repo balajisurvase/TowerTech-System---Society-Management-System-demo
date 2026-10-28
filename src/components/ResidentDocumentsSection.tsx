@@ -275,21 +275,23 @@ export default function ResidentDocumentsSection({
 
         {/* Action Controls & Verification Progress Counter */}
         <div className="flex items-center gap-3 self-start sm:self-auto">
-          <button
-            type="button"
-            onClick={() => {
-              setActiveUploadDef(null);
-              setWorkspaceMode('upload');
-            }}
-            className={`px-4 py-2.5 rounded-xl text-white text-xs font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer ${
-              isOwner 
-                ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-500/25' 
-                : 'bg-purple-600 hover:bg-purple-700 shadow-purple-500/25'
-            }`}
-          >
-            <Plus className="w-4 h-4" />
-            <span>Upload Document</span>
-          </button>
+          {!isAdminReview && (
+            <button
+              type="button"
+              onClick={() => {
+                setActiveUploadDef(null);
+                setWorkspaceMode('upload');
+              }}
+              className={`px-4 py-2.5 rounded-xl text-white text-xs font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer ${
+                isOwner 
+                  ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-500/25' 
+                  : 'bg-purple-600 hover:bg-purple-700 shadow-purple-500/25'
+              }`}
+            >
+              <Plus className="w-4 h-4" />
+              <span>Upload Document</span>
+            </button>
+          )}
 
           <div className="flex items-center gap-3 bg-white px-3.5 py-2 rounded-xl border border-slate-200 shadow-2xs">
             <div className="text-right">
@@ -378,20 +380,26 @@ export default function ResidentDocumentsSection({
               <div className="flex items-center gap-2 self-start md:self-center shrink-0 pt-2 md:pt-0">
                 {/* NOT UPLOADED STATE -> [ Upload Document ] Button opens full workspace */}
                 {!isUploaded ? (
-                  <button
-                    onClick={() => {
-                      setActiveUploadDef(def);
-                      setWorkspaceMode('upload');
-                    }}
-                    className={`px-4 py-2 text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-2 cursor-pointer ${
-                      isOwner 
-                        ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-500/20' 
-                        : 'bg-purple-600 hover:bg-purple-700 shadow-purple-500/20'
-                    }`}
-                  >
-                    <Upload className="w-3.5 h-3.5" />
-                    <span>Upload Document</span>
-                  </button>
+                  isAdminReview ? (
+                    <span className="text-[11px] font-bold text-slate-400 bg-slate-100 px-3 py-1.5 rounded-xl">
+                      Pending Resident Upload
+                    </span>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        setActiveUploadDef(def);
+                        setWorkspaceMode('upload');
+                      }}
+                      className={`px-4 py-2 text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-2 cursor-pointer ${
+                        isOwner 
+                          ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-500/20' 
+                          : 'bg-purple-600 hover:bg-purple-700 shadow-purple-500/20'
+                      }`}
+                    >
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>Upload Document</span>
+                    </button>
+                  )
                 ) : (
                   /* UPLOADED STATE -> [ View ] opens full workspace, [ Replace ], [ Delete ] */
                   <div className="flex items-center gap-2">

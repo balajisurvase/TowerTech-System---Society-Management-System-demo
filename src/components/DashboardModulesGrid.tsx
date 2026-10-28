@@ -263,35 +263,8 @@ export default function DashboardModulesGrid({
               Joyville Sensorium
             </h1>
             <p className="text-xs sm:text-sm text-purple-200 font-medium">
-              Welcome back, <span className="font-bold text-white">{user.name || 'Member'}</span> ({user.flat ? `Flat ${user.tower || 'A'}-${user.flat}` : 'Society Admin'})
+              Welcome back, <span className="font-bold text-white">{user.name || 'Member'}</span> ({(user.role === 'admin' || user.admin_id) ? 'Society Admin' : user.role === 'security' ? 'Security Staff' : (user.occupancy_type === 'Tenant' ? 'Tenant' : 'Owner')})
             </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2 pt-2 md:pt-0">
-            <button
-              onClick={fetchDashboardData}
-              disabled={loading}
-              className="px-3.5 py-2 bg-white/10 hover:bg-white/20 active:bg-white/30 text-white font-bold text-xs rounded-xl transition-all border border-white/15 flex items-center gap-1.5 cursor-pointer"
-            >
-              <RotateCcw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-              <span>Refresh Data</span>
-            </button>
-
-            <button
-              onClick={() => setShowPayNowModal(true)}
-              className="px-4 py-2 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
-            >
-              <CreditCard className="w-3.5 h-3.5" />
-              <span>Pay Maintenance</span>
-            </button>
-
-            <button
-              onClick={() => setShowAddComplaintModal(true)}
-              className="px-4 py-2 bg-white text-[#542d87] hover:bg-purple-50 font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
-            >
-              <Plus className="w-3.5 h-3.5 text-[#542d87]" />
-              <span>Log Complaint</span>
-            </button>
           </div>
 
         </div>
@@ -300,20 +273,22 @@ export default function DashboardModulesGrid({
       {/* 2. COLOR-CODED DASHBOARD SUMMARY CARDS (DISTINCT ACCENT FOR EACH BLOCK) */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
         
-        {/* Card 1: Total Flats (BLUE BLOCK) */}
+        {/* Card 1: Active Residents (Section 1.3 - calculated from actual active resident records) */}
         <div 
           onClick={() => setActiveTab('residents')}
           className="bg-indigo-50/90 border border-indigo-200/90 p-4 rounded-2xl shadow-xs hover:border-indigo-400 hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
         >
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black text-indigo-800 uppercase tracking-wider">Total Flats</span>
+            <span className="text-[10px] font-black text-indigo-800 uppercase tracking-wider">Active Residents</span>
             <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-xs group-hover:scale-110 transition-transform">
-              <Building2 className="w-4 h-4" />
+              <Users className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-xl sm:text-2xl font-black text-indigo-950 tracking-tight block">{totalFlatsCount}</span>
-            <span className="text-[10px] font-extrabold text-indigo-700 bg-indigo-100/80 px-2 py-0.5 rounded-md inline-block mt-1">{occupiedFlatsCount} Occupied</span>
+            <span className="text-xl sm:text-2xl font-black text-indigo-950 tracking-tight block">
+              {residents.filter(r => (r.status || 'Active').toLowerCase() === 'active').length}
+            </span>
+            <span className="text-[10px] font-extrabold text-indigo-700 bg-indigo-100/80 px-2 py-0.5 rounded-md inline-block mt-1">Verified Accounts</span>
           </div>
         </div>
 
@@ -325,7 +300,7 @@ export default function DashboardModulesGrid({
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-black text-emerald-800 uppercase tracking-wider">Total Residents</span>
             <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-xs group-hover:scale-110 transition-transform">
-              <Users className="w-4 h-4" />
+              <Building2 className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3">
@@ -506,18 +481,18 @@ export default function DashboardModulesGrid({
 
             <div className="space-y-2.5">
               <div className="flex items-center justify-between p-3 rounded-xl bg-white border border-indigo-100 shadow-2xs">
-                <span className="text-xs font-bold text-slate-700">Occupied Flats</span>
-                <span className="text-sm font-black text-emerald-600">{occupiedFlatsCount} / {totalFlatsCount}</span>
+                <span className="text-xs font-bold text-slate-700">Active Residents</span>
+                <span className="text-sm font-black text-emerald-600">{residents.filter(r => (r.status || 'Active').toLowerCase() === 'active').length} Active</span>
               </div>
 
               <div className="flex items-center justify-between p-3 rounded-xl bg-white border border-indigo-100 shadow-2xs">
-                <span className="text-xs font-bold text-slate-700">Vacant Flats</span>
-                <span className="text-sm font-black text-amber-600">{vacantFlatsCount} Flats</span>
+                <span className="text-xs font-bold text-slate-700">Total Registered Members</span>
+                <span className="text-sm font-black text-indigo-900">{residents.length > 0 ? residents.length : totalResidentsCount} Accounts</span>
               </div>
 
               <div className="flex items-center justify-between p-3 rounded-xl bg-white border border-indigo-100 shadow-2xs">
-                <span className="text-xs font-bold text-slate-700">Registered Residents</span>
-                <span className="text-sm font-black text-indigo-900">{totalResidentsCount} Members</span>
+                <span className="text-xs font-bold text-slate-700">Active Open Complaints</span>
+                <span className="text-sm font-black text-amber-600">{displayOpenComplaints} Issues</span>
               </div>
 
               <div className="flex items-center justify-between p-3 rounded-xl bg-emerald-50 border border-emerald-200">

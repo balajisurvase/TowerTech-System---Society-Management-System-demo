@@ -293,7 +293,7 @@ export default function Login({ onLogin }: LoginProps) {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-[#542d87] hover:bg-[#462372] active:bg-[#391c5c] disabled:bg-slate-300 text-white font-bold py-3 px-8 rounded-lg text-xs uppercase tracking-wider transition-all shadow-md shadow-[#542d87]/20 hover:shadow-lg active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full bg-[#1d72fe] hover:bg-blue-600 active:bg-blue-700 disabled:bg-slate-300 text-white font-bold py-3 px-8 rounded-xl text-xs uppercase tracking-wider transition-all shadow-md shadow-blue-500/20 hover:shadow-lg active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer"
               >
                 {loading ? (
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />

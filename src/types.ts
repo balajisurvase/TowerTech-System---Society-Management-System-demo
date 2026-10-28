@@ -132,6 +132,7 @@ export interface Visitor {
   security_user_shift?: string;
   approval_status?: 'Pending' | 'Approved' | 'Rejected';
   approval_time?: string;
+  society_id?: string;
   created_at?: string;
 }
 
@@ -225,6 +226,7 @@ export interface User {
   id: string;
   name: string;
   admin_name?: string;
+  admin_role?: string;
   email?: string;
   phone: string;
   role: Role;
@@ -240,6 +242,7 @@ export interface User {
   society_id?: string;
   flat?: string;
   tower?: string;
+  floor?: number;
   profile_photo?: string;
   avatar?: string;
 }

@@ -650,23 +650,18 @@ export default function MaintenanceManagement({
             <div className="flex flex-wrap items-center gap-2">
               <button
                 onClick={() => {
-                  setBillFormData({
-                    resident_id: residents[0]?.resident_id || '',
-                    tower: residents[0]?.tower || 'A',
-                    flat_no: residents[0]?.flat || '101',
+                  setBulkFormData({
                     month: selectedMonth === 'All' ? currentMonthName : selectedMonth,
-                    amount: 2500,
-                    previous_due: 0,
-                    late_fee: 0,
+                    default_amount: 2500,
                     due_date: format(new Date(now.getFullYear(), now.getMonth(), 10), 'yyyy-MM-dd'),
                     notes: 'Monthly society maintenance charges.'
                   });
-                  setShowGenerateModal(true);
+                  setShowBulkGenerateModal(true);
                 }}
                 className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-500/20 transition-all flex items-center gap-1.5"
               >
                 <Plus className="w-4 h-4" />
-                <span>+ Generate Bill</span>
+                <span>+ Generate All Bills</span>
               </button>
 
               <button
