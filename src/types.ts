@@ -226,7 +226,6 @@ export interface User {
   id: string;
   name: string;
   admin_name?: string;
-  admin_role?: string;
   email?: string;
   phone: string;
   role: Role;
@@ -242,7 +241,6 @@ export interface User {
   society_id?: string;
   flat?: string;
   tower?: string;
-  floor?: number;
   profile_photo?: string;
   avatar?: string;
 }
@@ -290,7 +288,14 @@ export interface Notice {
   society_id: string;
   attachment_url?: string;
   attachment_name?: string;
+  attachment_type?: string;
+  attachment_size?: number;
   acknowledgements?: string[];
+  views?: string[];
+  views_count?: number;
+  publisher_id?: string;
+  publisher_role?: string;
+  publisher_avatar?: string;
   created_at?: string;
 }
 

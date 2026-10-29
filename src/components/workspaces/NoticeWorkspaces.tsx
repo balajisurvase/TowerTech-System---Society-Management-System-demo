@@ -546,7 +546,7 @@ export function ViewNoticeWorkspace({
         <div className="pt-8 border-t border-slate-200 flex justify-between items-end text-xs text-slate-500">
           <div>
             <p className="font-bold text-slate-800">Green Valley Co-operative Housing Society</p>
-            <p className="text-[11px] text-slate-400 mt-0.5">Management Committee & Administration Office</p>
+            <p className="text-[11px] text-slate-400 mt-0.5">Management Committee & Management Office</p>
           </div>
           <div className="text-right">
             <div className="w-32 h-8 border-b border-slate-400 mb-1 ml-auto"></div>

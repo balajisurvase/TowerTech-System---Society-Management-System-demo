@@ -18,7 +18,7 @@ import {
   ShieldCheck, 
   Layers
 } from 'lucide-react';
-import { Finance, FinanceType, PaymentMode, PaymentStatus } from '../../types';
+import { Finance, FinanceType, PaymentMode, PaymentStatus, StaffSalaryRecord, ServiceContract } from '../../types';
 import { format } from 'date-fns';
 
 const CATEGORY_SUGGESTIONS: Record<FinanceType, string[]> = {
@@ -694,6 +694,431 @@ export function FinanceStatementWorkspace({
           </table>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// 4. ADD / EDIT STAFF SALARY RECORD WORKSPACE
+// ============================================================================
+interface AddEditStaffSalaryWorkspaceProps {
+  mode: 'add' | 'edit';
+  editingSalary?: StaffSalaryRecord | null;
+  onBack: () => void;
+  onSubmit: (formData: Partial<StaffSalaryRecord>) => Promise<void>;
+}
+
+export function AddEditStaffSalaryWorkspace({
+  mode,
+  editingSalary,
+  onBack,
+  onSubmit
+}: AddEditStaffSalaryWorkspaceProps) {
+  const [staffName, setStaffName] = useState(editingSalary?.staff_name || '');
+  const [role, setRole] = useState(editingSalary?.role || 'Security Guard');
+  const [monthlySalary, setMonthlySalary] = useState<number>(editingSalary?.monthly_salary || 20000);
+  const [month, setMonth] = useState(editingSalary?.month || 'October 2026');
+  const [paymentStatus, setPaymentStatus] = useState<'Paid' | 'Pending' | 'Processing'>(editingSalary?.payment_status || 'Paid');
+  const [paymentDate, setPaymentDate] = useState(editingSalary?.payment_date || format(new Date(), 'yyyy-MM-dd'));
+  const [paymentMode, setPaymentMode] = useState<PaymentMode>(editingSalary?.payment_mode || 'Bank Transfer');
+  const [notes, setNotes] = useState(editingSalary?.notes || '');
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!staffName.trim()) return;
+    setSubmitting(true);
+    try {
+      await onSubmit({
+        staff_name: staffName,
+        role,
+        monthly_salary: Number(monthlySalary),
+        month,
+        payment_status: paymentStatus,
+        payment_date: paymentDate,
+        payment_mode: paymentMode,
+        notes
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="w-full flex flex-col gap-6 animate-in fade-in duration-200">
+      <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <button
+            type="button"
+            onClick={onBack}
+            className="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-all cursor-pointer"
+          >
+            <ArrowLeft className="w-5 h-5 text-slate-600" />
+          </button>
+          <div>
+            <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+              {mode === 'edit' ? 'Edit Staff Salary Record' : 'Record Staff Salary / Payroll'}
+            </h1>
+            <p className="text-xs font-semibold text-slate-500 mt-0.5">
+              Manage security guard, housekeeping, electrician, and management salaries
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2.5 self-end sm:self-center">
+          <button
+            type="button"
+            onClick={onBack}
+            className="px-4 py-2.5 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-bold transition-all"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={submitting || !staffName.trim() || monthlySalary <= 0}
+            className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-all flex items-center gap-2 disabled:opacity-50"
+          >
+            {submitting ? 'Saving...' : mode === 'edit' ? 'Update Salary' : 'Save Salary Record'}
+          </button>
+        </div>
+      </div>
+
+      <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-slate-200 p-6 space-y-6 shadow-sm">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+              Staff Member Name *
+            </label>
+            <input
+              type="text"
+              required
+              placeholder="e.g. Amit Jadhav"
+              value={staffName}
+              onChange={(e) => setStaffName(e.target.value)}
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+              Role / Designation *
+            </label>
+            <input
+              type="text"
+              required
+              placeholder="e.g. Security Supervisor, Housekeeper, Electrician"
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+              Monthly Salary Amount (₹) *
+            </label>
+            <input
+              type="number"
+              required
+              min={1}
+              value={monthlySalary}
+              onChange={(e) => setMonthlySalary(Number(e.target.value))}
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-900 font-mono outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+              Salary Month / Period *
+            </label>
+            <input
+              type="text"
+              required
+              placeholder="e.g. October 2026"
+              value={month}
+              onChange={(e) => setMonth(e.target.value)}
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+              Disbursement Status *
+            </label>
+            <select
+              value={paymentStatus}
+              onChange={(e) => setPaymentStatus(e.target.value as any)}
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="Paid">Paid</option>
+              <option value="Pending">Pending</option>
+              <option value="Processing">Processing</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+              Payment Mode
+            </label>
+            <select
+              value={paymentMode}
+              onChange={(e) => setPaymentMode(e.target.value as any)}
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="Bank Transfer">Bank Transfer</option>
+              <option value="UPI">UPI</option>
+              <option value="Cheque">Cheque</option>
+              <option value="Cash">Cash</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+              Disbursement Date
+            </label>
+            <input
+              type="date"
+              value={paymentDate}
+              onChange={(e) => setPaymentDate(e.target.value)}
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+              Notes / Transaction Remarks
+            </label>
+            <input
+              type="text"
+              placeholder="e.g. Credited via HDFC Bank salary batch"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+// ============================================================================
+// 5. ADD / EDIT SERVICE CONTRACT (AMC VENDOR) WORKSPACE
+// ============================================================================
+interface AddEditServiceContractWorkspaceProps {
+  mode: 'add' | 'edit';
+  editingContract?: ServiceContract | null;
+  onBack: () => void;
+  onSubmit: (formData: Partial<ServiceContract>) => Promise<void>;
+}
+
+export function AddEditServiceContractWorkspace({
+  mode,
+  editingContract,
+  onBack,
+  onSubmit
+}: AddEditServiceContractWorkspaceProps) {
+  const [serviceName, setServiceName] = useState(editingContract?.service_name || '');
+  const [vendorName, setVendorName] = useState(editingContract?.vendor_name || '');
+  const [vendorContact, setVendorContact] = useState(editingContract?.vendor_contact || '');
+  const [billingCycle, setBillingCycle] = useState<'Monthly' | 'Quarterly' | 'Bi-Annual' | 'Annual'>(
+    editingContract?.billing_cycle || 'Quarterly'
+  );
+  const [contractAmount, setContractAmount] = useState<number>(editingContract?.contract_amount || 50000);
+  const [status, setStatus] = useState<'Active' | 'Under Renewal' | 'Terminated'>(editingContract?.status || 'Active');
+  const [startDate, setStartDate] = useState(editingContract?.start_date || format(new Date(), 'yyyy-MM-dd'));
+  const [endDate, setEndDate] = useState(editingContract?.end_date || format(new Date(Date.now() + 365 * 86400000), 'yyyy-MM-dd'));
+  const [notes, setNotes] = useState(editingContract?.notes || '');
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!serviceName.trim() || !vendorName.trim()) return;
+    setSubmitting(true);
+    try {
+      await onSubmit({
+        service_name: serviceName,
+        vendor_name: vendorName,
+        vendor_contact: vendorContact,
+        billing_cycle: billingCycle,
+        contract_amount: Number(contractAmount),
+        status,
+        start_date: startDate,
+        end_date: endDate,
+        notes
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="w-full flex flex-col gap-6 animate-in fade-in duration-200">
+      <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <button
+            type="button"
+            onClick={onBack}
+            className="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-all cursor-pointer"
+          >
+            <ArrowLeft className="w-5 h-5 text-slate-600" />
+          </button>
+          <div>
+            <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+              {mode === 'edit' ? 'Edit Vendor Service Contract' : 'Add Vendor Service Contract (AMC)'}
+            </h1>
+            <p className="text-xs font-semibold text-slate-500 mt-0.5">
+              Manage elevator AMC, security agency, CCTV, generator, and maintenance contracts
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2.5 self-end sm:self-center">
+          <button
+            type="button"
+            onClick={onBack}
+            className="px-4 py-2.5 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-bold transition-all"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={submitting || !serviceName.trim() || !vendorName.trim() || contractAmount <= 0}
+            className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-all flex items-center gap-2 disabled:opacity-50"
+          >
+            {submitting ? 'Saving...' : mode === 'edit' ? 'Update Contract' : 'Save Vendor Contract'}
+          </button>
+        </div>
+      </div>
+
+      <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-slate-200 p-6 space-y-6 shadow-sm">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+              Service / AMC Title *
+            </label>
+            <input
+              type="text"
+              required
+              placeholder="e.g. Elevator Comprehensive AMC"
+              value={serviceName}
+              onChange={(e) => setServiceName(e.target.value)}
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+              Vendor / Agency Company Name *
+            </label>
+            <input
+              type="text"
+              required
+              placeholder="e.g. Otis Elevator Company India Ltd"
+              value={vendorName}
+              onChange={(e) => setVendorName(e.target.value)}
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+              Vendor Contact Number / Email
+            </label>
+            <input
+              type="text"
+              placeholder="e.g. +91 98230 11223"
+              value={vendorContact}
+              onChange={(e) => setVendorContact(e.target.value)}
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+              Billing Cycle *
+            </label>
+            <select
+              value={billingCycle}
+              onChange={(e) => setBillingCycle(e.target.value as any)}
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="Monthly">Monthly</option>
+              <option value="Quarterly">Quarterly</option>
+              <option value="Bi-Annual">Bi-Annual</option>
+              <option value="Annual">Annual</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+              Contract Amount (₹) *
+            </label>
+            <input
+              type="number"
+              required
+              min={1}
+              value={contractAmount}
+              onChange={(e) => setContractAmount(Number(e.target.value))}
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-900 font-mono outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+              Contract Status *
+            </label>
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value as any)}
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="Active">Active</option>
+              <option value="Under Renewal">Under Renewal</option>
+              <option value="Terminated">Terminated</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+              Contract Start Date
+            </label>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+              Contract Expiry / End Date
+            </label>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+
+          <div className="sm:col-span-2">
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+              Contract Scope & Service Level Agreement (SLA) Notes
+            </label>
+            <textarea
+              rows={3}
+              placeholder="e.g. Includes monthly preventive maintenance visits and 24/7 breakdown support with 2-hour response time."
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+        </div>
+      </form>
     </div>
   );
 }

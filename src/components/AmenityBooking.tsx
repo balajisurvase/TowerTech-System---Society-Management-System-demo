@@ -171,12 +171,12 @@ export default function AmenityBooking({ resident, onRefresh }: AmenityBookingPr
   const charges = getCharges();
 
   return (
-    <div className="flex flex-col gap-3 h-full max-h-[calc(100vh-5.5rem)]">
+    <div className="flex flex-col gap-2 h-full overflow-hidden">
       {/* Header Bar */}
       <div className="flex justify-between items-center shrink-0">
         <div>
-          <h2 className="text-base lg:text-lg font-black text-slate-900 leading-tight">Amenity Bookings</h2>
-          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Book and track society amenities in real-time</p>
+          <h2 className="text-sm lg:text-base font-black text-slate-900 leading-tight">Amenity Bookings</h2>
+          <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Book society facilities in real-time</p>
         </div>
       </div>
 

@@ -141,7 +141,6 @@ export const societyService = {
                 email: found.email || '',
                 phone: found.phone ? String(found.phone) : '',
                 role: 'admin',
-                admin_role: found.role || (found.admin_id === 'A001' ? 'Chairman' : found.admin_id === 'A002' ? 'Secretary' : 'Treasurer'),
                 society_id: found.society_id || societyId || 'GV2026'
               }
             };
@@ -276,7 +275,6 @@ export const societyService = {
           email: localAdmin.email || '',
           phone: localAdmin.phone || '',
           role: 'admin',
-          admin_role: localAdmin.role || (localAdmin.admin_id === 'A001' ? 'Chairman' : localAdmin.admin_id === 'A002' ? 'Secretary' : 'Treasurer'),
           society_id: localAdmin.society_id || societyId || 'GV2026'
         }
       };
@@ -1882,17 +1880,20 @@ export const societyService = {
   // ==========================================
   // NOTICES MODULE
   // ==========================================
-  async getNotices(societyId?: string) {
+  async getNotices(societyId?: string): Promise<Notice[]> {
     const socId = societyId || 'GV2026';
+    const storageKey = `towertech_notices_${socId}`;
+
     return cachedQuery(`notices_${socId}`, async () => {
+      let dbNotices: Notice[] = [];
       try {
         const { data, error } = await supabase
           .from('notices')
           .select('*')
           .order('created_at', { ascending: false });
 
-        if (!error && data) {
-          return data.map((n: any) => ({
+        if (!error && data && data.length > 0) {
+          dbNotices = data.map((n: any) => ({
             notice_id: String(n.notice_id || n.id),
             id: String(n.id || n.notice_id),
             title: n.title || 'Untitled Notice',
@@ -1901,17 +1902,67 @@ export const societyService = {
             priority: n.priority || 'Normal',
             posted_by: n.posted_by || n.created_by || 'Admin',
             posted_date: n.posted_date || (n.created_at ? new Date(n.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]),
+            expiry_date: n.expiry_date || '',
+            target_audience: n.target_audience || 'All Residents',
             society_id: n.society_id || socId,
             status: n.status || 'Active',
-            is_pinned: !!n.is_pinned
+            is_pinned: !!n.is_pinned,
+            attachment_url: n.attachment_url || '',
+            attachment_name: n.attachment_name || '',
+            attachment_type: n.attachment_type || '',
+            attachment_size: n.attachment_size ? Number(n.attachment_size) : undefined,
+            acknowledgements: Array.isArray(n.acknowledgements) ? n.acknowledgements : [],
+            views: Array.isArray(n.views) ? n.views : (Array.isArray(n.acknowledgements) ? n.acknowledgements : []),
+            publisher_id: n.publisher_id || '',
+            publisher_role: n.publisher_role || 'Society Administration',
+            publisher_avatar: n.publisher_avatar || '',
+            created_at: n.created_at || new Date().toISOString()
           })) as Notice[];
         }
         if (error) checkRateLimitError(error);
       } catch (err) {
         checkRateLimitError(err);
       }
-      return [] as Notice[];
-    }, [] as Notice[], 15000);
+
+      // Check localStorage for offline/cached edits or additions
+      try {
+        const local = localStorage.getItem(storageKey);
+        if (local) {
+          const parsed: Notice[] = JSON.parse(local);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            // Merge with local changes preserving unique views and local creations
+            const dbMap = new Map(dbNotices.map(n => [n.notice_id, n]));
+            parsed.forEach(localNotice => {
+              if (!dbMap.has(localNotice.notice_id)) {
+                dbNotices.push(localNotice);
+              } else {
+                // Merge views and acknowledgements
+                const existing = dbMap.get(localNotice.notice_id)!;
+                const mergedViews = Array.from(new Set([...(existing.views || []), ...(localNotice.views || [])]));
+                const mergedAcks = Array.from(new Set([...(existing.acknowledgements || []), ...(localNotice.acknowledgements || [])]));
+                Object.assign(existing, {
+                  ...localNotice,
+                  views: mergedViews,
+                  acknowledgements: mergedAcks
+                });
+              }
+            });
+            return dbNotices.length > 0 ? dbNotices : parsed;
+          }
+        }
+      } catch {
+        // ignore parse error
+      }
+
+      if (dbNotices.length > 0) {
+        localStorage.setItem(storageKey, JSON.stringify(dbNotices));
+        return dbNotices;
+      }
+
+      // Fallback to initialNotices
+      localStorage.setItem(storageKey, JSON.stringify(initialNotices));
+      return [...initialNotices];
+    }, [...initialNotices], 15000);
   },
 
   async createNotice(noticeData: Partial<Notice>) {
@@ -1933,7 +1984,13 @@ export const societyService = {
       society_id: socId,
       attachment_url: noticeData.attachment_url || '',
       attachment_name: noticeData.attachment_name || '',
+      attachment_type: noticeData.attachment_type || '',
+      attachment_size: noticeData.attachment_size,
       acknowledgements: noticeData.acknowledgements || [],
+      views: noticeData.views || (noticeData.posted_by ? ['A001'] : []),
+      publisher_id: noticeData.publisher_id || 'A001',
+      publisher_role: noticeData.publisher_role || 'Society Administration',
+      publisher_avatar: noticeData.publisher_avatar || '',
       created_at: new Date().toISOString()
     };
 
@@ -1949,10 +2006,13 @@ export const societyService = {
       // fallback
     }
 
+    // Invalidate query cache
+    invalidateCache(`notices_${socId}`);
+
     // Update localStorage
     const local = localStorage.getItem(storageKey);
     const list: Notice[] = local ? JSON.parse(local) : [...initialNotices];
-    const updatedList = [newNotice, ...list];
+    const updatedList = [newNotice, ...list.filter(n => n.notice_id !== noticeId)];
     localStorage.setItem(storageKey, JSON.stringify(updatedList));
 
     return newNotice;
@@ -1970,6 +2030,8 @@ export const societyService = {
     } catch {
       // ignore
     }
+
+    invalidateCache(`notices_${socId}`);
 
     const local = localStorage.getItem(storageKey);
     const list: Notice[] = local ? JSON.parse(local) : [...initialNotices];
@@ -1994,6 +2056,8 @@ export const societyService = {
     } catch {
       // ignore
     }
+
+    invalidateCache(`notices_${socId}`);
 
     const local = localStorage.getItem(storageKey);
     const list: Notice[] = local ? JSON.parse(local) : [...initialNotices];
@@ -2020,6 +2084,93 @@ export const societyService = {
       return this.updateNotice(noticeId, { acknowledgements: acks, society_id: socId });
     }
     return null;
+  },
+
+  async recordNoticeView(noticeId: string, userId: string, societyId?: string): Promise<Notice | null> {
+    if (!noticeId || !userId) return null;
+    const socId = societyId || 'GV2026';
+    const storageKey = `towertech_notices_${socId}`;
+
+    try {
+      const local = localStorage.getItem(storageKey);
+      const list: Notice[] = local ? JSON.parse(local) : [...initialNotices];
+      const notice = list.find(n => n.notice_id === noticeId);
+      if (notice) {
+        const currentViews = Array.isArray(notice.views) ? [...notice.views] : [];
+        if (currentViews.includes(userId)) {
+          // Already viewed by this authenticated user, prevent duplicate increment
+          return notice;
+        }
+        currentViews.push(userId);
+        return await this.updateNotice(noticeId, { views: currentViews, society_id: socId });
+      }
+    } catch {
+      // fallback
+    }
+    return null;
+  },
+
+  async uploadNoticeAttachment(file: File, societyId?: string): Promise<{
+    attachment_url: string;
+    attachment_name: string;
+    attachment_type: string;
+    attachment_size: number;
+  }> {
+    const socId = societyId || 'GV2026';
+    const originalFileName = file.name;
+    const fileSize = file.size;
+    const fileExt = originalFileName.split('.').pop()?.toLowerCase() || 'pdf';
+    const mimeType = file.type || (fileExt === 'pdf' ? 'application/pdf' : 'image/jpeg');
+
+    // 1. Validation
+    const allowedExts = ['pdf', 'jpg', 'jpeg', 'png', 'webp'];
+    const allowedMimes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (!allowedExts.includes(fileExt) && !allowedMimes.includes(mimeType)) {
+      throw new Error('Invalid file type. Only PDF, JPG, PNG, and WEBP files are supported.');
+    }
+
+    if (fileSize > 10 * 1024 * 1024) {
+      throw new Error('File size exceeds 10 MB limit. Please upload a smaller document or image.');
+    }
+
+    const timestamp = Date.now();
+    const cleanName = originalFileName.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const storagePath = `notices/${socId}/${timestamp}_${cleanName}`;
+
+    // 2. Try Supabase storage upload
+    let finalUrl = '';
+    try {
+      const bucket = 'media';
+      const { data, error } = await supabase.storage
+        .from(bucket)
+        .upload(storagePath, file, { contentType: mimeType, upsert: true });
+
+      if (!error && data) {
+        const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(storagePath);
+        if (urlData?.publicUrl) {
+          finalUrl = urlData.publicUrl;
+        }
+      }
+    } catch {
+      // ignore
+    }
+
+    // Fallback: If upload failed or storage is unconfigured, create an in-browser Data URL for local persistence
+    if (!finalUrl) {
+      finalUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = () => reject(new Error('Failed to read file locally'));
+        reader.readAsDataURL(file);
+      });
+    }
+
+    return {
+      attachment_url: finalUrl,
+      attachment_name: originalFileName,
+      attachment_type: mimeType,
+      attachment_size: fileSize
+    };
   },
 
   // ==========================================

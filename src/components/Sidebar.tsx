@@ -188,7 +188,7 @@ export default function Sidebar({
                 </span>
               </div>
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
-                Joyville Sensorium
+                Green Park Residency
               </p>
             </div>
           </div>
@@ -258,7 +258,7 @@ export default function Sidebar({
               <HelpCircle className="w-4 h-4" />
             </div>
             <p className="text-xs font-bold text-white tracking-tight">Need Help with Dash?</p>
-            <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Joyville support desk is active</p>
+            <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Green Park support desk is active</p>
             <button
               onClick={() => setActiveTab('communication')}
               className="mt-3 w-full py-2 bg-[#1d72fe] hover:bg-blue-600 active:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer"

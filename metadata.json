@@ -1,6 +1,7 @@
 {
-  "name": "TowerTech-Society final project 001",
-  "description": "A comprehensive society management system with admin, resident, and security dashboards for tracking maintenance, complaints, bookings, and visitor management.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "name": "TowerTech Society Management",
+  "description": "A comprehensive society management system for Green Park Residency, featuring role-based dashboards, maintenance billing, visitor management, and financial reporting.",
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
 }

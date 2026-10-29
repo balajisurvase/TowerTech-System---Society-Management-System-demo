@@ -40,6 +40,7 @@ export default function TopHeader({
   const [searchQuery, setSearchQuery] = useState('');
 
   const isAdmin = user.role === 'admin' || !!user.admin_id;
+  const isManagement = isAdmin;
   const isSecurity = user.role === 'security';
 
   const flatDisplay = user.flat ? (user.tower ? `${user.tower}-${user.flat}` : `Flat ${user.flat}`) : (user.resident_id || user.tenant_id || '');
@@ -58,16 +59,16 @@ export default function TopHeader({
   const isManagement = activeTab === 'maintenance' || activeTab === 'financial' || activeTab === 'bookings' || activeTab === 'complaints';
 
   return (
-    <header className="sticky top-0 z-50 bg-[#542d87] text-white shadow-md font-sans">
+    <header className="sticky top-0 z-50 bg-[#0b1739] text-white shadow-md font-sans">
       {/* Top Bar: Brand, Search, Notifications, Avatar */}
-      <div className="w-full px-4 md:px-6 py-2.5 flex items-center justify-between gap-4 border-b border-purple-900/30">
+      <div className="w-full px-4 md:px-6 py-2.5 flex items-center justify-between gap-4 border-b border-slate-800">
         
         {/* Left Section: Brand Logo + Hamburger */}
         <div className="flex items-center gap-3">
           {onToggleMobileNav && (
             <button 
               onClick={onToggleMobileNav}
-              className="md:hidden p-1.5 rounded-lg text-purple-200 hover:text-white hover:bg-white/10 transition-colors"
+              className="md:hidden p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
               aria-label="Toggle menu"
             >
               <Menu className="w-5 h-5" />
@@ -79,17 +80,17 @@ export default function TopHeader({
             onClick={() => setActiveTab('dashboard')}
             className="flex items-center gap-2.5 text-left group cursor-pointer"
           >
-            <div className="w-8 h-8 rounded-lg bg-white/15 text-white flex items-center justify-center font-black shadow-inner border border-white/20">
+            <div className="w-8 h-8 rounded-xl bg-[#1d72fe] text-white flex items-center justify-center font-black shadow-md shadow-blue-500/30 border border-blue-400/30">
               <Building2 className="w-4 h-4 text-white" />
             </div>
             <div>
               <div className="flex items-center gap-1.5 leading-none">
                 <span className="text-base font-black text-white tracking-tight">
-                  TowerTech<span className="text-orange-400">.</span>
+                  TowerTech<span className="text-[#1d72fe]">.</span>
                 </span>
               </div>
-              <span className="text-[11px] font-extrabold text-orange-300 block leading-tight mt-0.5 tracking-wide">
-                Joyville Sensorium {flatDisplay && `· ${flatDisplay}`}
+              <span className="text-[11px] font-extrabold text-blue-300 block leading-tight mt-0.5 tracking-wide">
+                Green Park Residency {flatDisplay && `· ${flatDisplay}`}
               </span>
             </div>
           </button>
@@ -101,7 +102,7 @@ export default function TopHeader({
           {/* 🔍 Search Icon */}
           <button
             onClick={() => setShowSearchModal(true)}
-            className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-all active:scale-95 cursor-pointer"
+            className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-all active:scale-95 cursor-pointer border border-white/10"
             title="Search Features, Residents & Bills"
           >
             <Search className="w-4 h-4" />
@@ -111,26 +112,26 @@ export default function TopHeader({
           <div className="relative">
             <button
               onClick={() => setShowNotifications(!showNotifications)}
-              className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-all relative active:scale-95 cursor-pointer"
+              className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-all relative active:scale-95 cursor-pointer border border-white/10"
               title="Notifications"
             >
               <Bell className="w-4 h-4" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-orange-500 rounded-full ring-2 ring-[#542d87]"></span>
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#1d72fe] rounded-full ring-2 ring-[#0b1739]"></span>
             </button>
 
             {/* Notifications Dropdown */}
             {showNotifications && (
-              <div className="absolute top-full right-0 mt-2 w-80 bg-white text-slate-800 rounded-xl shadow-2xl border border-slate-200 p-3 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+              <div className="absolute top-full right-0 mt-2 w-80 bg-white text-slate-800 rounded-2xl shadow-2xl border border-slate-200 p-3 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
                 <div className="flex items-center justify-between px-2 pb-2 border-b border-slate-100 mb-2">
-                  <h4 className="text-xs font-black text-[#542d87] uppercase tracking-wider">Notifications</h4>
-                  <span className="text-[10px] font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded">3 New</span>
+                  <h4 className="text-xs font-black text-[#0b1739] uppercase tracking-wider">Notifications</h4>
+                  <span className="text-[10px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100">3 New</span>
                 </div>
                 <div className="space-y-2">
                   {sampleNotifications.map((n) => {
                     const Icon = n.icon;
                     return (
-                      <div key={n.id} className="flex items-start gap-3 p-2 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer">
-                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${n.color}`}>
+                      <div key={n.id} className="flex items-start gap-3 p-2 hover:bg-slate-50 rounded-xl transition-colors cursor-pointer">
+                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${n.color}`}>
                           <Icon className="w-4 h-4" />
                         </div>
                         <div className="min-w-0 flex-1">
@@ -146,7 +147,7 @@ export default function TopHeader({
                     setActiveTab('notices');
                     setShowNotifications(false);
                   }}
-                  className="w-full mt-3 py-2 bg-[#542d87] hover:bg-[#462372] text-white font-bold text-xs rounded-lg transition-colors text-center block uppercase tracking-wider cursor-pointer"
+                  className="w-full mt-3 py-2.5 bg-[#0b1739] hover:bg-[#15234f] text-white font-bold text-xs rounded-xl transition-colors text-center block uppercase tracking-wider cursor-pointer shadow-sm"
                 >
                   View All Notices
                 </button>
@@ -158,28 +159,28 @@ export default function TopHeader({
           <div className="relative">
             <button
               onClick={() => setShowProfileMenu(!showProfileMenu)}
-              className="flex items-center gap-2 bg-white/10 hover:bg-white/20 p-1.5 pl-2.5 rounded-lg text-white font-bold text-xs transition-all active:scale-95 cursor-pointer"
+              className="flex items-center gap-2 bg-white/10 hover:bg-white/20 p-1.5 pl-2.5 rounded-xl text-white font-bold text-xs transition-all active:scale-95 cursor-pointer border border-white/10"
             >
               <span className="hidden sm:inline max-w-[100px] truncate">{user.name || 'User'}</span>
-              <div className="w-6 h-6 rounded-full bg-orange-500 text-white font-black text-xs flex items-center justify-center shadow-xs">
+              <div className="w-6 h-6 rounded-full bg-[#1d72fe] text-white font-black text-xs flex items-center justify-center shadow-xs">
                 {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
               </div>
             </button>
 
             {showProfileMenu && (
-              <div className="absolute top-full right-0 mt-2 w-48 bg-white text-slate-800 rounded-xl shadow-2xl border border-slate-200 p-2 z-50 animate-in fade-in duration-100">
+              <div className="absolute top-full right-0 mt-2 w-48 bg-white text-slate-800 rounded-2xl shadow-2xl border border-slate-200 p-2 z-50 animate-in fade-in duration-100">
                 <div className="px-3 py-2 border-b border-slate-100">
                   <p className="text-xs font-bold text-slate-900 truncate">{user.name}</p>
-                  <p className="text-[10px] font-bold text-[#542d87] truncate">{user.admin_role || user.role || 'Resident'}</p>
+                  <p className="text-[10px] font-bold text-[#1d72fe] truncate">{user.admin_role || (user.role === 'admin' ? 'Chairman' : user.role === 'security' ? 'Security Staff' : (user.occupancy_type === 'Tenant' ? 'Tenant' : 'Owner'))}</p>
                 </div>
                 <button
                   onClick={() => {
                     setActiveTab('profile');
                     setShowProfileMenu(false);
                   }}
-                  className="w-full text-left px-3 py-2 text-xs font-medium text-slate-700 hover:bg-purple-50 rounded-lg flex items-center gap-2 mt-1"
+                  className="w-full text-left px-3 py-2 text-xs font-medium text-slate-700 hover:bg-blue-50 rounded-xl flex items-center gap-2 mt-1 transition-colors"
                 >
-                  <UserIcon className="w-3.5 h-3.5 text-[#542d87]" />
+                  <UserIcon className="w-3.5 h-3.5 text-[#1d72fe]" />
                   <span>My Profile</span>
                 </button>
                 <button
@@ -187,7 +188,7 @@ export default function TopHeader({
                     onLogout();
                     setShowProfileMenu(false);
                   }}
-                  className="w-full text-left px-3 py-2 text-xs font-medium text-rose-600 hover:bg-rose-50 rounded-lg flex items-center gap-2 mt-1"
+                  className="w-full text-left px-3 py-2 text-xs font-medium text-rose-600 hover:bg-rose-50 rounded-xl flex items-center gap-2 mt-1 transition-colors"
                 >
                   <LogOut className="w-3.5 h-3.5 text-rose-600" />
                   <span>Sign Out</span>

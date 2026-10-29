@@ -34,13 +34,22 @@ import {
   Tooltip, 
   ResponsiveContainer 
 } from 'recharts';
-import { Finance, FinanceType, PaymentMode, PaymentStatus, Resident, MaintenanceRecord, User } from '../types';
+import { 
+  Users, 
+  Building2, 
+  Briefcase, 
+  Phone, 
+  ShieldCheck 
+} from 'lucide-react';
+import { Finance, FinanceType, PaymentMode, PaymentStatus, Resident, MaintenanceRecord, User, StaffSalaryRecord, ServiceContract } from '../types';
 import { societyService } from '../lib/societyService';
 import { toast } from 'sonner';
 import { 
   AddEditFinanceWorkspace, 
   ViewFinanceVoucherWorkspace, 
-  FinanceStatementWorkspace 
+  FinanceStatementWorkspace,
+  AddEditStaffSalaryWorkspace,
+  AddEditServiceContractWorkspace
 } from './workspaces/FinanceWorkspaces';
 
 interface FinanceDashboardProps {
@@ -127,7 +136,11 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
   // 1. Admin-only Authorization Guard
   const isAdmin = user.role === 'admin' || !!user.admin_id;
 
+  const [moduleTab, setModuleTab] = useState<'ledger' | 'salaries' | 'services'>('ledger');
   const [finances, setFinances] = useState<Finance[]>([]);
+  const [staffSalaries, setStaffSalaries] = useState<StaffSalaryRecord[]>([]);
+  const [serviceContracts, setServiceContracts] = useState<ServiceContract[]>([]);
+
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTypeTab, setActiveTypeTab] = useState<'All' | FinanceType | 'PendingDues'>('All');
@@ -143,6 +156,12 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
   const [editingFinance, setEditingFinance] = useState<Finance | null>(null);
   const [submitting, setSubmitting] = useState(false);
   
+  // Staff Salary & Service Contract Modals
+  const [showSalaryModal, setShowSalaryModal] = useState(false);
+  const [editingSalary, setEditingSalary] = useState<StaffSalaryRecord | null>(null);
+  const [showContractModal, setShowContractModal] = useState(false);
+  const [editingContract, setEditingContract] = useState<ServiceContract | null>(null);
+
   // Voucher / Receipt Modal
   const [selectedReceipt, setSelectedReceipt] = useState<Finance | null>(null);
   
@@ -185,8 +204,32 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
     }
   };
 
+  const loadSalaries = async () => {
+    if (!isAdmin) return;
+    try {
+      const data = await societyService.getStaffSalaries(user.society_id);
+      setStaffSalaries(data);
+    } catch (e) {
+      console.warn('Error loading salaries:', e);
+    }
+  };
+
+  const loadContracts = async () => {
+    if (!isAdmin) return;
+    try {
+      const data = await societyService.getServiceContracts(user.society_id);
+      setServiceContracts(data);
+    } catch (e) {
+      console.warn('Error loading service contracts:', e);
+    }
+  };
+
   useEffect(() => {
-    loadFinances();
+    if (isAdmin) {
+      loadFinances();
+      loadSalaries();
+      loadContracts();
+    }
   }, [user.society_id, isAdmin]);
 
   // If user is not admin, show access denied

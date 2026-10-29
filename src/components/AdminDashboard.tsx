@@ -90,6 +90,7 @@ interface AdminDashboardProps {
   maintenance: MaintenanceRecord[];
   complaints: Complaint[];
   bookings: Booking[];
+  notices: Notice[];
   onRefresh: () => void;
   onUserUpdate?: (updatedUser: Partial<User>) => void;
 }
@@ -149,6 +150,7 @@ export default function AdminDashboard({
   const [residentStatusFilter, setResidentStatusFilter] = useState<'All' | 'Active' | 'Inactive'>('All');
 
   const [complaintFilter, setComplaintFilter] = useState<'All' | 'Pending' | 'Process' | 'Done' | 'Rejected'>('All');
+  const [complaintCategoryFilter, setComplaintCategoryFilter] = useState<string>('All');
   const [bookingFilter, setBookingFilter] = useState<'All' | 'Pending' | 'Approved' | 'Rejected'>('All');
   const [amenities, setAmenities] = useState<Amenity[]>([]);
   const [dbError, setDbError] = useState<string | null>(null);
@@ -887,7 +889,8 @@ export default function AdminDashboard({
                           String(c.complaint_id || '').toLowerCase().includes(searchTerm.toLowerCase());
       const matchesStatus = complaintFilter === 'All' ? true : 
                            (complaintFilter === 'Done' ? (c.status === 'Done' || c.status === 'Resolved') : c.status === complaintFilter);
-      return matchesSearch && matchesStatus;
+      const matchesCategory = complaintCategoryFilter === 'All' ? true : c.category === complaintCategoryFilter;
+      return matchesSearch && matchesStatus && matchesCategory;
     })
     .sort((a, b) => {
       const idA = String(a.complaint_id || a.id || '');
@@ -1012,8 +1015,16 @@ export default function AdminDashboard({
       case 'dashboard':
         const recentComplaints = complaints.slice(0, 5);
         const recentBookings = bookings.slice(0, 5);
-        const ownerCount = residents.filter(r => (r.role || r.occupancy_type) === 'Owner').length;
-        const tenantCount = residents.filter(r => (r.role || r.occupancy_type) === 'Tenant').length;
+        const activeResidents = residents.filter(r => (r.status || 'Active') === 'Active');
+        const ownerCount = activeResidents.filter(r => (r.role || r.occupancy_type) === 'Owner').length;
+        const tenantCount = activeResidents.filter(r => (r.role || r.occupancy_type) === 'Tenant').length;
+        const totalActiveResidentsCount = activeResidents.length;
+        
+        // Find notice count for card replacement
+        // Note: notices are fetched in NoticeBoard, but here we might not have them.
+        // I'll check if we have a societyService call to get count or just use a placeholder if not passed.
+        // Actually, I should probably pass notices to AdminDashboard if I want to show count.
+        // But for now, let's just fix the active resident count.
 
         return (
           <div className="flex flex-col gap-6 w-full">
@@ -1024,27 +1035,27 @@ export default function AdminDashboard({
               {/* Left Content */}
               <div className="space-y-4 max-w-2xl relative z-10 text-left">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/30 text-xs font-black uppercase tracking-wider">
-                  <Building2 className="w-3.5 h-3.5 text-blue-400" />
-                  <span>Green Park Residency • TowerTech System</span>
+                   <Building2 className="w-3.5 h-3.5 text-blue-400" />
+                   <span>Green Park Residency • TowerTech System</span>
                 </div>
 
                 <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-white leading-tight">
-                  Welcome to Green Park Residency
+                  Welcome back, {user.admin_role || 'Chairman'}
                 </h2>
 
                 <p className="text-slate-300 text-xs sm:text-sm font-medium leading-relaxed">
-                  Official portal for Green Park Residency. Manage residents, maintenance payments, complaints, visitor passes, notices and amenities.
+                  Official Management portal for Green Park Residency. Oversee residents, maintenance billing, society notices, and financial health.
                 </p>
 
                 {/* Quick User Badges */}
                 <div className="flex flex-wrap gap-2.5 pt-1">
                   <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-xl border border-white/10 text-xs font-bold text-white">
                     <UserIcon className="w-3.5 h-3.5 text-blue-300" />
-                    <span>Admin: {user.name}</span>
+                    <span>Role: {user.admin_role || 'Chairman'}</span>
                   </div>
                   <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-xl border border-white/10 text-xs font-bold text-white">
-                    <Star className="w-3.5 h-3.5 text-amber-300" />
-                    <span>Role: {user.admin_role || user.role || 'Chairman'}</span>
+                    <Megaphone className="w-3.5 h-3.5 text-amber-300" />
+                    <span>Notices: {(notices || []).length} Active</span>
                   </div>
                   <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-xl border border-white/10 text-xs font-bold text-white">
                     <Shield className="w-3.5 h-3.5 text-emerald-300" />
@@ -1059,24 +1070,41 @@ export default function AdminDashboard({
                     className="px-5 py-2.5 bg-[#2563EB] hover:bg-blue-700 text-white rounded-xl text-xs font-extrabold shadow-lg shadow-blue-600/30 transition-all cursor-pointer uppercase tracking-wider flex items-center gap-2"
                   >
                     <Users className="w-4 h-4" />
-                    <span>View Residents</span>
+                    <span>Manage Residents</span>
                   </button>
                   <button
                     onClick={() => setActiveTab('maintenance')}
                     className="px-5 py-2.5 bg-[#059669] hover:bg-emerald-700 text-white rounded-xl text-xs font-extrabold shadow-lg shadow-emerald-600/30 transition-all cursor-pointer uppercase tracking-wider flex items-center gap-2"
                   >
                     <CreditCard className="w-4 h-4" />
-                    <span>Maintenance</span>
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('notices')}
-                    className="px-5 py-2.5 bg-[#6D28D9] hover:bg-purple-800 text-white rounded-xl text-xs font-extrabold shadow-lg shadow-purple-600/30 transition-all cursor-pointer uppercase tracking-wider flex items-center gap-2"
-                  >
-                    <Megaphone className="w-4 h-4" />
-                    <span>Publish Notice</span>
+                    <span>Maintenance Ledger</span>
                   </button>
                 </div>
               </div>
+
+              {/* Right Content: Stats Grid */}
+              <div className="grid grid-cols-2 gap-4 w-full lg:w-72 relative z-10">
+                <div className="bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-2xl flex flex-col items-center justify-center text-center">
+                  <span className="text-[10px] font-black text-blue-300 uppercase tracking-widest block mb-1">Active Residents</span>
+                  <span className="text-2xl font-black text-white">{activeResidents.length}</span>
+                </div>
+                <div className="bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-2xl flex flex-col items-center justify-center text-center">
+                  <span className="text-[10px] font-black text-amber-300 uppercase tracking-widest block mb-1">Notice Count</span>
+                  <span className="text-2xl font-black text-white">{(notices || []).length}</span>
+                </div>
+                <div className="bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-2xl flex flex-col items-center justify-center text-center">
+                  <span className="text-[10px] font-black text-emerald-300 uppercase tracking-widest block mb-1">Total Owners</span>
+                  <span className="text-2xl font-black text-white">{ownerCount}</span>
+                </div>
+                <div className="bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-2xl flex flex-col items-center justify-center text-center">
+                  <span className="text-[10px] font-black text-rose-300 uppercase tracking-widest block mb-1">Total Tenants</span>
+                  <span className="text-2xl font-black text-white">{tenantCount}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* 2. MANAGEMENT STATS ROW */}
+            <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
 
               {/* Right Society Image Visual (Requirement 7) */}
               <div className="relative z-10 shrink-0 w-full lg:w-auto flex justify-center">
@@ -1110,8 +1138,8 @@ export default function AdminDashboard({
                   </div>
                 </div>
                 <div className="mt-3">
-                  <h3 className="text-3xl sm:text-4xl font-black text-white font-mono tracking-tight">{totalResidentsCount}</h3>
-                  <p className="text-xs font-bold text-white/90 mt-0.5">Active resident units</p>
+                  <h3 className="text-3xl sm:text-4xl font-black text-white font-mono tracking-tight">{totalActiveResidentsCount}</h3>
+                  <p className="text-xs font-bold text-white/90 mt-0.5">Active residents only</p>
                 </div>
               </button>
 
@@ -1132,20 +1160,20 @@ export default function AdminDashboard({
                 </div>
               </button>
 
-              {/* CARD 3: PENDING AMOUNT (Solid Orange #EA580C) */}
+              {/* CARD 3: NOTICE BOARD COUNT (Solid Orange #EA580C) */}
               <button
-                onClick={() => setActiveTab('maintenance')}
+                onClick={() => setActiveTab('notices')}
                 className="bg-[#EA580C] rounded-2xl p-5 shadow-lg shadow-orange-500/20 text-white text-left flex flex-col justify-between transition-all hover:scale-[1.02] cursor-pointer"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-black uppercase tracking-wider text-white">PENDING AMOUNT</span>
+                  <span className="text-[11px] font-black uppercase tracking-wider text-white">ACTIVE NOTICES</span>
                   <div className="w-9 h-9 rounded-xl bg-white/20 text-white flex items-center justify-center font-black backdrop-blur-xs">
-                    <AlertCircle className="w-5 h-5 text-white" />
+                    <Megaphone className="w-5 h-5 text-white" />
                   </div>
                 </div>
                 <div className="mt-3">
-                  <h3 className="text-3xl sm:text-4xl font-black text-white font-mono tracking-tight">₹{totalPendingAmount.toLocaleString('en-IN')}</h3>
-                  <p className="text-xs font-bold text-white/90 mt-0.5">Outstanding maintenance</p>
+                  <h3 className="text-3xl sm:text-4xl font-black text-white font-mono tracking-tight">{notices.filter(n => n.status === 'Active').length}</h3>
+                  <p className="text-xs font-bold text-white/90 mt-0.5">Active announcements</p>
                 </div>
               </button>
 
@@ -2771,29 +2799,40 @@ export default function AdminDashboard({
       case 'complaints': {
         return (
           <div className="flex flex-col gap-6">
-            <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-              <div className="p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-50/50">
+            <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden flex flex-col flex-1 min-h-0">
+              <div className="p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-50/50 shrink-0">
                 <div>
                   <h3 className="text-xl font-extrabold text-slate-900 tracking-tight">Complaint Management</h3>
                   <p className="text-xs font-medium text-slate-500 mt-1">Track and resolve resident issues reported by residents.</p>
                 </div>
-                <div className="flex items-center gap-3">
-                  <div className="relative w-full md:w-64">
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="relative w-full md:w-56">
                     <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                     <input
                       type="text"
-                      placeholder="Search complaints..."
+                      placeholder="Search..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="pl-9 pr-4 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-500 text-xs font-medium w-full bg-white shadow-sm"
                     />
                   </div>
-                  <div className="flex items-center gap-3 bg-white p-1.5 rounded-2xl shadow-sm border border-slate-200">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-3">Filter</span>
+                  <div className="flex items-center gap-2 bg-white p-1 rounded-xl shadow-sm border border-slate-200">
+                    <select 
+                      value={complaintCategoryFilter}
+                      onChange={(e) => setComplaintCategoryFilter(e.target.value)}
+                      className="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-slate-50 outline-none text-slate-600 hover:text-indigo-600 cursor-pointer border-none"
+                    >
+                      <option value="All">All Categories</option>
+                      {Array.from(new Set(complaints.map(c => c.category))).sort().map(cat => (
+                        <option key={cat} value={cat}>{cat}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="flex items-center gap-2 bg-white p-1 rounded-xl shadow-sm border border-slate-200">
                     <select 
                       value={complaintFilter}
-                      onChange={(e) => setComplaintFilter(e.target.value as 'All' | 'Pending' | 'Process' | 'Done' | 'Rejected')}
-                      className="px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest bg-slate-50 outline-none text-slate-600 hover:text-indigo-600 cursor-pointer border border-slate-100"
+                      onChange={(e) => setComplaintFilter(e.target.value as any)}
+                      className="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-slate-50 outline-none text-slate-600 hover:text-indigo-600 cursor-pointer border-none"
                     >
                       <option value="All">All Status</option>
                       <option value="Pending">Pending</option>
@@ -2804,15 +2843,15 @@ export default function AdminDashboard({
                   </div>
                   <button 
                     onClick={handleDeleteAllComplaints}
-                    className="px-4 py-2 bg-rose-50 text-rose-600 text-[10px] font-black rounded-xl hover:bg-rose-100 transition-all border border-rose-100 flex items-center gap-2 uppercase tracking-widest"
+                    className="p-2 bg-rose-50 text-rose-600 rounded-xl hover:bg-rose-100 transition-all border border-rose-100 flex items-center gap-2"
+                    title="Delete All"
                   >
                     <Trash2 className="w-4 h-4" />
-                    Delete All
                   </button>
                 </div>
               </div>
 
-              <div className="overflow-x-auto">
+              <div className="overflow-auto flex-1 custom-scrollbar">
                 <table className="w-full text-left border-collapse">
                   <thead className="bg-slate-50 border-b border-slate-100">
                     <tr className="text-slate-400 text-[9px] font-black uppercase tracking-widest">

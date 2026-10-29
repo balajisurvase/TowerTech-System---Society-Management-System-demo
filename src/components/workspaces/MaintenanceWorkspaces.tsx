@@ -43,15 +43,14 @@ export function GenerateBillWorkspace({
   currentMonth
 }: GenerateBillWorkspaceProps) {
   const now = new Date();
-  const [billMode, setBillMode] = useState<'single' | 'bulk'>('single');
-  const [selectedResidentId, setSelectedResidentId] = useState<string>(residents[0]?.resident_id || '');
+  const [billMode] = useState<'bulk'>('bulk');
+  const [selectedResidentId] = useState<string>(residents[0]?.resident_id || '');
   const [billingMonth, setBillingMonth] = useState<string>(currentMonth);
   const [billingYear, setBillingYear] = useState<number>(now.getFullYear());
   const [calcMethod, setCalcMethod] = useState<'fixed' | 'flat_type' | 'sqft'>('flat_type');
   
-  // Single bill charges
+  // Bulk bill charges
   const [baseAmount, setBaseAmount] = useState<number>(2500);
-  const [previousDue, setPreviousDue] = useState<number>(0);
   const [sinkingFund, setSinkingFund] = useState<number>(250);
   const [waterCharges, setWaterCharges] = useState<number>(150);
   const [lateFeeRule, setLateFeeRule] = useState<number>(100);
@@ -61,65 +60,26 @@ export function GenerateBillWorkspace({
   const [notes, setNotes] = useState<string>('Monthly maintenance and common facility charges.');
   const [submitting, setSubmitting] = useState(false);
 
-  // Selected resident details
-  const selectedResident = residents.find(r => r.resident_id === selectedResidentId) || residents[0];
+  // Selected resident details (not needed for bulk but keeping for context if needed)
+  const selectedResident = residents[0];
 
   // Auto calculate based on calc method
   const handleCalcMethodChange = (method: 'fixed' | 'flat_type' | 'sqft') => {
     setCalcMethod(method);
-    if (!selectedResident) return;
 
     if (method === 'fixed') {
       setBaseAmount(2500);
     } else if (method === 'flat_type') {
-      const bhk = selectedResident.bhk || '2 BHK';
-      if (bhk === '1 BHK') setBaseAmount(1800);
-      else if (bhk === '3 BHK') setBaseAmount(3500);
-      else setBaseAmount(2500);
+      setBaseAmount(2500);
     } else if (method === 'sqft') {
-      const sqft = selectedResident.square_feet || 620;
-      setBaseAmount(Math.round(sqft * 4)); // ₹4 per sqft
+      setBaseAmount(2500);
     }
   };
-
-  const handleResidentChange = (resId: string) => {
-    setSelectedResidentId(resId);
-    const res = residents.find(r => r.resident_id === resId);
-    if (!res) return;
-
-    if (calcMethod === 'flat_type') {
-      const bhk = res.bhk || '2 BHK';
-      if (bhk === '1 BHK') setBaseAmount(1800);
-      else if (bhk === '3 BHK') setBaseAmount(3500);
-      else setBaseAmount(2500);
-    } else if (calcMethod === 'sqft') {
-      const sqft = res.square_feet || 620;
-      setBaseAmount(Math.round(sqft * 4));
-    }
-  };
-
-  const totalPayable = baseAmount + previousDue + sinkingFund + waterCharges;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     try {
-      if (billMode === 'single') {
-        await onGenerate({
-          mode: 'single',
-          resident_id: selectedResidentId,
-          resident: selectedResident,
-          month: `${billingMonth} ${billingYear}`,
-          amount: totalPayable,
-          base_amount: baseAmount,
-          previous_due: previousDue,
-          sinking_fund: sinkingFund,
-          water_charges: waterCharges,
-          late_fee: lateFeeRule,
-          due_date: dueDate,
-          notes
-        });
-      } else {
         await onGenerate({
           mode: 'bulk',
           month: `${billingMonth} ${billingYear}`,
@@ -131,7 +91,6 @@ export function GenerateBillWorkspace({
           notes,
           calc_method: calcMethod
         });
-      }
     } finally {
       setSubmitting(false);
     }

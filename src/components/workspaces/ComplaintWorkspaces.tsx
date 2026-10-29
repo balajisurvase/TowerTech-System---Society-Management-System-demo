@@ -389,7 +389,7 @@ export function ViewComplaintWorkspace({
   onBack,
   onUpdateStatus
 }: ViewComplaintWorkspaceProps) {
-  const [adminComment, setAdminComment] = useState(complaint.admin_comment || '');
+  const [managementComment, setManagementComment] = useState(complaint.admin_comment || '');
   const [selectedStatus, setSelectedStatus] = useState<'Pending' | 'Process' | 'Done' | 'Rejected'>(
     (complaint.status as any) || 'Pending'
   );
@@ -573,8 +573,8 @@ export function ViewComplaintWorkspace({
               <div className="space-y-3">
                 <textarea
                   rows={4}
-                  value={adminComment}
-                  onChange={(e) => setAdminComment(e.target.value)}
+                  value={managementComment}
+                  onChange={(e) => setManagementComment(e.target.value)}
                   placeholder="Enter technician visit updates, work completion notes, or resident communication..."
                   className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-xs text-slate-800 bg-white"
                 />
@@ -626,7 +626,7 @@ export function ViewComplaintWorkspace({
             </div>
           </div>
 
-          {/* Admin Workflow Status Actions */}
+          {/* Management Workflow Status Actions */}
           {isAdmin && (
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
               <h3 className="text-xs font-black uppercase tracking-wider text-slate-400">

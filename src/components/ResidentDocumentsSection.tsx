@@ -381,9 +381,12 @@ export default function ResidentDocumentsSection({
                 {/* NOT UPLOADED STATE -> [ Upload Document ] Button opens full workspace */}
                 {!isUploaded ? (
                   isAdminReview ? (
-                    <span className="text-[11px] font-bold text-slate-400 bg-slate-100 px-3 py-1.5 rounded-xl">
-                      Pending Resident Upload
-                    </span>
+                    <div className="flex flex-col items-end gap-1">
+                      <span className="text-[10px] font-black text-amber-600 uppercase tracking-widest bg-amber-50 px-2 py-1 rounded-md border border-amber-100">
+                        Awaiting Upload
+                      </span>
+                      <p className="text-[9px] text-slate-400 font-medium italic">Resident has not submitted this yet</p>
+                    </div>
                   ) : (
                     <button
                       onClick={() => {
@@ -415,25 +418,29 @@ export default function ResidentDocumentsSection({
                       <span>View</span>
                     </button>
 
-                    <button
-                      onClick={() => {
-                        setActiveUploadDef(def);
-                        setWorkspaceMode('upload');
-                      }}
-                      className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center gap-1 transition-colors border border-slate-200 cursor-pointer"
-                      title="Upload New Version"
-                    >
-                      <Upload className="w-3.5 h-3.5 text-slate-500" />
-                      <span className="hidden sm:inline">Replace</span>
-                    </button>
+                    {!isAdminReview && (
+                      <button
+                        onClick={() => {
+                          setActiveUploadDef(def);
+                          setWorkspaceMode('upload');
+                        }}
+                        className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center gap-1 transition-colors border border-slate-200 cursor-pointer"
+                        title="Upload New Version"
+                      >
+                        <Upload className="w-3.5 h-3.5 text-slate-500" />
+                        <span className="hidden sm:inline">Replace</span>
+                      </button>
+                    )}
 
-                    <button
-                      onClick={() => handleDelete(uploadedDoc!)}
-                      className="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl transition-colors border border-rose-200 cursor-pointer"
-                      title="Delete Document"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    {!isAdminReview && (
+                      <button
+                        onClick={() => handleDelete(uploadedDoc!)}
+                        className="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl transition-colors border border-rose-200 cursor-pointer"
+                        title="Delete Document"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
                   </div>
                 )}
               </div>

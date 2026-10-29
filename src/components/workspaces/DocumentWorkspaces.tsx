@@ -505,7 +505,7 @@ export function UploadDocumentWorkspace({
 interface ViewDocumentWorkspaceProps {
   document: ResidentDocument;
   resident: Resident;
-  isAdminReview?: boolean;
+  managementReview?: boolean;
   onBack: () => void;
   onApprove?: (doc: ResidentDocument) => Promise<void>;
   onReject?: (doc: ResidentDocument, reason: string) => Promise<void>;
@@ -515,7 +515,7 @@ interface ViewDocumentWorkspaceProps {
 export function ViewDocumentWorkspace({
   document: doc,
   resident,
-  isAdminReview = false,
+  managementReview = false,
   onBack,
   onApprove,
   onReject,
@@ -623,7 +623,7 @@ export function ViewDocumentWorkspace({
             </a>
           )}
 
-          {isAdminReview && doc.status !== 'Verified' && onApprove && (
+          {managementReview && doc.status !== 'Verified' && onApprove && (
             <button
               type="button"
               onClick={handleApprove}
@@ -635,7 +635,7 @@ export function ViewDocumentWorkspace({
             </button>
           )}
 
-          {isAdminReview && doc.status !== 'Rejected' && onReject && !showRejectBox && (
+          {managementReview && doc.status !== 'Rejected' && onReject && !showRejectBox && (
             <button
               type="button"
               onClick={() => setShowRejectBox(true)}
