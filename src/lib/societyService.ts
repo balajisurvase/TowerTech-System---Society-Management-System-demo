@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import { Resident, MaintenanceRecord, Complaint, Booking, Society, Admin, Amenity, Media, Visitor, Role, Finance, Notice, Communication, ResidentDocument, DocumentStatus } from '../types';
+import { Resident, MaintenanceRecord, Complaint, Booking, Society, Admin, Amenity, Media, Visitor, Role, Finance, Notice, Communication, ResidentDocument, DocumentStatus, SocietyEvent, StaffSalaryRecord, ServiceContract } from '../types';
 import { initialAmenities, initialAdmins, initialResidents, initialSecurityUsers, initialVisitors, initialFinances, initialNotices, initialCommunications, initialResidentDocuments, OWNER_DOCUMENT_DEFINITIONS, TENANT_DOCUMENT_DEFINITIONS } from '../data';
 
 // Rate-limit resilience & in-memory cache
@@ -2662,6 +2662,136 @@ export const societyService = {
       return list[index];
     }
     return null;
+  },
+
+  // ==========================================
+  // SOCIETY EVENTS & CALENDAR
+  // ==========================================
+  async getEvents(societyId?: string): Promise<SocietyEvent[]> {
+    const socId = societyId || 'GV2026';
+    const storageKey = `towertech_events_${socId}`;
+    const defaultEvents: SocietyEvent[] = [
+      { event_id: 'EVT-001', title: 'Annual General Body Meeting (AGM)', category: 'Meeting', description: 'Discussion of audited balance sheets and committee elections.', event_date: '2026-10-05', start_time: '10:30 AM', end_time: '01:00 PM', location: 'Clubhouse Main Hall', organizer: 'Arya Sonawane (Chairman)', posted_by: 'Arya Sonawane', society_id: socId },
+      { event_id: 'EVT-002', title: 'Community Diwali Celebrations & Rangoli Contest', category: 'Event', description: 'Annual cultural night with music, games and prize distribution.', event_date: '2026-11-01', start_time: '06:00 PM', end_time: '10:00 PM', location: 'Central Amphitheater & Lawn', organizer: 'Balaji Survase (Secretary)', posted_by: 'Balaji Survase', society_id: socId },
+      { event_id: 'EVT-003', title: 'Routine Fire Safety & Evacuation Mock Drill', category: 'General', description: 'Fire extinguisher demonstration with local emergency responders.', event_date: '2026-10-18', start_time: '11:00 AM', end_time: '12:30 PM', location: 'Tower A & B Courtyard', organizer: 'Amit Jadhav (Security)', posted_by: 'Amit Jadhav', society_id: socId }
+    ];
+
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const stored = window.localStorage.getItem(storageKey);
+      if (stored) {
+        try {
+          return JSON.parse(stored);
+        } catch {
+          // ignore
+        }
+      }
+      window.localStorage.setItem(storageKey, JSON.stringify(defaultEvents));
+    }
+    return defaultEvents;
+  },
+
+  async createEvent(payload: Partial<SocietyEvent>): Promise<SocietyEvent> {
+    const socId = payload.society_id || 'GV2026';
+    const storageKey = `towertech_events_${socId}`;
+    const newEvent: SocietyEvent = {
+      event_id: `EVT-${Date.now()}`,
+      title: payload.title || 'Society Event',
+      category: payload.category || 'Event',
+      description: payload.description || '',
+      event_date: payload.event_date || new Date().toISOString().split('T')[0],
+      start_time: payload.start_time || '10:00 AM',
+      end_time: payload.end_time || '11:30 AM',
+      location: payload.location || 'Clubhouse',
+      organizer: payload.organizer || payload.posted_by || 'Society Admin',
+      posted_by: payload.posted_by || 'Society Admin',
+      society_id: socId,
+      created_at: new Date().toISOString()
+    };
+
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const existing = await this.getEvents(socId);
+      const updated = [newEvent, ...existing];
+      window.localStorage.setItem(storageKey, JSON.stringify(updated));
+    }
+    return newEvent;
+  },
+
+  async updateEvent(eventId: string, payload: Partial<SocietyEvent>): Promise<SocietyEvent> {
+    const socId = payload.society_id || 'GV2026';
+    const storageKey = `towertech_events_${socId}`;
+    const events = await this.getEvents(socId);
+    const index = events.findIndex(e => e.event_id === eventId || e.id === eventId);
+    if (index >= 0) {
+      events[index] = { ...events[index], ...payload };
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.setItem(storageKey, JSON.stringify(events));
+      }
+      return events[index];
+    }
+    return { event_id: eventId, title: payload.title || 'Event', event_date: payload.event_date || '', society_id: socId, ...payload };
+  },
+
+  async deleteEvent(eventId: string, societyId?: string): Promise<boolean> {
+    const socId = societyId || 'GV2026';
+    const storageKey = `towertech_events_${socId}`;
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const events = await this.getEvents(socId);
+      const filtered = events.filter(e => e.event_id !== eventId && e.id !== eventId);
+      window.localStorage.setItem(storageKey, JSON.stringify(filtered));
+    }
+    return true;
+  },
+
+  // ==========================================
+  // STAFF SALARIES & CONTRACTS
+  // ==========================================
+  async getStaffSalaries(societyId?: string): Promise<StaffSalaryRecord[]> {
+    const socId = societyId || 'GV2026';
+    const storageKey = `towertech_salaries_${socId}`;
+    const defaultSalaries: StaffSalaryRecord[] = [
+      { id: 'SAL-001', staff_id: 'S001', name: 'Amit Jadhav', role: 'Chief Security Officer', phone: '9002000001', salary: 28000, month: 'October 2026', payment_status: 'Paid', payment_date: '2026-10-01', payment_mode: 'Bank Transfer', society_id: socId },
+      { id: 'SAL-002', staff_id: 'S002', name: 'Rahul Patil', role: 'Security Guard (Day)', phone: '9002000002', salary: 22000, month: 'October 2026', payment_status: 'Paid', payment_date: '2026-10-01', payment_mode: 'Bank Transfer', society_id: socId },
+      { id: 'SAL-003', staff_id: 'S003', name: 'Suresh Shinde', role: 'Security Guard (Night)', phone: '9002000003', salary: 22000, month: 'October 2026', payment_status: 'Paid', payment_date: '2026-10-01', payment_mode: 'Bank Transfer', society_id: socId },
+      { id: 'SAL-004', staff_id: 'ST-004', name: 'Ramesh Mali', role: 'Head Gardener & Landscaper', phone: '9002000011', salary: 18500, month: 'October 2026', payment_status: 'Paid', payment_date: '2026-10-02', payment_mode: 'Bank Transfer', society_id: socId },
+      { id: 'SAL-005', staff_id: 'ST-005', name: 'Sunita Kamble', role: 'Housekeeping Supervisor', phone: '9002000012', salary: 19000, month: 'October 2026', payment_status: 'Paid', payment_date: '2026-10-02', payment_mode: 'Bank Transfer', society_id: socId }
+    ];
+
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const stored = window.localStorage.getItem(storageKey);
+      if (stored) {
+        try {
+          return JSON.parse(stored);
+        } catch {
+          // ignore
+        }
+      }
+      window.localStorage.setItem(storageKey, JSON.stringify(defaultSalaries));
+    }
+    return defaultSalaries;
+  },
+
+  async getServiceContracts(societyId?: string): Promise<ServiceContract[]> {
+    const socId = societyId || 'GV2026';
+    const storageKey = `towertech_contracts_${socId}`;
+    const defaultContracts: ServiceContract[] = [
+      { id: 'CTR-001', contract_id: 'CTR-2026-01', vendor_name: 'Schindler Elevators India Pvt Ltd', service_type: 'Elevator AMC (Comprehensive)', contact_person: 'Vikram Joshi', phone: '9820011223', annual_cost: 320000, start_date: '2026-01-01', end_date: '2026-12-31', status: 'Active', society_id: socId },
+      { id: 'CTR-002', contract_id: 'CTR-2026-02', vendor_name: 'Kirloskar Integrated DG Power Solutions', service_type: 'Diesel Generator AMC & Overhauls', contact_person: 'Nitin Kulkarni', phone: '9820044556', annual_cost: 180000, start_date: '2026-04-01', end_date: '2027-03-31', status: 'Active', society_id: socId },
+      { id: 'CTR-003', contract_id: 'CTR-2026-03', vendor_name: 'AquaPure Commercial Water Treatment Systems', service_type: 'RO & Hydro-Pneumatic Water Filtration AMC', contact_person: 'Prashant More', phone: '9820077889', annual_cost: 145000, start_date: '2026-03-15', end_date: '2027-03-14', status: 'Active', society_id: socId },
+      { id: 'CTR-004', contract_id: 'CTR-2026-04', vendor_name: 'SecurePro CCTV & Access Control Systems', service_type: 'Perimeter CCTV & Boom Barrier Maintenance', contact_person: 'Deepak Sawant', phone: '9820099112', annual_cost: 95000, start_date: '2026-02-01', end_date: '2027-01-31', status: 'Active', society_id: socId }
+    ];
+
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const stored = window.localStorage.getItem(storageKey);
+      if (stored) {
+        try {
+          return JSON.parse(stored);
+        } catch {
+          // ignore
+        }
+      }
+      window.localStorage.setItem(storageKey, JSON.stringify(defaultContracts));
+    }
+    return defaultContracts;
   }
 };
 

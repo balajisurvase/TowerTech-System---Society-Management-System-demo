@@ -489,16 +489,6 @@ export default function DashboardModulesGrid({
 
       </div>
 
-          <button
-            onClick={() => setActiveTab('residents')}
-            className="w-full mt-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl transition-all text-center uppercase tracking-wider cursor-pointer shadow-xs"
-          >
-            Manage Residents & Flats
-          </button>
-        </div>
-
-      </div>
-
       {/* 4. COLOR-CODED OVERVIEW BLOCKS (SKY, ROSE, PURPLE BLOCKS) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         

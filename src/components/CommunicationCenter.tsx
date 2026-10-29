@@ -232,7 +232,7 @@ export default function CommunicationCenter({ user, onSwitchTab, onRefresh }: Co
   const isSecurity = user.role === 'security';
   const currentUserId = ('admin_id' in user && user.admin_id) || ('resident_id' in user && user.resident_id) || ('security_id' in user && user.security_id) || ('id' in user && user.id) || '';
   
-  const displayRole = ('admin_role' in user && user.admin_role) || (user.role === 'admin' ? 'Chairman' : user.role === 'security' ? 'Security Guard' : 'Resident');
+  const displayRole: string = String(('admin_role' in user && user.admin_role) || (user.role === 'admin' ? 'Chairman' : user.role === 'security' ? 'Security Guard' : 'Resident'));
 
   const [activeTab, setActiveTab] = useState<'chat' | 'tickets'>('chat');
   const [activeChannel, setActiveChannel] = useState<CommunicationChannel>('broadcast');

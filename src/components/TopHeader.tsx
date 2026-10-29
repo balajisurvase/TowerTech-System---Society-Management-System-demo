@@ -40,7 +40,6 @@ export default function TopHeader({
   const [searchQuery, setSearchQuery] = useState('');
 
   const isAdmin = user.role === 'admin' || !!user.admin_id;
-  const isManagement = isAdmin;
   const isSecurity = user.role === 'security';
 
   const flatDisplay = user.flat ? (user.tower ? `${user.tower}-${user.flat}` : `Flat ${user.flat}`) : (user.resident_id || user.tenant_id || '');
@@ -56,7 +55,7 @@ export default function TopHeader({
   const isActivity = activeTab === 'security' || activeTab === 'audit';
   const isMyStuff = activeTab === 'dashboard' || activeTab === 'profile';
   const isCommunity = activeTab === 'notices' || activeTab === 'communication' || activeTab === 'residents';
-  const isManagement = activeTab === 'maintenance' || activeTab === 'financial' || activeTab === 'bookings' || activeTab === 'complaints';
+  const isManagementTab = activeTab === 'maintenance' || activeTab === 'financial' || activeTab === 'bookings' || activeTab === 'complaints';
 
   return (
     <header className="sticky top-0 z-50 bg-[#0b1739] text-white shadow-md font-sans">

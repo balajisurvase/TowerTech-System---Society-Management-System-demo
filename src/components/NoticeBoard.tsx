@@ -172,19 +172,19 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
   const getCategoryMeta = (cat: string) => {
     switch (cat.toLowerCase()) {
       case 'emergency':
-        return { icon: ShieldAlert, bg: 'bg-[#FF5A0A]/10', text: 'text-[#FF5A0A]', border: 'border-[#FF5A0A]/30' };
+        return { icon: ShieldAlert, bg: 'bg-[#EF8557]/10', text: 'text-[#EF8557]', border: 'border-[#EF8557]/30' };
       case 'maintenance':
         return { icon: Wrench, bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' };
       case 'event':
-        return { icon: PartyPopper, bg: 'bg-[#E7B0DE]/30', text: 'text-[#400849]', border: 'border-[#E7B0DE]' };
+        return { icon: PartyPopper, bg: 'bg-[#EAE6DE]', text: 'text-[#226192]', border: 'border-[#226192]/20' };
       case 'meeting':
-        return { icon: Users, bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-200' };
+        return { icon: Users, bg: 'bg-[#226192]/10', text: 'text-[#226192]', border: 'border-[#226192]/20' };
       case 'security':
-        return { icon: ShieldAlert, bg: 'bg-cyan-50', text: 'text-cyan-800', border: 'border-cyan-200' };
+        return { icon: ShieldAlert, bg: 'bg-slate-100', text: 'text-slate-800', border: 'border-slate-300' };
       case 'financial':
         return { icon: FileText, bg: 'bg-emerald-50', text: 'text-emerald-800', border: 'border-emerald-200' };
       default:
-        return { icon: Info, bg: 'bg-slate-100', text: 'text-slate-700', border: 'border-slate-200' };
+        return { icon: Info, bg: 'bg-[#EAE6DE]/50', text: 'text-slate-700', border: 'border-[#EAE6DE]' };
     }
   };
 
@@ -192,11 +192,11 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
   const getPriorityBadge = (p: string) => {
     switch (p.toLowerCase()) {
       case 'urgent':
-        return 'bg-[#FF5A0A] text-white';
+        return 'bg-[#EF8557] text-white';
       case 'important':
         return 'bg-amber-500 text-white';
       case 'normal':
-        return 'bg-[#400849] text-white';
+        return 'bg-[#226192] text-white';
       default:
         return 'bg-slate-600 text-white';
     }
@@ -494,17 +494,17 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
   }, [currentCalendarMonth]);
 
   return (
-    <div className="flex flex-col gap-6 max-w-7xl mx-auto w-full font-sans animate-in fade-in duration-200">
+    <div className="flex flex-col gap-6 max-w-7xl mx-auto w-full font-sans animate-in fade-in duration-200 bg-[#EAE6DE]/25 p-2 sm:p-4 rounded-3xl border border-[#EAE6DE]/60">
       
       {/* =========================================================================
           1. PAGE HEADER (Clean Horizontal Single Row, Back to Dashboard, + Create)
           ========================================================================= */}
-      <header className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/90 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <header className="bg-white rounded-2xl p-4 sm:p-5 border border-[#EAE6DE] shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-3 sm:gap-4">
           <button
             type="button"
             onClick={() => onSwitchTab ? onSwitchTab('dashboard') : window.history.back()}
-            className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-[#400849] hover:text-white text-slate-700 flex items-center justify-center transition-all cursor-pointer shadow-2xs group shrink-0"
+            className="w-9 h-9 rounded-xl bg-[#EAE6DE]/50 hover:bg-[#226192] hover:text-white text-slate-700 flex items-center justify-center transition-all cursor-pointer shadow-2xs group shrink-0"
             title="Back to Dashboard"
           >
             <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
@@ -515,7 +515,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
               <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
                 Notices & Communication
               </h1>
-              <span className="hidden sm:inline-block px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-[#E7B0DE]/30 text-[#400849] border border-[#E7B0DE] rounded-full">
+              <span className="hidden sm:inline-block px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-[#EAE6DE] text-[#226192] border border-[#226192]/20 rounded-full">
                 Green Park Residency
               </span>
             </div>
@@ -531,7 +531,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
             <button
               type="button"
               onClick={handleOpenCreate}
-              className="px-4 sm:px-5 py-2.5 bg-[#400849] hover:bg-[#32063a] active:scale-95 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center gap-2 cursor-pointer"
+              className="px-4 sm:px-5 py-2.5 bg-[#226192] hover:bg-[#1a4d75] active:scale-95 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center gap-2 cursor-pointer"
             >
               <Plus className="w-4 h-4 stroke-[2.5]" />
               <span>Create Notice</span>
@@ -545,8 +545,8 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
           ========================================================================= */}
       <section className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
         {/* Card 1: Total Published Notices */}
-        <div className="bg-white rounded-xl p-4 border border-slate-200/80 shadow-xs flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-xl bg-[#400849]/10 text-[#400849] flex items-center justify-center font-black shrink-0">
+        <div className="bg-white rounded-xl p-4 border border-[#EAE6DE] shadow-xs flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-xl bg-[#226192]/10 text-[#226192] flex items-center justify-center font-black shrink-0">
             <Megaphone className="w-5 h-5" />
           </div>
           <div>
@@ -563,8 +563,8 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
         </div>
 
         {/* Card 2: Urgent Notices */}
-        <div className="bg-white rounded-xl p-4 border border-slate-200/80 shadow-xs flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-xl bg-[#FF5A0A]/10 text-[#FF5A0A] flex items-center justify-center font-black shrink-0">
+        <div className="bg-white rounded-xl p-4 border border-[#EAE6DE] shadow-xs flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-xl bg-[#EF8557]/10 text-[#EF8557] flex items-center justify-center font-black shrink-0">
             <AlertCircle className="w-5 h-5" />
           </div>
           <div>
@@ -575,14 +575,14 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
               <span className="text-2xl font-black text-slate-900 font-mono tabular-nums">
                 {urgentCount}
               </span>
-              <span className="text-[11px] font-medium text-[#FF5A0A]">high priority alerts</span>
+              <span className="text-[11px] font-medium text-[#EF8557]">high priority alerts</span>
             </div>
           </div>
         </div>
 
         {/* Card 3: Scheduled Events */}
-        <div className="bg-white rounded-xl p-4 border border-slate-200/80 shadow-xs flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-xl bg-[#E7B0DE]/30 text-[#400849] flex items-center justify-center font-black shrink-0">
+        <div className="bg-white rounded-xl p-4 border border-[#EAE6DE] shadow-xs flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-xl bg-[#EAE6DE] text-[#226192] flex items-center justify-center font-black shrink-0">
             <CalendarIcon className="w-5 h-5" />
           </div>
           <div>
@@ -602,7 +602,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
       {/* =========================================================================
           3. COMPACT FILTER TOOLBAR WITH CREATIVE SMALL CALENDAR POPOVER
           ========================================================================= */}
-      <section className="bg-white rounded-2xl p-3.5 sm:p-4 border border-slate-200/90 shadow-xs space-y-3">
+      <section className="bg-white rounded-2xl p-3.5 sm:p-4 border border-[#EAE6DE] shadow-xs space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           
           {/* Controls group */}
@@ -615,7 +615,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                 placeholder="Search notices by title, description or author..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-8 py-2 rounded-xl bg-slate-50 border border-slate-200 focus:border-[#400849] focus:bg-white focus:ring-1 focus:ring-[#400849] text-xs font-semibold text-slate-800 placeholder:text-slate-400 outline-none transition-all"
+                className="w-full pl-9 pr-8 py-2 rounded-xl bg-slate-50 border border-slate-200 focus:border-[#226192] focus:bg-white focus:ring-1 focus:ring-[#226192] text-xs font-semibold text-slate-800 placeholder:text-slate-400 outline-none transition-all"
               />
               {searchQuery && (
                 <button
@@ -633,7 +633,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 outline-none focus:border-[#400849] cursor-pointer"
+              className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 outline-none focus:border-[#226192] cursor-pointer"
               title="Filter by category"
             >
               <option value="All">All Categories</option>
@@ -646,7 +646,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
             <select
               value={selectedPriority}
               onChange={(e) => setSelectedPriority(e.target.value)}
-              className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 outline-none focus:border-[#400849] cursor-pointer"
+              className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 outline-none focus:border-[#226192] cursor-pointer"
               title="Filter by priority"
             >
               <option value="All">All Priorities</option>
@@ -659,7 +659,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
-              className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 outline-none focus:border-[#400849] cursor-pointer"
+              className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 outline-none focus:border-[#226192] cursor-pointer"
               title="Filter by publication status"
             >
               <option value="All">All Statuses</option>
@@ -675,12 +675,12 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                 onClick={() => setIsCalendarOpen(!isCalendarOpen)}
                 className={`px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 border transition-all cursor-pointer ${
                   selectedDate 
-                    ? 'bg-[#400849] text-white border-[#400849] shadow-xs' 
-                    : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
+                    ? 'bg-[#226192] text-white border-[#226192] shadow-xs' 
+                    : 'bg-slate-50 hover:bg-[#EAE6DE]/50 text-slate-700 border-slate-200'
                 }`}
                 title="Filter notices by calendar date"
               >
-                <CalendarIcon className={`w-3.5 h-3.5 ${selectedDate ? 'text-[#E7B0DE]' : 'text-[#400849]'}`} />
+                <CalendarIcon className={`w-3.5 h-3.5 ${selectedDate ? 'text-[#EAE6DE]' : 'text-[#226192]'}`} />
                 <span>
                   {selectedDate ? format(selectedDate, 'dd MMM yyyy') : 'Select date'}
                 </span>
@@ -701,17 +701,17 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
               {/* Anchored Small Calendar Popover (Compact ~290px wide) */}
               {isCalendarOpen && (
                 <div 
-                  className="absolute top-full mt-2 left-0 sm:left-auto sm:right-0 z-50 w-[290px] sm:w-[310px] bg-white rounded-2xl shadow-xl border border-slate-200/90 p-3.5 animate-in fade-in zoom-in-95 duration-150"
+                  className="absolute top-full mt-2 left-0 sm:left-auto sm:right-0 z-50 w-[290px] sm:w-[310px] bg-white rounded-2xl shadow-xl border border-[#EAE6DE] p-3.5 animate-in fade-in zoom-in-95 duration-150"
                   style={{ maxWidth: 'calc(100vw - 2rem)' }}
                 >
                   {/* Calendar Mode Switcher (Published vs Event/Expiry) */}
-                  <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-lg mb-3">
+                  <div className="flex items-center gap-1 p-1 bg-[#EAE6DE]/40 rounded-lg mb-3">
                     <button
                       type="button"
                       onClick={() => setCalendarDateField('posted_date')}
                       className={`flex-1 py-1 text-[11px] font-semibold rounded-md transition-all ${
                         calendarDateField === 'posted_date'
-                          ? 'bg-white text-[#400849] shadow-2xs font-bold'
+                          ? 'bg-white text-[#226192] shadow-2xs font-bold'
                           : 'text-slate-600 hover:text-slate-900'
                       }`}
                     >
@@ -722,7 +722,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                       onClick={() => setCalendarDateField('expiry_date')}
                       className={`flex-1 py-1 text-[11px] font-semibold rounded-md transition-all ${
                         calendarDateField === 'expiry_date'
-                          ? 'bg-white text-[#400849] shadow-2xs font-bold'
+                          ? 'bg-white text-[#226192] shadow-2xs font-bold'
                           : 'text-slate-600 hover:text-slate-900'
                       }`}
                     >
@@ -735,7 +735,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                     <button
                       type="button"
                       onClick={() => setCurrentCalendarMonth(prev => subMonths(prev, 1))}
-                      className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-600 transition-colors cursor-pointer"
+                      className="p-1.5 rounded-lg hover:bg-[#EAE6DE]/50 text-slate-600 transition-colors cursor-pointer"
                       title="Previous month"
                     >
                       <ChevronLeft className="w-4 h-4" />
@@ -748,7 +748,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                       <button
                         type="button"
                         onClick={() => setCurrentCalendarMonth(new Date())}
-                        className="text-[10px] font-bold text-[#400849] bg-[#E7B0DE]/30 px-1.5 py-0.5 rounded cursor-pointer hover:bg-[#E7B0DE]/50 transition-colors"
+                        className="text-[10px] font-bold text-[#226192] bg-[#EAE6DE] px-1.5 py-0.5 rounded cursor-pointer hover:bg-[#EAE6DE]/80 transition-colors"
                         title="Jump to today"
                       >
                         Today
@@ -758,7 +758,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                     <button
                       type="button"
                       onClick={() => setCurrentCalendarMonth(prev => addMonths(prev, 1))}
-                      className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-600 transition-colors cursor-pointer"
+                      className="p-1.5 rounded-lg hover:bg-[#EAE6DE]/50 text-slate-600 transition-colors cursor-pointer"
                       title="Next month"
                     >
                       <ChevronRight className="w-4 h-4" />
@@ -797,10 +797,10 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                           onClick={() => setSelectedDate(day)}
                           className={`h-8 w-full rounded-lg text-xs font-semibold flex flex-col items-center justify-center relative transition-all cursor-pointer ${
                             isSelected
-                              ? 'bg-[#400849] text-white font-bold shadow-2xs'
+                              ? 'bg-[#226192] text-white font-bold shadow-2xs'
                               : isCurrentDay
-                              ? 'bg-[#E7B0DE]/20 text-[#400849] font-bold ring-1 ring-[#400849]/30'
-                              : 'text-slate-700 hover:bg-slate-100'
+                              ? 'bg-[#EAE6DE] text-[#226192] font-bold ring-1 ring-[#226192]/30'
+                              : 'text-slate-700 hover:bg-[#EAE6DE]/40'
                           }`}
                         >
                           <span className="leading-none">{format(day, 'd')}</span>
@@ -809,10 +809,10 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                             <span 
                               className={`w-1 h-1 rounded-full absolute bottom-1 ${
                                 isSelected 
-                                  ? 'bg-[#E7B0DE]' 
+                                  ? 'bg-[#EAE6DE]' 
                                   : noticeMeta.hasUrgent 
-                                  ? 'bg-[#FF5A0A]' 
-                                  : 'bg-[#400849]'
+                                  ? 'bg-[#EF8557]' 
+                                  : 'bg-[#226192]'
                               }`}
                               title={`${noticeMeta.count} notice(s)`}
                             />
@@ -838,7 +838,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                     <button
                       type="button"
                       onClick={() => setIsCalendarOpen(false)}
-                      className="px-3.5 py-1 bg-[#400849] hover:bg-[#32063a] text-white font-bold rounded-lg transition-all shadow-2xs cursor-pointer"
+                      className="px-3.5 py-1 bg-[#226192] hover:bg-[#1a4d75] text-white font-bold rounded-lg transition-all shadow-2xs cursor-pointer"
                     >
                       Apply
                     </button>
@@ -872,12 +872,12 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
           4. NOTICE CARDS LIST (Primary Focus, Elegant Horizontal Cards)
           ========================================================================= */}
       {loading ? (
-        <div className="bg-white rounded-2xl p-16 text-center border border-slate-200/90 shadow-xs">
-          <div className="w-8 h-8 border-3 border-[#400849] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+        <div className="bg-white rounded-2xl p-16 text-center border border-[#EAE6DE] shadow-xs">
+          <div className="w-8 h-8 border-3 border-[#226192] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
           <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Loading notices...</p>
         </div>
       ) : filteredNotices.length === 0 ? (
-        <div className="bg-white rounded-2xl p-12 sm:p-16 text-center border border-slate-200/90 shadow-xs space-y-3">
+        <div className="bg-white rounded-2xl p-12 sm:p-16 text-center border border-[#EAE6DE] shadow-xs space-y-3">
           <div className="w-14 h-14 bg-slate-100 text-slate-400 rounded-2xl flex items-center justify-center mx-auto mb-2">
             <Megaphone className="w-7 h-7" />
           </div>
@@ -891,7 +891,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
             <button
               type="button"
               onClick={handleClearAllFilters}
-              className="mt-3 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all cursor-pointer"
+              className="mt-3 px-4 py-2 bg-[#EAE6DE]/60 hover:bg-[#EAE6DE] text-slate-700 text-xs font-bold rounded-xl transition-all cursor-pointer"
             >
               Reset Filters
             </button>
@@ -909,7 +909,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
             return (
               <article
                 key={notice.notice_id}
-                className="bg-white rounded-2xl border border-slate-200/90 hover:border-[#400849]/50 transition-all p-4 sm:p-5 shadow-xs hover:shadow-sm flex flex-col justify-between gap-3 group"
+                className="bg-white rounded-2xl border border-[#EAE6DE] hover:border-[#226192]/40 transition-all p-4 sm:p-5 shadow-xs hover:shadow-sm flex flex-col justify-between gap-3 group"
               >
                 {/* 1. TOP ROW: Category Label & Icon, Notice Title, Priority Badge (aligned right) */}
                 <div className="flex items-start justify-between gap-3">
@@ -923,7 +923,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                     {/* Notice Title */}
                     <h2
                       onClick={() => handleOpenNotice(notice)}
-                      className="text-sm sm:text-base font-bold text-slate-900 group-hover:text-[#400849] transition-colors cursor-pointer leading-snug line-clamp-1"
+                      className="text-sm sm:text-base font-bold text-slate-900 group-hover:text-[#226192] transition-colors cursor-pointer leading-snug line-clamp-1"
                       title={notice.title}
                     >
                       {notice.title}
@@ -974,7 +974,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                           className="w-7 h-7 rounded-full object-cover border border-slate-200 shadow-2xs" 
                         />
                       ) : (
-                        <div className="w-7 h-7 rounded-full bg-[#400849] text-white flex items-center justify-center font-bold text-[10px] shrink-0">
+                        <div className="w-7 h-7 rounded-full bg-[#226192] text-white flex items-center justify-center font-bold text-[10px] shrink-0">
                           {publisher.name.slice(0, 2).toUpperCase()}
                         </div>
                       )}
@@ -1005,10 +1005,10 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                       <>
                         <span className="hidden sm:inline text-slate-300">·</span>
                         <div 
-                          className="flex items-center gap-1 text-[#400849] font-semibold bg-[#E7B0DE]/20 px-2 py-0.5 rounded-md"
+                          className="flex items-center gap-1 text-[#226192] font-semibold bg-[#EAE6DE] border border-[#226192]/20 px-2 py-0.5 rounded-md"
                           title={notice.attachment_name || 'Attached official document'}
                         >
-                          <Paperclip className="w-3 h-3 text-[#400849]" />
+                          <Paperclip className="w-3 h-3 text-[#226192]" />
                           <span className="text-[11px] truncate max-w-[140px]">
                             {notice.attachment_type?.includes('pdf') || notice.attachment_name?.endsWith('.pdf') ? 'PDF' : 'Image'} Attached
                           </span>
@@ -1038,7 +1038,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                         <button
                           type="button"
                           onClick={() => handleOpenEdit(notice)}
-                          className="p-1.5 bg-white text-slate-600 hover:text-[#400849] hover:bg-slate-50 border border-slate-200 rounded-lg transition-colors cursor-pointer"
+                          className="p-1.5 bg-white text-slate-600 hover:text-[#226192] hover:bg-slate-50 border border-slate-200 rounded-lg transition-colors cursor-pointer"
                           title="Edit Notice"
                         >
                           <Edit3 className="w-3.5 h-3.5" />
@@ -1059,7 +1059,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                     <button
                       type="button"
                       onClick={() => handleOpenNotice(notice)}
-                      className="px-3.5 py-1.5 bg-[#400849] hover:bg-[#32063a] text-white text-xs font-bold rounded-lg transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer active:scale-95"
+                      className="px-3.5 py-1.5 bg-[#226192] hover:bg-[#1a4d75] text-white text-xs font-bold rounded-lg transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer active:scale-95"
                     >
                       <span>Read Notice</span>
                       <ChevronRight className="w-3.5 h-3.5" />
@@ -1089,7 +1089,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
             <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-150 flex flex-col max-h-[90vh]">
               
               {/* Modal Top Banner */}
-              <div className="p-5 sm:p-6 bg-slate-900 text-white flex items-start justify-between gap-4 border-b border-slate-800">
+              <div className="p-5 sm:p-6 bg-[#226192] text-white flex items-start justify-between gap-4 border-b border-[#226192]">
                 <div className="space-y-2">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${catMeta.bg} ${catMeta.text}`}>
@@ -1131,7 +1131,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                       className="w-8 h-8 rounded-full object-cover border border-slate-300"
                     />
                   ) : (
-                    <div className="w-8 h-8 rounded-full bg-[#400849] text-white flex items-center justify-center font-bold text-xs shrink-0">
+                    <div className="w-8 h-8 rounded-full bg-[#226192] text-white flex items-center justify-center font-bold text-xs shrink-0">
                       {publisher.name.slice(0, 2).toUpperCase()}
                     </div>
                   )}
@@ -1148,13 +1148,13 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                   </div>
                   <span className="text-slate-300">·</span>
                   <div className="flex items-center gap-1" title="Authenticated Unique Views">
-                    <Eye className="w-3.5 h-3.5 text-[#400849]" />
+                    <Eye className="w-3.5 h-3.5 text-[#226192]" />
                     <span className="font-bold text-slate-800 tabular-nums">{viewCount} views</span>
                   </div>
                   {viewingNotice.target_audience && (
                     <>
                       <span className="text-slate-300">·</span>
-                      <span className="text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded text-[11px] font-semibold">
+                      <span className="text-[#226192] bg-[#EAE6DE] border border-[#226192]/20 px-2 py-0.5 rounded text-[11px] font-semibold">
                         {viewingNotice.target_audience}
                       </span>
                     </>
@@ -1173,7 +1173,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                   <div className="p-4 rounded-2xl border border-slate-200 bg-slate-50 space-y-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 text-xs font-bold text-slate-900">
-                        <Paperclip className="w-4 h-4 text-[#400849]" />
+                        <Paperclip className="w-4 h-4 text-[#226192]" />
                         <span>Official Notice Attachment</span>
                       </div>
                       <span className="text-[11px] text-slate-500">
@@ -1204,7 +1204,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                           href={viewingNotice.attachment_url}
                           target="_blank"
                           rel="noreferrer"
-                          className="px-3.5 py-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-slate-800 text-xs font-bold transition-all flex items-center gap-1.5 shadow-2xs"
+                          className="px-3.5 py-1.5 rounded-lg bg-white border border-slate-200 hover:bg-[#EAE6DE]/50 text-slate-800 text-xs font-bold transition-all flex items-center gap-1.5 shadow-2xs"
                         >
                           <ExternalLink className="w-3.5 h-3.5 text-slate-500" />
                           <span>View Document</span>
@@ -1214,7 +1214,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                           download={viewingNotice.attachment_name || 'notice_document'}
                           target="_blank"
                           rel="noreferrer"
-                          className="px-3.5 py-1.5 rounded-lg bg-[#400849] hover:bg-[#32063a] text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-2xs"
+                          className="px-3.5 py-1.5 rounded-lg bg-[#226192] hover:bg-[#1a4d75] text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-2xs"
                         >
                           <Download className="w-3.5 h-3.5" />
                           <span>Download</span>
@@ -1309,7 +1309,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
           <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-150 flex flex-col max-h-[90vh]">
             
             {/* Modal Header */}
-            <div className="p-5 sm:p-6 bg-[#400849] text-white flex items-center justify-between gap-4">
+            <div className="p-5 sm:p-6 bg-[#226192] text-white flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center">
                   <Megaphone className="w-5 h-5 text-white" />
@@ -1318,7 +1318,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                   <h3 className="text-lg font-bold tracking-tight">
                     {editingNotice ? 'Edit Society Notice' : 'Create Society Notice'}
                   </h3>
-                  <p className="text-[#E7B0DE] text-xs font-semibold">
+                  <p className="text-[#EAE6DE] text-xs font-semibold">
                     Publish official communication to society residents
                   </p>
                 </div>
@@ -1344,7 +1344,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                   placeholder="e.g. Scheduled Water Tank Cleaning & Supply Interruption"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#400849] focus:ring-1 focus:ring-[#400849] text-xs font-semibold text-slate-800 outline-none"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#226192] focus:ring-1 focus:ring-[#226192] text-xs font-semibold text-slate-800 outline-none"
                 />
               </div>
 
@@ -1355,7 +1355,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                   <select
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value as NoticeCategory })}
-                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:border-[#400849] text-xs font-semibold text-slate-800 outline-none bg-white cursor-pointer"
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:border-[#226192] text-xs font-semibold text-slate-800 outline-none bg-white cursor-pointer"
                   >
                     {CATEGORIES.map(cat => (
                       <option key={cat} value={cat}>{cat}</option>
@@ -1368,7 +1368,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                   <select
                     value={formData.priority}
                     onChange={(e) => setFormData({ ...formData, priority: e.target.value as NoticePriority })}
-                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:border-[#400849] text-xs font-semibold text-slate-800 outline-none bg-white cursor-pointer"
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:border-[#226192] text-xs font-semibold text-slate-800 outline-none bg-white cursor-pointer"
                   >
                     {PRIORITIES.map(p => (
                       <option key={p} value={p}>{p}</option>
@@ -1381,7 +1381,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                   <select
                     value={formData.target_audience}
                     onChange={(e) => setFormData({ ...formData, target_audience: e.target.value })}
-                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:border-[#400849] text-xs font-semibold text-slate-800 outline-none bg-white cursor-pointer"
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:border-[#226192] text-xs font-semibold text-slate-800 outline-none bg-white cursor-pointer"
                   >
                     {AUDIENCES.map(aud => (
                       <option key={aud} value={aud}>{aud}</option>
@@ -1398,7 +1398,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                     type="date"
                     value={formData.expiry_date}
                     onChange={(e) => setFormData({ ...formData, expiry_date: e.target.value })}
-                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:border-[#400849] text-xs font-semibold text-slate-800 outline-none bg-white"
+                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:border-[#226192] text-xs font-semibold text-slate-800 outline-none bg-white"
                   />
                 </div>
 
@@ -1407,7 +1407,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                   <select
                     value={formData.status}
                     onChange={(e) => setFormData({ ...formData, status: e.target.value as NoticeStatus })}
-                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:border-[#400849] text-xs font-semibold text-slate-800 outline-none bg-white cursor-pointer"
+                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:border-[#226192] text-xs font-semibold text-slate-800 outline-none bg-white cursor-pointer"
                   >
                     <option value="Active">Active (Publish immediately)</option>
                     <option value="Draft">Draft (Save privately)</option>
@@ -1423,7 +1423,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                   id="pin-notice-chk"
                   checked={formData.is_pinned}
                   onChange={(e) => setFormData({ ...formData, is_pinned: e.target.checked })}
-                  className="w-4 h-4 text-[#400849] rounded border-slate-300 focus:ring-[#400849] cursor-pointer"
+                  className="w-4 h-4 text-[#226192] rounded border-slate-300 focus:ring-[#226192] cursor-pointer"
                 />
                 <label htmlFor="pin-notice-chk" className="text-xs font-bold text-slate-700 cursor-pointer flex items-center gap-1.5">
                   <Pin className="w-3.5 h-3.5 text-amber-500" />
@@ -1440,7 +1440,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                   placeholder="Enter full notice announcement details, timings, action required, or guidelines..."
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#400849] focus:ring-1 focus:ring-[#400849] text-xs text-slate-800 leading-relaxed outline-none"
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#226192] focus:ring-1 focus:ring-[#226192] text-xs text-slate-800 leading-relaxed outline-none"
                 />
               </div>
 
@@ -1449,7 +1449,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                 <div className="flex items-center justify-between">
                   <div>
                     <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                      <Paperclip className="w-3.5 h-3.5 text-[#400849]" />
+                      <Paperclip className="w-3.5 h-3.5 text-[#226192]" />
                       <span>Attach PDF or Image (Optional)</span>
                     </label>
                     <p className="text-[11px] text-slate-500">Supported: PDF, JPG, PNG, WEBP (Max 10 MB)</p>
@@ -1471,7 +1471,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                 {formData.attachment_name && (
                   <div className="p-2.5 bg-white rounded-lg border border-slate-200 flex items-center justify-between gap-3 text-xs">
                     <div className="flex items-center gap-2 truncate">
-                      <FileText className="w-4 h-4 text-[#400849] shrink-0" />
+                      <FileText className="w-4 h-4 text-[#226192] shrink-0" />
                       <span className="font-bold text-slate-800 truncate">{formData.attachment_name}</span>
                       {formData.attachment_size && (
                         <span className="text-[10px] text-slate-400">({(formData.attachment_size / 1024).toFixed(0)} KB)</span>
@@ -1494,14 +1494,14 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold hover:bg-slate-50 transition-colors cursor-pointer"
+                  className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold hover:bg-[#EAE6DE]/50 transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting || uploadingFile}
-                  className="px-6 py-2.5 bg-[#400849] hover:bg-[#32063a] disabled:opacity-50 text-white text-xs font-bold rounded-xl shadow-sm transition-all flex items-center gap-2 cursor-pointer"
+                  className="px-6 py-2.5 bg-[#226192] hover:bg-[#1a4d75] disabled:opacity-50 text-white text-xs font-bold rounded-xl shadow-sm transition-all flex items-center gap-2 cursor-pointer"
                 >
                   {submitting ? (
                     <>

@@ -1,67 +1,42 @@
-# TowerTech Society Management System Update
+# TowerTech Society Management System - Notices & Communication Theme Update
 
-This plan outlines the required architectural and functional updates to the TowerTech Society Management System, focusing on role-based permission refinements, automated workflows, and modernized dashboard/module UI layouts.
+## 1. Overview & Refinement
+This update accomplishes two core objectives requested by the user:
+1. **Removal of "Go to Help Center"**: Cleanly eliminated the Help Center card and button from the application sidebar (`Sidebar.tsx`) to avoid clutter.
+2. **Notices & Communication Official Colour Theme**: Replaced the previous Violet/Pink palette with the new official color theme:
+   - **Warm Ivory (`#EAE6DE`)**: Applied for the module's soft background, subtle filter backgrounds, and calm surfaces while preserving high contrast and readability.
+   - **Deep Editorial Blue (`#226192`)**: The primary brand color for headings, buttons (`+ Create Notice`, `Read Notice`, `Apply`, `Publish Notice`), active filters, icons, links, and selected calendar dates.
+   - **Coral Orange (`#EF8557`)**: The priority alert color for urgent notices, urgent priority badges, emergency alerts, and calendar urgent notice indicator dots.
 
-## User Review & Critical Decisions
+## 2. Component Design & Changes
+- **Page Header**: Compact horizontal layout with back-to-dashboard navigation, title, Green Park Residency Warm Ivory tag, and Deep Editorial Blue `+ Create Notice` CTA for authorized publishers.
+- **Notice Summary Cards**: 3 compact equal-height cards displaying verified metrics:
+  - Total Published Notices (Deep Editorial Blue icon)
+  - Urgent Notices (Coral Orange icon & text indicator)
+  - Scheduled Events (Warm Ivory surface & Editorial Blue icon)
+- **Filter Toolbar**:
+  - Integrated search, category, priority, and status dropdowns with Deep Editorial Blue focus states.
+  - Reset filters action.
+- **Creative Small Calendar Popover**:
+  - Compact button and anchored popover (~290px wide) directly below the filter button.
+  - Published vs Event/Expiry date switcher.
+  - Deep Editorial Blue selected date button and navigation arrows.
+  - Warm Ivory today button and soft surface highlight.
+  - Coral Orange dots on dates featuring urgent notices and Editorial Blue dots for regular notices.
+  - Compact Clear and Apply actions.
+- **Notice Cards**:
+  - High-contrast white surfaces with subtle Warm Ivory borders and Deep Editorial Blue hover accents.
+  - Category label and icon.
+  - Coral Orange badge for Urgent circulars, Editorial Blue for Normal circulars.
+  - Publisher DP avatar with Editorial Blue initials fallback, name, role, date, authenticated verified view count, and attachment badge.
+  - Deep Editorial Blue `Read Notice` button.
+- **Detail & Create Modals**:
+  - Headers in Deep Editorial Blue with Warm Ivory subheadings.
+  - Secure media attachment preview and download buttons.
+  - Acknowledgment recording and full notice details.
 
-> [!IMPORTANT] Please review these key architectural decisions before proceeding to code implementation.
-
-- **Confirmed Role Hierarchy**: Replacement of "Society Admin" with specific roles: "Chairman", "Secretary", and "Treasurer". Global removal of the word "admin" from all interfaces.
-- **Workflow Changes**: 
-    - Resident documents now require Admin approval before becoming "Verified".
-    - Monthly maintenance billing will be shifted to an automated process for all flats.
-    - Visitor management will be rebuilt to support real-time requests with resident/admin approval flow.
-- **UI/UX Modernization**: Dashboards and modules will be optimized for viewport fit (no-scroll) where possible.
-- **Data Model**: Significant schema updates to support visitor approvals, notice metadata, and resident-specific document statuses.
-
-## 1. Overview & Core Concept
-
-TowerTech is being refined into a more robust society management platform by:
-- Improving **Access Control**: Strict role-based management without generic "Admin" labels.
-- Enhancing **Transparency & Accountability**: Document approval workflows and visitor management approvals.
-- Improving **Usability**: Removing UI clutter (total flats, manual bill generation), adding filtering to complaints and notices.
-
-## 2. User Experience & Visual Design
-
-- **Dashboard**:
-    - Removed: "Refresh Data", "Pay", "MaintenanceLog", "Complaint" shortcuts, "Total Flats / Occupied".
-    - Added: "Notice Count" stat.
-- **Module Layouts**:
-    - **Complaints**: Single-frame fit, category filter added.
-    - **Amenities**: Single-frame fit.
-    - **Notices**: Calendar filter, notice counter, and profile logo per notice.
-- **Role Display**: "Welcome back, Arya Sonawane (Chairman)" instead of "...(Society Admin)".
-- **Visitor Module**: Rebuilt with real-time UI, photo upload, and resident/admin approval/rejection toggle.
-
-## 3. Key Product Decisions & Trade-Offs
-
-- **Decision 1: Automated Billing**:
-    - *Approach*: Move maintenance billing to a server-side triggered job (or batch processor).
-    - *Why*: Reduces manual Society Admin load, ensures consistency.
-- **Decision 2: Visitor Module**:
-    - *Approach*: Rebuild as a real-time reactive module using Supabase subscriptions for instant notification updates.
-    - *Why*: Ensures security requests are handled in real-time.
-- **Decision 3: Document Workflow**:
-    - *Approach*: Update `ResidentDocument` schema with `status` (Not Uploaded, Uploaded, Under Review, Verified, Rejected).
-    - *Why*: Gives management direct control over resident compliance.
-
-## 4. Technical Architecture & Data Strategy
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                       Client Frontend                       │
-│ (React + Tailwind CSS, Real-time Hooks, Role-Based Access)  │
-└──────────────┬──────────────────────────────┬───────────────┘
-               │                              │
-┌──────────────▼──────────────┐    ┌──────────▼───────────────┐
-│       Supabase Auth         │    │      Supabase DB         │
-│  (Auth, Role Claims, RLS)   │    │  (Resident, Visitor,     │
-│                             │    │   Maintenance, Notices)  │
-└─────────────────────────────┘    └──────────────────────────┘
-```
-
-### Key Data Model Changes:
-- **`visitor`**: Added fields for `security_user_id`, `approval_status`, `resident_id`, `approval_time`, `visitor_photo`.
-- **`resident_document`**: Updated `status` enum to include `Under Review` and `Rejected`.
-- **`notice`**: Added metadata for `profile_logo` and timestamp-based filtering.
-- **`resident`**: Role enforcement logic update (all "Admin" roles map to Chairman/Secretary/Treasurer).
+## 3. Verification
+- TypeScript verification passed with 0 errors (`tsc --noEmit`).
+- Applet compiled cleanly with Vite.
+- Old color codes (`#400849`, `#E7B0DE`, `#FF5A0A`) completely removed from `NoticeBoard.tsx`.
+- Help center button and card completely removed from `Sidebar.tsx`.

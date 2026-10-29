@@ -435,7 +435,7 @@ export function ViewComplaintWorkspace({
     if (!onUpdateStatus) return;
     setUpdating(true);
     try {
-      await onUpdateStatus(complaint.complaint_id || complaint.id!, newStatus, adminComment);
+      await onUpdateStatus(complaint.complaint_id || complaint.id!, newStatus, managementComment);
     } finally {
       setUpdating(false);
     }
@@ -445,7 +445,7 @@ export function ViewComplaintWorkspace({
     if (!onUpdateStatus) return;
     setUpdating(true);
     try {
-      await onUpdateStatus(complaint.complaint_id || complaint.id!, selectedStatus, adminComment);
+      await onUpdateStatus(complaint.complaint_id || complaint.id!, selectedStatus, managementComment);
     } finally {
       setUpdating(false);
     }

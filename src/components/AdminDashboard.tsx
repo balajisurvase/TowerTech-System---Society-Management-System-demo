@@ -52,7 +52,7 @@ import {
   ArrowLeft,
   ShieldCheck
 } from 'lucide-react';
-import { User, Resident, MaintenanceRecord, Complaint, Booking, Amenity, Admin } from '../types';
+import { User, Resident, MaintenanceRecord, Complaint, Booking, Amenity, Admin, Notice } from '../types';
 import { societyService } from '../lib/societyService';
 import { isSupabaseConfigured } from '../lib/supabase';
 import { toast } from 'sonner';
@@ -90,7 +90,7 @@ interface AdminDashboardProps {
   maintenance: MaintenanceRecord[];
   complaints: Complaint[];
   bookings: Booking[];
-  notices: Notice[];
+  notices?: Notice[];
   onRefresh: () => void;
   onUserUpdate?: (updatedUser: Partial<User>) => void;
 }
@@ -103,6 +103,7 @@ export default function AdminDashboard({
   maintenance, 
   complaints, 
   bookings,
+  notices = [],
   onRefresh,
   onUserUpdate 
 }: AdminDashboardProps) {

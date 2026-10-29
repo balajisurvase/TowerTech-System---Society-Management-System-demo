@@ -14,7 +14,6 @@ import {
   FileText, 
   X, 
   Settings,
-  HelpCircle,
   ChevronLeft,
   ArrowDownCircle,
   CheckCircle2
@@ -251,26 +250,11 @@ export default function Sidebar({
           ))}
         </nav>
 
-        {/* FIGMA DASH BOTTOM HELP CARD */}
+        {/* SIGN OUT */}
         <div className="pt-2 shrink-0">
-          <div className="bg-[#101e42] rounded-2xl p-4 border border-blue-900/40 text-center relative overflow-hidden shadow-inner">
-            <div className="w-8 h-8 rounded-full bg-[#1d72fe] text-white flex items-center justify-center mx-auto mb-2 shadow-md shadow-blue-500/20">
-              <HelpCircle className="w-4 h-4" />
-            </div>
-            <p className="text-xs font-bold text-white tracking-tight">Need Help with Dash?</p>
-            <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Green Park support desk is active</p>
-            <button
-              onClick={() => setActiveTab('communication')}
-              className="mt-3 w-full py-2 bg-[#1d72fe] hover:bg-blue-600 active:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer"
-            >
-              Go to help center
-            </button>
-          </div>
-
-          {/* SIGN OUT */}
           <button
             onClick={onLogout}
-            className="w-full mt-2 flex items-center justify-center gap-2 py-2 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+            className="w-full flex items-center justify-center gap-2 py-2 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-xl text-xs font-bold transition-colors cursor-pointer"
           >
             <LogOut className="w-3.5 h-3.5" />
             <span>Sign Out</span>

@@ -236,10 +236,12 @@ export interface User {
   password?: string;
   resident_id?: string;
   admin_id?: string;
+  admin_role?: string;
   security_id?: string;
   shift?: string;
   society_id?: string;
   flat?: string;
+  floor?: number;
   tower?: string;
   profile_photo?: string;
   avatar?: string;
@@ -282,6 +284,9 @@ export interface Notice {
   posted_by: string;
   posted_date: string;
   expiry_date?: string;
+  event_date?: string;
+  start_time?: string;
+  end_time?: string;
   target_audience?: string;
   status: NoticeStatus | string;
   is_pinned?: boolean;
@@ -319,5 +324,58 @@ export interface Communication {
   society_id: string;
   is_announcement?: boolean;
   created_at: string;
+}
+
+export interface SocietyEvent {
+  id?: string;
+  event_id: string;
+  title: string;
+  category?: string;
+  description?: string;
+  event_date: string;
+  start_time?: string;
+  end_time?: string;
+  location?: string;
+  organizer?: string;
+  posted_by?: string;
+  notice_id?: string;
+  society_id: string;
+  created_at?: string;
+}
+
+export interface StaffSalaryRecord {
+  id?: string;
+  staff_id?: string;
+  name?: string;
+  staff_name?: string;
+  role: string;
+  phone?: string;
+  salary?: number;
+  monthly_salary?: number;
+  month: string;
+  payment_status: 'Paid' | 'Pending' | 'Processing';
+  payment_date?: string;
+  payment_mode?: PaymentMode;
+  notes?: string;
+  society_id?: string;
+}
+
+export interface ServiceContract {
+  id?: string;
+  contract_id?: string;
+  service_name?: string;
+  vendor_name: string;
+  service_type?: string;
+  vendor_contact?: string;
+  contact_person?: string;
+  phone?: string;
+  billing_cycle?: 'Monthly' | 'Quarterly' | 'Bi-Annual' | 'Annual' | string;
+  annual_cost?: number;
+  contract_amount?: number;
+  start_date: string;
+  end_date: string;
+  status: 'Active' | 'Expired' | 'Pending Renewal' | 'Under Renewal' | 'Terminated' | string;
+  notes?: string;
+  society_id?: string;
 }
 

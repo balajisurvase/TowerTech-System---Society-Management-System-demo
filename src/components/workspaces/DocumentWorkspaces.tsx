@@ -506,6 +506,7 @@ interface ViewDocumentWorkspaceProps {
   document: ResidentDocument;
   resident: Resident;
   managementReview?: boolean;
+  isAdminReview?: boolean;
   onBack: () => void;
   onApprove?: (doc: ResidentDocument) => Promise<void>;
   onReject?: (doc: ResidentDocument, reason: string) => Promise<void>;
@@ -516,6 +517,7 @@ export function ViewDocumentWorkspace({
   document: doc,
   resident,
   managementReview = false,
+  isAdminReview = false,
   onBack,
   onApprove,
   onReject,
@@ -623,7 +625,7 @@ export function ViewDocumentWorkspace({
             </a>
           )}
 
-          {managementReview && doc.status !== 'Verified' && onApprove && (
+          {(managementReview || isAdminReview) && doc.status !== 'Verified' && onApprove && (
             <button
               type="button"
               onClick={handleApprove}
@@ -635,7 +637,7 @@ export function ViewDocumentWorkspace({
             </button>
           )}
 
-          {managementReview && doc.status !== 'Rejected' && onReject && !showRejectBox && (
+          {(managementReview || isAdminReview) && doc.status !== 'Rejected' && onReject && !showRejectBox && (
             <button
               type="button"
               onClick={() => setShowRejectBox(true)}
