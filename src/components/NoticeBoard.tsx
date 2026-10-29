@@ -29,7 +29,8 @@ import {
   FileText, 
   Building,
   RotateCcw,
-  Sparkles
+  Sparkles,
+  MessageSquare
 } from 'lucide-react';
 import { 
   format, 
@@ -231,6 +232,16 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
     }
   };
 
+  // View Mode state (list vs grid)
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>(() => {
+    return (localStorage.getItem('towertech_notice_view_mode') as 'list' | 'grid') || 'list';
+  });
+
+  const handleToggleViewMode = (mode: 'list' | 'grid') => {
+    setViewMode(mode);
+    localStorage.setItem('towertech_notice_view_mode', mode);
+  };
+
   // Filter notices based on search, category, priority, status, and calendar date
   const filteredNotices = useMemo(() => {
     return notices.filter(n => {
@@ -249,8 +260,10 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
       // 3. Priority filter
       const matchesPriority = selectedPriority === 'All' || n.priority === selectedPriority;
 
-      // 4. Status filter
-      const matchesStatus = selectedStatus === 'All' ? (isAdmin ? true : n.status === 'Active') : (n.status === selectedStatus);
+      // 4. Status filter & exclude expired from default 'All'
+      const isExpired = n.status === 'Expired' || (n.expiry_date && new Date(n.expiry_date).getTime() < new Date().setHours(0,0,0,0));
+      if (selectedStatus === 'All' && isExpired) return false;
+      const matchesStatus = selectedStatus === 'All' ? (isAdmin ? n.status !== 'Expired' : n.status === 'Active') : (n.status === selectedStatus);
 
       // 5. Calendar date filter
       let matchesDate = true;
@@ -510,22 +523,27 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
             <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
           </button>
           
-          <div>
-            <div className="flex items-center gap-2.5">
-              <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-                Notices & Communication
-              </h1>
-              <span className="hidden sm:inline-block px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-[#EAE6DE] text-[#226192] border border-[#226192]/20 rounded-full">
-                Green Park Residency
-              </span>
-            </div>
-            <p className="text-xs font-semibold text-slate-500 mt-0.5">
-              Society announcements, circulars and community updates
-            </p>
+          {/* Top Module Switcher */}
+          <div className="flex items-center gap-1 bg-[#EAE6DE]/30 p-1 rounded-xl border border-[#EAE6DE]">
+            <button
+              type="button"
+              className="px-3.5 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider bg-[#226192] text-white shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
+            >
+              <Megaphone className="w-3.5 h-3.5" />
+              <span>Notices</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => onSwitchTab && onSwitchTab('communication')}
+              className="px-3.5 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider text-slate-600 hover:text-slate-900 hover:bg-white flex items-center gap-1.5 transition-all cursor-pointer"
+            >
+              <MessageSquare className="w-3.5 h-3.5" />
+              <span>Chat</span>
+            </button>
           </div>
         </div>
 
-        {/* Right Action: + Create Notice for Admin / Authorized publishers */}
+        {/* Right Action: + Create Notice */}
         <div className="flex items-center gap-3 shrink-0 self-end md:self-center">
           {isAdmin && (
             <button
@@ -543,10 +561,10 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
       {/* =========================================================================
           2. NOTICE SUMMARY (3 Small Compact Equal-Height Cards from Database)
           ========================================================================= */}
-      <section className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+      <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {/* Card 1: Total Published Notices */}
-        <div className="bg-white rounded-xl p-4 border border-[#EAE6DE] shadow-xs flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-xl bg-[#226192]/10 text-[#226192] flex items-center justify-center font-black shrink-0">
+        <div className="bg-white rounded-2xl p-4.5 border border-[#EAE6DE] shadow-2xs hover:shadow-sm transition-all flex items-center gap-4">
+          <div className="w-11 h-11 rounded-xl bg-[#226192]/10 text-[#226192] flex items-center justify-center font-black shrink-0">
             <Megaphone className="w-5 h-5" />
           </div>
           <div>
@@ -563,8 +581,8 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
         </div>
 
         {/* Card 2: Urgent Notices */}
-        <div className="bg-white rounded-xl p-4 border border-[#EAE6DE] shadow-xs flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-xl bg-[#EF8557]/10 text-[#EF8557] flex items-center justify-center font-black shrink-0">
+        <div className="bg-white rounded-2xl p-4.5 border border-[#EAE6DE] hover:border-[#EF8557]/40 shadow-2xs hover:shadow-sm transition-all flex items-center gap-4">
+          <div className="w-11 h-11 rounded-xl bg-[#EF8557]/10 text-[#EF8557] flex items-center justify-center font-black shrink-0">
             <AlertCircle className="w-5 h-5" />
           </div>
           <div>
@@ -581,8 +599,8 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
         </div>
 
         {/* Card 3: Scheduled Events */}
-        <div className="bg-white rounded-xl p-4 border border-[#EAE6DE] shadow-xs flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-xl bg-[#EAE6DE] text-[#226192] flex items-center justify-center font-black shrink-0">
+        <div className="bg-white rounded-2xl p-4.5 border border-[#EAE6DE] hover:border-[#226192]/40 shadow-2xs hover:shadow-sm transition-all flex items-center gap-4">
+          <div className="w-11 h-11 rounded-xl bg-[#EAE6DE] text-[#226192] flex items-center justify-center font-black shrink-0">
             <CalendarIcon className="w-5 h-5" />
           </div>
           <div>
@@ -602,11 +620,11 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
       {/* =========================================================================
           3. COMPACT FILTER TOOLBAR WITH CREATIVE SMALL CALENDAR POPOVER
           ========================================================================= */}
-      <section className="bg-white rounded-2xl p-3.5 sm:p-4 border border-[#EAE6DE] shadow-xs space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+      <section className="bg-white rounded-2xl p-3.5 sm:p-4 border border-[#EAE6DE] shadow-xs">
+        <div className="flex flex-wrap xl:flex-nowrap items-center justify-between gap-2.5">
           
-          {/* Controls group */}
-          <div className="flex flex-wrap items-center gap-2.5 flex-1 min-w-0">
+          {/* Controls group in one row */}
+          <div className="flex flex-wrap xl:flex-nowrap items-center gap-2 flex-1 min-w-0">
             {/* Search Input */}
             <div className="relative flex-1 min-w-[200px] sm:min-w-[240px]">
               <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -665,7 +683,6 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
               <option value="All">All Statuses</option>
               <option value="Active">Active Published</option>
               {isAdmin && <option value="Draft">Drafts</option>}
-              <option value="Expired">Expired</option>
             </select>
 
             {/* CREATIVE SMALL CALENDAR FILTER BUTTON & ANCHORED POPOVER */}
@@ -726,7 +743,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                           : 'text-slate-600 hover:text-slate-900'
                       }`}
                     >
-                      Event / Expiry
+                      Event / Date
                     </button>
                   </div>
 
@@ -861,15 +878,48 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
             )}
           </div>
 
-          {/* Result counter indicator */}
-          <div className="text-[11px] font-bold text-slate-500 tabular-nums ml-auto shrink-0">
-            Showing <strong className="text-slate-900">{filteredNotices.length}</strong> of {notices.length} notices
+          {/* Communication Chat Button & View Mode Switcher */}
+          <div className="flex items-center gap-2 ml-auto shrink-0">
+            <button
+              type="button"
+              onClick={() => onSwitchTab && onSwitchTab('communication')}
+              className="px-3.5 py-2 bg-[#226192]/10 hover:bg-[#226192]/20 text-[#226192] text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs"
+              title="Switch to Community Chat"
+            >
+              <MessageSquare className="w-3.5 h-3.5" />
+              <span>Chat</span>
+            </button>
+
+            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 shrink-0">
+              <button
+                type="button"
+                onClick={() => handleToggleViewMode('list')}
+                className={`p-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all cursor-pointer ${
+                  viewMode === 'list' ? 'bg-white text-[#226192] shadow-xs' : 'text-slate-500 hover:text-slate-800'
+                }`}
+                title="List Mode"
+              >
+                <FileText className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline text-[10px]">List</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleToggleViewMode('grid')}
+                className={`p-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all cursor-pointer ${
+                  viewMode === 'grid' ? 'bg-white text-[#226192] shadow-xs' : 'text-slate-500 hover:text-slate-800'
+                }`}
+                title="Grid Mode"
+              >
+                <Building className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline text-[10px]">Grid</span>
+              </button>
+            </div>
           </div>
         </div>
       </section>
 
       {/* =========================================================================
-          4. NOTICE CARDS LIST (Primary Focus, Elegant Horizontal Cards)
+          4. NOTICE CARDS LIST / GRID (Primary Focus)
           ========================================================================= */}
       {loading ? (
         <div className="bg-white rounded-2xl p-16 text-center border border-[#EAE6DE] shadow-xs">
@@ -885,7 +935,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
           <p className="text-xs text-slate-500 max-w-md mx-auto">
             {hasActiveFilters
               ? 'No announcements match your search keywords or calendar date filter. Try clearing filters.'
-              : 'There are currently no circulars or notices posted on the society board.'}
+              : 'There are currently no active circulars or notices posted on the society board.'}
           </p>
           {hasActiveFilters && (
             <button
@@ -898,13 +948,69 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
           )}
         </div>
       ) : (
-        <div className="space-y-3.5">
+        <div className={viewMode === 'list' ? 'space-y-3.5' : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'}>
           {filteredNotices.map((notice) => {
             const catMeta = getCategoryMeta(notice.category);
             const CatIcon = catMeta.icon;
             const publisher = getPublisherDetails(notice);
             const viewCount = (notice.views?.length || 0) + (notice.views_count || 0);
-            const isAcknowledged = currentUserId ? notice.acknowledgements?.includes(currentUserId) : false;
+
+            if (viewMode === 'grid') {
+              return (
+                <article
+                  key={notice.notice_id}
+                  className="bg-white rounded-2xl border border-[#EAE6DE] hover:border-[#226192]/40 transition-all p-4.5 shadow-xs hover:shadow-sm flex flex-col justify-between gap-3 group"
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <span className={`px-2 py-0.5 rounded-lg text-[9px] font-bold uppercase tracking-wider flex items-center gap-1 ${catMeta.bg} ${catMeta.text} ${catMeta.border} border`}>
+                        <CatIcon className="w-3 h-3" />
+                        <span>{notice.category}</span>
+                      </span>
+                      <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${getPriorityBadge(notice.priority)}`}>
+                        {notice.priority}
+                      </span>
+                    </div>
+
+                    <h2
+                      onClick={() => handleOpenNotice(notice)}
+                      className="text-sm font-bold text-slate-900 group-hover:text-[#226192] transition-colors cursor-pointer leading-snug line-clamp-2"
+                      title={notice.title}
+                    >
+                      {notice.title}
+                    </h2>
+
+                    <p 
+                      onClick={() => handleOpenNotice(notice)}
+                      className="text-xs text-slate-600 line-clamp-3 leading-relaxed cursor-pointer"
+                    >
+                      {notice.description}
+                    </p>
+                  </div>
+
+                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2 text-[11px] text-slate-500">
+                    <div className="flex items-center gap-2 truncate">
+                      {publisher.avatar ? (
+                        <img src={publisher.avatar} alt={publisher.name} className="w-6 h-6 rounded-full object-cover shrink-0" />
+                      ) : (
+                        <div className="w-6 h-6 rounded-full bg-[#226192] text-white flex items-center justify-center font-bold text-[9px] shrink-0">
+                          {publisher.name.slice(0, 2).toUpperCase()}
+                        </div>
+                      )}
+                      <span className="font-bold text-slate-800 truncate">{publisher.name}</span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleOpenNotice(notice)}
+                      className="px-3 py-1 bg-[#226192] hover:bg-[#1a4d75] text-white text-[11px] font-bold rounded-lg transition-all shrink-0 cursor-pointer"
+                    >
+                      Read
+                    </button>
+                  </div>
+                </article>
+              );
+            }
 
             return (
               <article
