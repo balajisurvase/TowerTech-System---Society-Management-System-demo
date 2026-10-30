@@ -175,25 +175,25 @@ export default function AmenityBooking({ resident, onRefresh }: AmenityBookingPr
       {/* Header Bar */}
       <div className="flex justify-between items-center shrink-0">
         <div>
-          <h2 className="text-sm lg:text-base font-black text-slate-900 leading-tight">Amenity Bookings</h2>
+          <h2 className="text-sm lg:text-base font-black text-[#321F5C] leading-tight">Amenity Bookings</h2>
           <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Book society facilities in real-time</p>
         </div>
       </div>
 
       {showSuccessModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-[#321F5C]/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-2xl border border-slate-100 w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="p-6 text-center space-y-4">
               <div className="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
                 <CheckCircle2 className="w-8 h-8" />
               </div>
               <div>
-                <h3 className="text-lg font-black text-slate-900 tracking-tight">Booking Successful!</h3>
+                <h3 className="text-lg font-black text-[#321F5C] tracking-tight">Booking Successful!</h3>
                 <p className="text-xs text-slate-500 font-medium mt-1">Your request for {formData.amenity_name || 'the amenity'} has been submitted and is pending approval.</p>
               </div>
               <button 
                 onClick={() => setShowSuccessModal(false)}
-                className="w-full bg-emerald-600 text-white font-black py-2.5 rounded-xl hover:bg-emerald-700 transition-all shadow-md shadow-emerald-100 uppercase tracking-widest text-xs"
+                className="w-full bg-[#44D080] text-slate-950 font-black py-2.5 rounded-xl hover:bg-[#4ED88B] transition-all shadow-md shadow-mint/10 uppercase tracking-widest text-xs"
               >
                 Great, Thanks!
               </button>
@@ -208,12 +208,12 @@ export default function AmenityBooking({ resident, onRefresh }: AmenityBookingPr
         <div className="lg:col-span-6 xl:col-span-5 bg-white rounded-2xl shadow-sm border border-slate-100 flex flex-col overflow-hidden">
           <div className="px-4 py-2.5 border-b border-slate-100 flex justify-between items-center shrink-0 bg-slate-50/50">
             <div>
-              <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider">New Reservation</h3>
+              <h3 className="text-xs font-black text-[#321F5C] uppercase tracking-wider">New Reservation</h3>
               <p className="text-[10px] text-slate-500 font-medium">Select amenity & reserve slot</p>
             </div>
-            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg text-[10px] font-black border border-indigo-100">
+            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-purple-50 text-purple-700 rounded-lg text-[10px] font-black border border-purple-100">
               <span>{resident.name}</span>
-              <span className="text-indigo-300">•</span>
+              <span className="text-purple-300">•</span>
               <span>{resident.tower}-{resident.flat}</span>
             </div>
           </div>
@@ -229,7 +229,7 @@ export default function AmenityBooking({ resident, onRefresh }: AmenityBookingPr
                     name="amenity_name"
                     value={formData.amenity_name}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-200 outline-none transition-all font-bold text-xs text-slate-800 appearance-none bg-slate-50/80 cursor-pointer"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-[#6339CA] focus:ring-1 focus:ring-[#6339CA]/20 outline-none transition-all font-bold text-xs text-slate-800 appearance-none bg-slate-50/80 cursor-pointer"
                   >
                     {amenitiesList.map(a => (
                       <option key={a.amenity_id} value={a.name}>{a.name} ({a.description || 'Amenity'})</option>
@@ -251,7 +251,7 @@ export default function AmenityBooking({ resident, onRefresh }: AmenityBookingPr
                     value={formData.event_name}
                     onChange={handleInputChange}
                     placeholder="e.g. Birthday Party"
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-200 outline-none transition-all font-bold text-xs text-slate-800 bg-slate-50/80"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-[#6339CA] focus:ring-1 focus:ring-[#6339CA]/20 outline-none transition-all font-bold text-xs text-slate-800 bg-slate-50/80"
                   />
                 </div>
                 <div>
@@ -262,7 +262,7 @@ export default function AmenityBooking({ resident, onRefresh }: AmenityBookingPr
                     value={formData.booking_date}
                     onChange={handleInputChange}
                     min={new Date().toISOString().split('T')[0]}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-200 outline-none transition-all font-bold text-xs text-slate-800 bg-slate-50/80"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-[#6339CA] focus:ring-1 focus:ring-[#6339CA]/20 outline-none transition-all font-bold text-xs text-slate-800 bg-slate-50/80"
                   />
                 </div>
               </div>
@@ -276,7 +276,7 @@ export default function AmenityBooking({ resident, onRefresh }: AmenityBookingPr
                     name="start_time"
                     value={formData.start_time}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-200 outline-none transition-all font-bold text-xs text-slate-800 bg-slate-50/80"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-[#6339CA] focus:ring-1 focus:ring-[#6339CA]/20 outline-none transition-all font-bold text-xs text-slate-800 bg-slate-50/80"
                   />
                 </div>
                 <div>
@@ -286,32 +286,32 @@ export default function AmenityBooking({ resident, onRefresh }: AmenityBookingPr
                     name="end_time"
                     value={formData.end_time}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-200 outline-none transition-all font-bold text-xs text-slate-800 bg-slate-50/80"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-[#6339CA] focus:ring-1 focus:ring-[#6339CA]/20 outline-none transition-all font-bold text-xs text-slate-800 bg-slate-50/80"
                   />
                 </div>
               </div>
             </div>
 
             {/* Compact Pricing Calculation & Summary Card */}
-            <div className="bg-indigo-50/70 rounded-xl p-2.5 border border-indigo-100/80 space-y-1.5">
+            <div className="bg-[#6339CA]/10 rounded-xl p-2.5 border border-[#6339CA]/20/80 space-y-1.5">
               <div className="grid grid-cols-3 gap-1 text-[11px]">
-                <div className="bg-white/80 p-1.5 rounded-lg text-center border border-indigo-100/50">
+                <div className="bg-white/80 p-1.5 rounded-lg text-center border border-[#6339CA]/20/50">
                   <span className="text-[9px] font-black text-slate-400 uppercase block">Duration</span>
                   <span className="font-black text-slate-800">{charges.hours}h</span>
                 </div>
-                <div className="bg-white/80 p-1.5 rounded-lg text-center border border-indigo-100/50">
+                <div className="bg-white/80 p-1.5 rounded-lg text-center border border-[#6339CA]/20/50">
                   <span className="text-[9px] font-black text-slate-400 uppercase block">Base Fee</span>
                   <span className="font-black text-slate-800">₹{charges.base}</span>
                 </div>
-                <div className="bg-white/80 p-1.5 rounded-lg text-center border border-indigo-100/50">
+                <div className="bg-white/80 p-1.5 rounded-lg text-center border border-[#6339CA]/20/50">
                   <span className="text-[9px] font-black text-slate-400 uppercase block">Extra Rate</span>
                   <span className="font-black text-slate-800">₹{charges.extra}/h</span>
                 </div>
               </div>
 
-              <div className="flex justify-between items-center pt-1 border-t border-indigo-100/80 px-1">
+              <div className="flex justify-between items-center pt-1 border-t border-[#6339CA]/20/80 px-1">
                 <span className="text-xs font-black text-slate-700 uppercase tracking-wider">Total Charges:</span>
-                <span className="text-base font-black text-indigo-600">₹{charges.total}</span>
+                <span className="text-base font-black text-[#6339CA]">₹{charges.total}</span>
               </div>
             </div>
 
@@ -319,7 +319,7 @@ export default function AmenityBooking({ resident, onRefresh }: AmenityBookingPr
             <button
               type="submit"
               disabled={submitting}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-black py-2.5 rounded-xl shadow-md shadow-indigo-100 transition-all flex items-center justify-center gap-2 uppercase tracking-widest text-xs shrink-0 cursor-pointer"
+              className="w-full bg-[#6339CA] hover:bg-[#5D31C7] disabled:bg-purple-400 text-white font-black py-2.5 rounded-xl shadow-md shadow-purple-100 transition-all flex items-center justify-center gap-2 uppercase tracking-widest text-xs shrink-0 cursor-pointer"
             >
               {submitting ? (
                 <>
@@ -339,7 +339,7 @@ export default function AmenityBooking({ resident, onRefresh }: AmenityBookingPr
           <div className="bg-white rounded-2xl shadow-sm border border-slate-100 flex flex-col flex-1 min-h-0 overflow-hidden">
             <div className="px-4 py-2.5 border-b border-slate-100 flex justify-between items-center shrink-0 bg-slate-50/50">
               <div>
-                <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider">My Booking History</h3>
+                <h3 className="text-xs font-black text-[#321F5C] uppercase tracking-wider">My Booking History</h3>
                 <p className="text-[10px] text-slate-500 font-medium">Track your reservations</p>
               </div>
               <span className="text-[10px] font-bold text-slate-400">{bookings.length} Total</span>
@@ -359,7 +359,7 @@ export default function AmenityBooking({ resident, onRefresh }: AmenityBookingPr
                   {loading ? (
                     <tr>
                       <td colSpan={4} className="px-4 py-8 text-center">
-                        <div className="flex justify-center items-center gap-2 text-indigo-600">
+                        <div className="flex justify-center items-center gap-2 text-[#6339CA]">
                           <Loader2 className="w-3.5 h-3.5 animate-spin" />
                           <span className="font-bold text-xs">Loading bookings...</span>
                         </div>
@@ -374,7 +374,7 @@ export default function AmenityBooking({ resident, onRefresh }: AmenityBookingPr
                   ) : (
                     bookings.map((b) => (
                       <tr key={b.id || b.booking_id} className="hover:bg-slate-50/80 transition-colors">
-                        <td className="px-3.5 py-2 font-black text-indigo-600 text-[11px]">
+                        <td className="px-3.5 py-2 font-black text-[#6339CA] text-[11px]">
                           {(b.booking_id || '').slice(0, 7)}
                         </td>
                         <td className="px-3.5 py-2">
@@ -410,24 +410,24 @@ export default function AmenityBooking({ resident, onRefresh }: AmenityBookingPr
           {/* Compact Booking Rules Widget */}
           <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-3 shrink-0">
             <div className="flex items-center gap-1.5 mb-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-indigo-600"></span>
+              <span className="w-1.5 h-1.5 rounded-full bg-[#6339CA]"></span>
               <h4 className="text-[10px] font-black text-slate-800 uppercase tracking-wider">Booking Guidelines</h4>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[10px] text-slate-600 font-medium">
               <div className="bg-slate-50 rounded-xl p-2 border border-slate-100">
-                <span className="font-black text-indigo-600 mr-1">1.</span>
+                <span className="font-black text-[#6339CA] mr-1">1.</span>
                 Book ≥ 1 day ahead
               </div>
               <div className="bg-slate-50 rounded-xl p-2 border border-slate-100">
-                <span className="font-black text-indigo-600 mr-1">2.</span>
+                <span className="font-black text-[#6339CA] mr-1">2.</span>
                 Max 8h per session
               </div>
               <div className="bg-slate-50 rounded-xl p-2 border border-slate-100">
-                <span className="font-black text-indigo-600 mr-1">3.</span>
+                <span className="font-black text-[#6339CA] mr-1">3.</span>
                 Extra rate past base
               </div>
               <div className="bg-slate-50 rounded-xl p-2 border border-slate-100">
-                <span className="font-black text-indigo-600 mr-1">4.</span>
+                <span className="font-black text-[#6339CA] mr-1">4.</span>
                 Admin approval req.
               </div>
             </div>

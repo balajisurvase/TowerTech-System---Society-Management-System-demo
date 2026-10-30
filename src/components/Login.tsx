@@ -14,8 +14,9 @@ import {
   Shield, 
   Megaphone, 
   MessageSquare, 
-  Sparkles 
+  Sparkles
 } from 'lucide-react';
+import TowerTechLogo from './TowerTechLogo';
 import { User } from '../types';
 import { societyService } from '../lib/societyService';
 import RegisterSociety from './RegisterSociety';
@@ -94,12 +95,12 @@ export default function Login({ onLogin }: LoginProps) {
   }
 
   return (
-    <div className="fixed inset-0 w-screen h-screen h-[100vh] h-[100dvh] bg-slate-950 font-sans selection:bg-blue-100 selection:text-blue-700 flex flex-col md:flex-row overflow-y-auto md:overflow-hidden m-0 p-0">
+    <div className="fixed inset-0 w-screen h-screen h-[100vh] h-[100dvh] bg-[#321F5C] font-sans selection:bg-purple-100 selection:text-purple-900 flex flex-col md:flex-row overflow-y-auto md:overflow-hidden m-0 p-0">
       
       {/* Forgot Password Modal */}
       {showForgotModal && (
-        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-md flex items-center justify-center p-4 z-[200]">
-          <div className="bg-white rounded-3xl shadow-2xl p-6 sm:p-8 max-w-md w-full relative border border-slate-200 animate-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 bg-[#321F5C]/80 backdrop-blur-md flex items-center justify-center p-4 z-[200]">
+          <div className="bg-white rounded-3xl shadow-2xl p-6 sm:p-8 max-w-md w-full relative border border-purple-100 animate-in zoom-in-95 duration-150">
             <button 
               onClick={() => {
                 setShowForgotModal(false);
@@ -111,10 +112,10 @@ export default function Login({ onLogin }: LoginProps) {
             </button>
             
             <div className="mb-5">
-              <div className="w-11 h-11 bg-blue-50 text-[#1d72fe] rounded-2xl flex items-center justify-center mb-3.5 border border-blue-100 shadow-2xs">
+              <div className="w-11 h-11 bg-purple-50 text-[#6339CA] rounded-2xl flex items-center justify-center mb-3.5 border border-purple-100 shadow-2xs">
                 <Lock className="w-5 h-5" />
               </div>
-              <h3 className="text-xl font-black text-slate-900 tracking-tight">Reset Password</h3>
+              <h3 className="text-xl font-black text-[#321F5C] tracking-tight">Reset Password</h3>
               <p className="text-slate-500 text-xs font-medium mt-1">Enter your registered email address to receive a password recovery link.</p>
             </div>
             
@@ -131,13 +132,13 @@ export default function Login({ onLogin }: LoginProps) {
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Email Address</label>
                 <div className="relative group">
-                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-[#1d72fe] transition-colors" />
+                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-[#6339CA] transition-colors" />
                   <input
                     type="email"
                     value={resetEmail}
                     onChange={(e) => setResetEmail(e.target.value)}
                     placeholder="resident@example.com"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#1d72fe] focus:ring-2 focus:ring-blue-100 outline-none transition-all font-bold text-slate-800 placeholder:text-slate-300 text-xs bg-slate-50/50"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#6339CA] focus:ring-2 focus:ring-purple-100 outline-none transition-all font-bold text-slate-800 placeholder:text-slate-300 text-xs bg-slate-50/50"
                     required
                   />
                 </div>
@@ -156,7 +157,7 @@ export default function Login({ onLogin }: LoginProps) {
                 <button
                   type="submit"
                   disabled={resetLoading}
-                  className="flex-[1.5] bg-[#1d72fe] hover:bg-blue-600 active:bg-blue-700 disabled:bg-slate-300 text-white font-bold py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 shadow-md shadow-blue-500/20 text-xs uppercase tracking-wider cursor-pointer"
+                  className="flex-[1.5] bg-[#6339CA] hover:bg-[#5D31C7] active:bg-purple-800 disabled:bg-slate-300 text-white font-bold py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 shadow-md shadow-purple-500/20 text-xs uppercase tracking-wider cursor-pointer"
                 >
                   {resetLoading ? (
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -177,14 +178,14 @@ export default function Login({ onLogin }: LoginProps) {
           {/* Header Title */}
           <div className="mb-6">
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 rounded-2xl bg-[#1d72fe]/10 text-[#1d72fe] flex items-center justify-center font-black text-sm border border-[#1d72fe]/20 shadow-2xs">
-                <Building2 className="w-5 h-5 text-[#1d72fe]" />
+              <div className="w-10 h-10 rounded-2xl flex items-center justify-center font-black text-sm border border-[#6339CA]/20 shadow-2xs">
+                <TowerTechLogo className="w-8 h-8" />
               </div>
               <div>
-                <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+                <h1 className="text-2xl sm:text-3xl font-black text-[#321F5C] tracking-tight">
                   Welcome Back
                 </h1>
-                <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Green Park Residency</p>
+                <p className="text-[11px] font-bold uppercase tracking-wider text-purple-400">Green Park Residency</p>
               </div>
             </div>
             <p className="text-xs font-semibold text-slate-500 mt-2">
@@ -192,7 +193,7 @@ export default function Login({ onLogin }: LoginProps) {
               <button 
                 type="button" 
                 onClick={() => setView('register')} 
-                className="text-[#1d72fe] hover:text-blue-700 font-bold hover:underline cursor-pointer transition-colors"
+                className="text-[#6339CA] hover:text-[#5D31C7] font-bold hover:underline cursor-pointer transition-colors"
               >
                 Register Here
               </button>
@@ -208,13 +209,13 @@ export default function Login({ onLogin }: LoginProps) {
                 SOCIETY ID
               </label>
               <div className="relative group">
-                <Building2 className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 group-focus-within:text-[#1d72fe] transition-colors" />
+                <Building2 className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 group-focus-within:text-[#6339CA] transition-colors" />
                 <input
                   type="text"
                   value={societyId}
                   onChange={(e) => setSocietyId(e.target.value)}
                   placeholder="GV2026"
-                  className="w-full pl-10 pr-4 h-11 rounded-xl border border-slate-200 focus:border-[#1d72fe] focus:ring-2 focus:ring-[#1d72fe]/15 outline-none text-xs sm:text-sm font-black text-slate-800 bg-slate-50/60 focus:bg-white transition-all shadow-2xs placeholder:text-slate-300"
+                  className="w-full pl-10 pr-4 h-11 rounded-xl border border-slate-200 focus:border-[#6339CA] focus:ring-2 focus:ring-[#6339CA]/15 outline-none text-xs sm:text-sm font-black text-slate-800 bg-slate-50/60 focus:bg-white transition-all shadow-2xs placeholder:text-slate-300"
                   required
                 />
               </div>
@@ -226,13 +227,13 @@ export default function Login({ onLogin }: LoginProps) {
                 USER ID / EMAIL
               </label>
               <div className="relative group">
-                <UserPlus className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 group-focus-within:text-[#1d72fe] transition-colors" />
+                <UserPlus className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 group-focus-within:text-[#6339CA] transition-colors" />
                 <input
                   type="text"
                   value={loginId}
                   onChange={(e) => setLoginId(e.target.value)}
                   placeholder="Enter User ID or Email"
-                  className="w-full pl-10 pr-4 h-11 rounded-xl border border-slate-200 focus:border-[#1d72fe] focus:ring-2 focus:ring-[#1d72fe]/15 outline-none text-xs sm:text-sm font-bold text-slate-800 bg-slate-50/60 focus:bg-white transition-all shadow-2xs placeholder:text-slate-300"
+                  className="w-full pl-10 pr-4 h-11 rounded-xl border border-slate-200 focus:border-[#6339CA] focus:ring-2 focus:ring-[#6339CA]/15 outline-none text-xs sm:text-sm font-bold text-slate-800 bg-slate-50/60 focus:bg-white transition-all shadow-2xs placeholder:text-slate-300"
                   required
                 />
               </div>
@@ -244,13 +245,13 @@ export default function Login({ onLogin }: LoginProps) {
                 PASSWORD
               </label>
               <div className="relative group">
-                <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 group-focus-within:text-[#1d72fe] transition-colors" />
+                <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 group-focus-within:text-[#6339CA] transition-colors" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter Password"
-                  className="w-full pl-10 pr-10 h-11 rounded-xl border border-slate-200 focus:border-[#1d72fe] focus:ring-2 focus:ring-[#1d72fe]/15 outline-none text-xs sm:text-sm font-bold text-slate-800 bg-slate-50/60 focus:bg-white transition-all shadow-2xs placeholder:text-slate-300"
+                  className="w-full pl-10 pr-10 h-11 rounded-xl border border-slate-200 focus:border-[#6339CA] focus:ring-2 focus:ring-[#6339CA]/15 outline-none text-xs sm:text-sm font-bold text-slate-800 bg-slate-50/60 focus:bg-white transition-all shadow-2xs placeholder:text-slate-300"
                   required
                 />
                 <button 
@@ -271,14 +272,14 @@ export default function Login({ onLogin }: LoginProps) {
                   type="checkbox"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
-                  className="w-4 h-4 rounded border-slate-300 text-[#1d72fe] focus:ring-[#1d72fe] cursor-pointer"
+                  className="w-4 h-4 rounded border-slate-300 text-[#6339CA] focus:ring-[#6339CA] cursor-pointer"
                 />
                 <span>Remember Me</span>
               </label>
               <button 
                 type="button"
                 onClick={() => setShowForgotModal(true)}
-                className="font-bold text-slate-500 hover:text-[#1d72fe] cursor-pointer transition-colors"
+                className="font-bold text-slate-500 hover:text-[#6339CA] cursor-pointer transition-colors"
               >
                 Forgot password?
               </button>
@@ -297,7 +298,7 @@ export default function Login({ onLogin }: LoginProps) {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-[#1d72fe] hover:bg-[#155bd5] active:scale-[0.99] disabled:bg-slate-300 text-white font-black py-3.5 px-8 rounded-xl text-xs uppercase tracking-wider transition-all shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/30 flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full bg-[#6339CA] hover:bg-[#5D31C7] active:scale-[0.99] disabled:bg-slate-300 text-white font-black py-3.5 px-8 rounded-xl text-xs uppercase tracking-wider transition-all shadow-md shadow-purple-500/20 hover:shadow-lg hover:shadow-purple-500/30 flex items-center justify-center gap-2 cursor-pointer"
               >
                 {loading ? (
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -320,23 +321,23 @@ export default function Login({ onLogin }: LoginProps) {
       </div>
 
       {/* RIGHT COLUMN: BRANDING & FEATURE CARDS */}
-      <div className="hidden md:flex flex-1 h-full relative overflow-hidden flex-col justify-between p-8 lg:p-12 text-white bg-[#0b1739] shrink-0 z-10">
+      <div className="hidden md:flex flex-1 h-full relative overflow-hidden flex-col justify-between p-8 lg:p-12 text-white bg-[#321F5C] shrink-0 z-10">
         
         {/* Building Background Image */}
         <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
           <img 
             src="/src/assets/images/building_bg_1791112941582.jpg" 
             alt="TowerTech Platform" 
-            className="w-full h-full object-cover object-center opacity-30 mix-blend-luminosity filter contrast-125 brightness-110"
+            className="w-full h-full object-cover object-center opacity-20 mix-blend-luminosity filter contrast-125 brightness-110"
             referrerPolicy="no-referrer"
           />
-          <div className="absolute inset-0 bg-gradient-to-tr from-[#0b1739] via-[#0b1739]/90 to-slate-950/85" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#0b1739] via-transparent to-[#0b1739]/70" />
+          <div className="absolute inset-0 bg-gradient-to-tr from-[#321F5C] via-[#321F5C]/95 to-[#6339CA]/40" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#321F5C] via-transparent to-[#321F5C]/80" />
         </div>
 
         {/* Ambient Glows */}
-        <div className="absolute top-10 right-10 w-96 h-96 bg-[#1d72fe]/20 rounded-full blur-3xl pointer-events-none z-0" />
-        <div className="absolute bottom-10 left-10 w-96 h-96 bg-blue-600/15 rounded-full blur-3xl pointer-events-none z-0" />
+        <div className="absolute top-10 right-10 w-96 h-96 bg-[#6339CA]/30 rounded-full blur-3xl pointer-events-none z-0" />
+        <div className="absolute bottom-10 left-10 w-96 h-96 bg-[#FAA928]/10 rounded-full blur-3xl pointer-events-none z-0" />
 
         {/* Top Brand Badge */}
         <div className="relative z-10 flex items-center justify-between">
@@ -346,7 +347,7 @@ export default function Login({ onLogin }: LoginProps) {
             </div>
             <div>
               <span className="text-xl font-black text-white tracking-tight block">TowerTech</span>
-              <span className="text-[10px] font-extrabold text-blue-200/90 uppercase tracking-widest block">Society System</span>
+              <span className="text-[10px] font-extrabold text-purple-200/90 uppercase tracking-widest block">Society System</span>
             </div>
           </div>
         </div>
@@ -370,18 +371,18 @@ export default function Login({ onLogin }: LoginProps) {
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-xs sm:text-sm font-black text-white tracking-tight">Maintenance & Online Bills</p>
-                <p className="text-[11px] font-semibold text-blue-200/90 truncate mt-0.5">Automated billing, instant receipts & payment history</p>
+                <p className="text-[11px] font-semibold text-white/80/90 truncate mt-0.5">Automated billing, instant receipts & payment history</p>
               </div>
             </div>
 
             {/* Feature 2 */}
             <div className="flex items-center gap-3.5 bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/15 hover:bg-white/15 hover:border-white/25 transition-all group shadow-sm">
-              <div className="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0 border border-blue-400/30 group-hover:scale-105 transition-transform">
-                <Shield className="w-5 h-5 text-blue-400" />
+              <div className="w-10 h-10 rounded-xl bg-[#6339CA]/100/20 text-purple-400 flex items-center justify-center shrink-0 border border-[#6339CA]/30 group-hover:scale-105 transition-transform">
+                <Shield className="w-5 h-5 text-purple-400" />
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-xs sm:text-sm font-black text-white tracking-tight">Real-Time Visitor Gate Pass</p>
-                <p className="text-[11px] font-semibold text-blue-200/90 truncate mt-0.5">Pre-approve guests, track deliveries & live gate logs</p>
+                <p className="text-[11px] font-semibold text-white/80/90 truncate mt-0.5">Pre-approve guests, track deliveries & live gate logs</p>
               </div>
             </div>
 
@@ -392,18 +393,18 @@ export default function Login({ onLogin }: LoginProps) {
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-xs sm:text-sm font-black text-white tracking-tight">Notice Management</p>
-                <p className="text-[11px] font-semibold text-blue-200/90 truncate mt-0.5">Publish circulars, announcements & urgent alerts</p>
+                <p className="text-[11px] font-semibold text-white/80/90 truncate mt-0.5">Publish circulars, announcements & urgent alerts</p>
               </div>
             </div>
 
             {/* Feature 4 */}
             <div className="flex items-center gap-3.5 bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/15 hover:bg-white/15 hover:border-white/25 transition-all group shadow-sm">
-              <div className="w-10 h-10 rounded-xl bg-[#1d72fe]/20 text-blue-300 flex items-center justify-center shrink-0 border border-blue-400/30 group-hover:scale-105 transition-transform">
-                <MessageSquare className="w-5 h-5 text-blue-300" />
+              <div className="w-10 h-10 rounded-xl bg-[#1d72fe]/20 text-white/80 flex items-center justify-center shrink-0 border border-[#6339CA]/30 group-hover:scale-105 transition-transform">
+                <MessageSquare className="w-5 h-5 text-white/80" />
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-xs sm:text-sm font-black text-white tracking-tight">Communication & Helpdesk</p>
-                <p className="text-[11px] font-semibold text-blue-200/90 truncate mt-0.5">Log complaints, chat in channels & resident support</p>
+                <p className="text-[11px] font-semibold text-white/80/90 truncate mt-0.5">Log complaints, chat in channels & resident support</p>
               </div>
             </div>
           </div>
@@ -415,7 +416,7 @@ export default function Login({ onLogin }: LoginProps) {
             <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
             <span>Secure Society Access</span>
           </div>
-          <span className="text-[11px] text-blue-200 font-bold">© 2026 TowerTech</span>
+          <span className="text-[11px] text-purple-200 font-bold">© 2026 TowerTech</span>
         </div>
 
       </div>

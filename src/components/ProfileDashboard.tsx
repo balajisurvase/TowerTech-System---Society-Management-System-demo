@@ -117,12 +117,12 @@ export default function ProfileDashboard({ user, onUserUpdate, onBack }: Profile
     : 'U';
 
   return (
-    <div className="w-full space-y-6 font-sans text-slate-900 animate-in fade-in duration-150">
+    <div className="w-full space-y-6 font-sans text-[#321F5C] animate-in fade-in duration-150">
       
       {/* Top Banner & Header */}
       <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
         {/* Cover Strip */}
-        <div className="h-28 sm:h-32 bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 relative p-4 flex items-end justify-end">
+        <div className="h-28 sm:h-32 bg-gradient-to-r from-[#321F5C] via-[#5D31C7] to-[#321F5C] relative p-4 flex items-end justify-end">
           <span className="px-3 py-1 rounded-full bg-white/10 text-white backdrop-blur-md text-[11px] font-bold border border-white/15">
             Green Park Residency • TowerTech
           </span>
@@ -132,7 +132,7 @@ export default function ProfileDashboard({ user, onUserUpdate, onBack }: Profile
         <div className="p-6 pt-0 relative flex flex-col sm:flex-row sm:items-end justify-between gap-4 -mt-12 sm:-mt-14">
           <div className="flex items-end gap-4">
             {/* Avatar Circle with initials */}
-            <div className="w-24 h-24 rounded-2xl bg-blue-600 text-white font-extrabold text-2xl flex items-center justify-center border-4 border-white shadow-md relative">
+            <div className="w-24 h-24 rounded-2xl bg-[#6339CA] text-white font-extrabold text-2xl flex items-center justify-center border-4 border-white shadow-md relative">
               {initials}
               <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center text-[10px] text-white" title="Active Account">
                 ✓
@@ -141,10 +141,10 @@ export default function ProfileDashboard({ user, onUserUpdate, onBack }: Profile
 
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+                <h1 className="text-xl sm:text-2xl font-bold text-[#321F5C] tracking-tight">
                   {user.name || 'Society Member'}
                 </h1>
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#6339CA]/10 text-[#6339CA] border border-[#6339CA]/20">
                   {user.role}
                 </span>
               </div>
@@ -182,7 +182,7 @@ export default function ProfileDashboard({ user, onUserUpdate, onBack }: Profile
             <button
               type="button"
               onClick={() => setShowPasswordModal(true)}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-colors shadow-xs flex items-center gap-1.5 cursor-pointer"
+              className="px-4 py-2 bg-[#6339CA] hover:bg-[#5D31C7] text-white text-xs font-bold rounded-xl transition-colors shadow-xs flex items-center gap-1.5 cursor-pointer"
             >
               <Key className="w-3.5 h-3.5" />
               <span>Change Password</span>
@@ -198,11 +198,11 @@ export default function ProfileDashboard({ user, onUserUpdate, onBack }: Profile
         <div className="lg:col-span-8 bg-white rounded-2xl border border-slate-200/90 shadow-xs p-6 space-y-6">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div>
-              <h3 className="text-base font-bold text-slate-900">Personal Information</h3>
+              <h3 className="text-base font-bold text-[#321F5C]">Personal Information</h3>
               <p className="text-xs text-slate-500">View and manage your registered society account details.</p>
             </div>
             {isEditing && (
-              <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-lg border border-blue-200">
+              <span className="text-xs font-semibold text-[#6339CA] bg-[#6339CA]/10 px-2.5 py-0.5 rounded-lg border border-[#6339CA]/20">
                 Editing Enabled
               </span>
             )}
@@ -221,7 +221,7 @@ export default function ProfileDashboard({ user, onUserUpdate, onBack }: Profile
                     disabled={!isEditing}
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-semibold text-slate-900 bg-slate-50/50 disabled:bg-slate-100/60 disabled:text-slate-600 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-semibold text-[#321F5C] bg-slate-50/50 disabled:bg-slate-100/60 disabled:text-slate-600 outline-none focus:border-[#6339CA] focus:ring-2 focus:ring-[#6339CA]/10 transition-all"
                     required
                   />
                 </div>
@@ -254,7 +254,7 @@ export default function ProfileDashboard({ user, onUserUpdate, onBack }: Profile
                     disabled={!isEditing}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-semibold text-slate-900 bg-slate-50/50 disabled:bg-slate-100/60 disabled:text-slate-600 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-semibold text-[#321F5C] bg-slate-50/50 disabled:bg-slate-100/60 disabled:text-slate-600 outline-none focus:border-[#6339CA] focus:ring-2 focus:ring-[#6339CA]/10 transition-all"
                     required
                   />
                 </div>
@@ -270,7 +270,7 @@ export default function ProfileDashboard({ user, onUserUpdate, onBack }: Profile
                     disabled={!isEditing}
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-semibold text-slate-900 bg-slate-50/50 disabled:bg-slate-100/60 disabled:text-slate-600 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-semibold text-[#321F5C] bg-slate-50/50 disabled:bg-slate-100/60 disabled:text-slate-600 outline-none focus:border-[#6339CA] focus:ring-2 focus:ring-[#6339CA]/10 transition-all"
                     required
                   />
                 </div>
@@ -323,7 +323,7 @@ export default function ProfileDashboard({ user, onUserUpdate, onBack }: Profile
                     disabled={!isEditing}
                     value={emergencyContact}
                     onChange={(e) => setEmergencyContact(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-semibold text-slate-900 bg-slate-50/50 disabled:bg-slate-100/60 disabled:text-slate-600 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-semibold text-[#321F5C] bg-slate-50/50 disabled:bg-slate-100/60 disabled:text-slate-600 outline-none focus:border-[#6339CA] focus:ring-2 focus:ring-[#6339CA]/10 transition-all"
                   />
                 </div>
               </div>
@@ -342,7 +342,7 @@ export default function ProfileDashboard({ user, onUserUpdate, onBack }: Profile
                 <button
                   type="submit"
                   disabled={saving}
-                  className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition-colors shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  className="px-5 py-2 bg-[#6339CA] hover:bg-[#5D31C7] text-white font-bold text-xs rounded-xl transition-colors shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
                 >
                   {saving ? (
                     <>
@@ -367,11 +367,11 @@ export default function ProfileDashboard({ user, onUserUpdate, onBack }: Profile
           {/* Society Information Card */}
           <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-5 space-y-3">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold border border-blue-100">
+              <div className="w-10 h-10 rounded-xl bg-[#6339CA]/10 text-[#6339CA] flex items-center justify-center font-bold border border-[#6339CA]/20">
                 <Building2 className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="text-sm font-bold text-slate-900">Green Park Residency</h4>
+                <h4 className="text-sm font-bold text-[#321F5C]">Green Park Residency</h4>
                 <p className="text-[11px] text-slate-500">Society ID: GV2026</p>
               </div>
             </div>
@@ -397,7 +397,7 @@ export default function ProfileDashboard({ user, onUserUpdate, onBack }: Profile
           {/* Security & Access Level Card */}
           <div className="bg-slate-50 rounded-2xl border border-slate-200/80 p-5 space-y-3">
             <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-              <Shield className="w-4 h-4 text-blue-600" />
+              <Shield className="w-4 h-4 text-[#6339CA]" />
               <span>Access & Security Credentials</span>
             </h4>
             <p className="text-xs text-slate-500 leading-relaxed">
@@ -409,7 +409,7 @@ export default function ProfileDashboard({ user, onUserUpdate, onBack }: Profile
                 onClick={() => setShowPasswordModal(true)}
                 className="w-full py-2.5 bg-white hover:bg-slate-100 text-slate-800 font-bold text-xs rounded-xl border border-slate-200 transition-colors shadow-2xs flex items-center justify-center gap-2 cursor-pointer"
               >
-                <Lock className="w-3.5 h-3.5 text-blue-600" />
+                <Lock className="w-3.5 h-3.5 text-[#6339CA]" />
                 <span>Update Account Password</span>
               </button>
             </div>
@@ -421,15 +421,15 @@ export default function ProfileDashboard({ user, onUserUpdate, onBack }: Profile
 
       {/* Password Change Modal */}
       {showPasswordModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
+        <div className="fixed inset-0 bg-[#321F5C]/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
           <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-md w-full p-6 animate-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                <div className="w-9 h-9 rounded-xl bg-[#6339CA]/10 text-[#6339CA] flex items-center justify-center">
                   <Key className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900">Change Account Password</h3>
+                  <h3 className="text-sm font-bold text-[#321F5C]">Change Account Password</h3>
                   <p className="text-[11px] text-slate-500">Ensure password has at least 6 characters</p>
                 </div>
               </div>
@@ -450,7 +450,7 @@ export default function ProfileDashboard({ user, onUserUpdate, onBack }: Profile
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
                     placeholder="Enter current password"
-                    className="w-full px-3.5 pr-10 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-semibold outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                    className="w-full px-3.5 pr-10 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-semibold outline-none focus:border-[#6339CA] focus:ring-2 focus:ring-[#6339CA]/10"
                     required
                   />
                   <button
@@ -471,7 +471,7 @@ export default function ProfileDashboard({ user, onUserUpdate, onBack }: Profile
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="At least 6 characters"
-                    className="w-full px-3.5 pr-10 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-semibold outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                    className="w-full px-3.5 pr-10 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-semibold outline-none focus:border-[#6339CA] focus:ring-2 focus:ring-[#6339CA]/10"
                     required
                   />
                   <button
@@ -491,7 +491,7 @@ export default function ProfileDashboard({ user, onUserUpdate, onBack }: Profile
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Repeat new password"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-semibold outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-semibold outline-none focus:border-[#6339CA] focus:ring-2 focus:ring-[#6339CA]/10"
                   required
                 />
               </div>
@@ -507,7 +507,7 @@ export default function ProfileDashboard({ user, onUserUpdate, onBack }: Profile
                 <button
                   type="submit"
                   disabled={passwordLoading}
-                  className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs disabled:opacity-50"
+                  className="px-5 py-2 bg-[#6339CA] hover:bg-[#5D31C7] text-white font-bold text-xs rounded-xl shadow-xs disabled:opacity-50"
                 >
                   {passwordLoading ? 'Updating...' : 'Update Password'}
                 </button>

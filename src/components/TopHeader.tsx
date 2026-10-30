@@ -58,7 +58,7 @@ export default function TopHeader({
   const isManagementTab = activeTab === 'maintenance' || activeTab === 'financial' || activeTab === 'bookings' || activeTab === 'complaints';
 
   return (
-    <header className="sticky top-0 z-50 bg-[#0b1739] text-white shadow-md font-sans">
+    <header className="sticky top-0 z-50 bg-[#321F5C] text-white shadow-md font-sans">
       {/* Top Bar: Brand, Search, Notifications, Avatar */}
       <div className="w-full px-4 md:px-6 py-2.5 flex items-center justify-between gap-4 border-b border-slate-800">
         
@@ -79,16 +79,16 @@ export default function TopHeader({
             onClick={() => setActiveTab('dashboard')}
             className="flex items-center gap-2.5 text-left group cursor-pointer"
           >
-            <div className="w-8 h-8 rounded-xl bg-[#1d72fe] text-white flex items-center justify-center font-black shadow-md shadow-blue-500/30 border border-blue-400/30">
+            <div className="w-8 h-8 rounded-xl bg-[#6339CA] text-white flex items-center justify-center font-black shadow-md shadow-[#6339CA]/30 border border-[#6339CA]/30">
               <Building2 className="w-4 h-4 text-white" />
             </div>
             <div>
               <div className="flex items-center gap-1.5 leading-none">
                 <span className="text-base font-black text-white tracking-tight">
-                  TowerTech<span className="text-[#1d72fe]">.</span>
+                  TowerTech<span className="text-[#6339CA]">.</span>
                 </span>
               </div>
-              <span className="text-[11px] font-extrabold text-blue-300 block leading-tight mt-0.5 tracking-wide">
+              <span className="text-[11px] font-extrabold text-white/80 block leading-tight mt-0.5 tracking-wide">
                 Green Park Residency {flatDisplay && `· ${flatDisplay}`}
               </span>
             </div>
@@ -115,15 +115,15 @@ export default function TopHeader({
               title="Notifications"
             >
               <Bell className="w-4 h-4" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#1d72fe] rounded-full ring-2 ring-[#0b1739]"></span>
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#6339CA] rounded-full ring-2 ring-[#321F5C]"></span>
             </button>
 
             {/* Notifications Dropdown */}
             {showNotifications && (
               <div className="absolute top-full right-0 mt-2 w-80 bg-white text-slate-800 rounded-2xl shadow-2xl border border-slate-200 p-3 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
                 <div className="flex items-center justify-between px-2 pb-2 border-b border-slate-100 mb-2">
-                  <h4 className="text-xs font-black text-[#0b1739] uppercase tracking-wider">Notifications</h4>
-                  <span className="text-[10px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100">3 New</span>
+                  <h4 className="text-xs font-black text-[#321F5C] uppercase tracking-wider">Notifications</h4>
+                  <span className="text-[10px] font-bold text-[#6339CA] bg-[#6339CA]/10 px-2 py-0.5 rounded-full border border-[#6339CA]/20">3 New</span>
                 </div>
                 <div className="space-y-2">
                   {sampleNotifications.map((n) => {
@@ -146,7 +146,7 @@ export default function TopHeader({
                     setActiveTab('notices');
                     setShowNotifications(false);
                   }}
-                  className="w-full mt-3 py-2.5 bg-[#0b1739] hover:bg-[#15234f] text-white font-bold text-xs rounded-xl transition-colors text-center block uppercase tracking-wider cursor-pointer shadow-sm"
+                  className="w-full mt-3 py-2.5 bg-[#321F5C] hover:bg-[#5D31C7] text-white font-bold text-xs rounded-xl transition-colors text-center block uppercase tracking-wider cursor-pointer shadow-sm"
                 >
                   View All Notices
                 </button>
@@ -161,7 +161,7 @@ export default function TopHeader({
               className="flex items-center gap-2 bg-white/10 hover:bg-white/20 p-1.5 pl-2.5 rounded-xl text-white font-bold text-xs transition-all active:scale-95 cursor-pointer border border-white/10"
             >
               <span className="hidden sm:inline max-w-[100px] truncate">{user.name || 'User'}</span>
-              <div className="w-6 h-6 rounded-full bg-[#1d72fe] text-white font-black text-xs flex items-center justify-center shadow-xs">
+              <div className="w-6 h-6 rounded-full bg-[#6339CA] text-white font-black text-xs flex items-center justify-center shadow-xs">
                 {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
               </div>
             </button>
@@ -169,17 +169,17 @@ export default function TopHeader({
             {showProfileMenu && (
               <div className="absolute top-full right-0 mt-2 w-48 bg-white text-slate-800 rounded-2xl shadow-2xl border border-slate-200 p-2 z-50 animate-in fade-in duration-100">
                 <div className="px-3 py-2 border-b border-slate-100">
-                  <p className="text-xs font-bold text-slate-900 truncate">{user.name}</p>
-                  <p className="text-[10px] font-bold text-[#1d72fe] truncate">{user.admin_role || (user.role === 'admin' ? 'Chairman' : user.role === 'security' ? 'Security Staff' : (user.occupancy_type === 'Tenant' ? 'Tenant' : 'Owner'))}</p>
+                  <p className="text-xs font-bold text-[#321F5C] truncate">{user.name}</p>
+                  <p className="text-[10px] font-bold text-[#6339CA] truncate">{user.admin_role || (user.role === 'admin' ? 'Chairman' : user.role === 'security' ? 'Security Staff' : (user.occupancy_type === 'Tenant' ? 'Tenant' : 'Owner'))}</p>
                 </div>
                 <button
                   onClick={() => {
                     setActiveTab('profile');
                     setShowProfileMenu(false);
                   }}
-                  className="w-full text-left px-3 py-2 text-xs font-medium text-slate-700 hover:bg-blue-50 rounded-xl flex items-center gap-2 mt-1 transition-colors"
+                  className="w-full text-left px-3 py-2 text-xs font-medium text-slate-700 hover:bg-[#6339CA]/10 rounded-xl flex items-center gap-2 mt-1 transition-colors"
                 >
-                  <UserIcon className="w-3.5 h-3.5 text-[#1d72fe]" />
+                  <UserIcon className="w-3.5 h-3.5 text-[#6339CA]" />
                   <span>My Profile</span>
                 </button>
                 <button
@@ -203,7 +203,7 @@ export default function TopHeader({
 
       {/* Global Search Modal */}
       {showSearchModal && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-start justify-center pt-20 p-4 z-[100] text-slate-800">
+        <div className="fixed inset-0 bg-[#321F5C]/50 backdrop-blur-xs flex items-start justify-center pt-20 p-4 z-[100] text-slate-800">
           <div className="bg-white rounded-xl shadow-2xl border border-slate-200 max-w-lg w-full p-4 animate-in zoom-in-95 duration-150">
             <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
               <Search className="w-5 h-5 text-[#542d87] shrink-0" />
@@ -213,7 +213,7 @@ export default function TopHeader({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search flat, bills, notices, complaints..."
-                className="w-full bg-transparent border-none outline-none text-sm font-bold text-slate-900 placeholder:text-slate-400"
+                className="w-full bg-transparent border-none outline-none text-sm font-bold text-[#321F5C] placeholder:text-slate-400"
               />
               <button
                 onClick={() => setShowSearchModal(false)}

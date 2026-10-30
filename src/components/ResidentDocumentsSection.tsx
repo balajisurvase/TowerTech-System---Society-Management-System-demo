@@ -181,8 +181,8 @@ export default function ResidentDocumentsSection({
         );
       case 'Uploaded':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200">
-            <FileCheck className="w-3 h-3 text-blue-600" />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#6339CA]/10 text-[#6339CA] border border-blue-200">
+            <FileCheck className="w-3 h-3 text-[#6339CA]" />
             Uploaded
           </span>
         );
@@ -245,21 +245,21 @@ export default function ResidentDocumentsSection({
     }`}>
       {/* Section Header */}
       <div className={`p-5 md:p-6 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
-        isOwner ? 'bg-blue-50/70 border-blue-100' : 'bg-purple-50/70 border-purple-100'
+        isOwner ? 'bg-[#6339CA]/10 border-blue-100' : 'bg-purple-50/70 border-purple-100'
       }`}>
         <div className="flex items-center gap-3">
           <div className={`w-11 h-11 rounded-xl flex items-center justify-center font-bold text-white shadow-md ${
-            isOwner ? 'bg-blue-600 shadow-blue-500/20' : 'bg-purple-600 shadow-purple-500/20'
+            isOwner ? 'bg-[#6339CA] shadow-[#6339CA]/20' : 'bg-purple-600 shadow-purple-500/20'
           }`}>
             <FileText className="w-5 h-5 text-white" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-base font-black text-slate-900 tracking-tight">
+              <h3 className="text-base font-black text-[#321F5C] tracking-tight">
                 {isOwner ? 'Owner Documents' : 'Tenant Documents'}
               </h3>
               <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border ${
-                isOwner ? 'bg-blue-100 text-blue-800 border-blue-300' : 'bg-purple-100 text-purple-800 border-purple-300'
+                isOwner ? 'bg-[#6339CA]/10 text-[#6339CA] border-blue-300' : 'bg-purple-100 text-purple-800 border-purple-300'
               }`}>
                 {isOwner ? 'Ownership Records' : 'Tenancy Records'}
               </span>
@@ -284,7 +284,7 @@ export default function ResidentDocumentsSection({
               }}
               className={`px-4 py-2.5 rounded-xl text-white text-xs font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer ${
                 isOwner 
-                  ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-500/25' 
+                  ? 'bg-[#6339CA] hover:bg-[#5D31C7] shadow-[#6339CA]/25' 
                   : 'bg-purple-600 hover:bg-purple-700 shadow-purple-500/25'
               }`}
             >
@@ -331,13 +331,13 @@ export default function ResidentDocumentsSection({
                   status === 'Verified' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
                   status === 'Under Review' ? 'bg-amber-50 text-amber-700 border-amber-200' :
                   status === 'Rejected' ? 'bg-rose-50 text-rose-700 border-rose-200' :
-                  isOwner ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-purple-50 text-purple-700 border-purple-200'
+                  isOwner ? 'bg-[#6339CA]/10 text-[#6339CA] border-blue-200' : 'bg-purple-50 text-purple-700 border-purple-200'
                 }`}>
                   {idx + 1}
                 </div>
 
                 <div className="min-w-0 space-y-1">
-                  <h4 className="text-sm font-bold text-slate-900 leading-snug">
+                  <h4 className="text-sm font-bold text-[#321F5C] leading-snug">
                     {def.name}
                   </h4>
                   <p className="text-xs text-slate-500 font-medium">
@@ -362,7 +362,7 @@ export default function ResidentDocumentsSection({
                         <span>• Uploaded: {format(new Date(uploadedDoc.uploaded_at), 'dd MMM yyyy')}</span>
                       ) : null}
                       {uploadedDoc.deposit_amount ? (
-                        <span className="font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded text-[10px] border border-indigo-200">
+                        <span className="font-bold text-[#6339CA] bg-[#6339CA]/10 px-2 py-0.5 rounded text-[10px] border border-[#6339CA]/20">
                           Deposit: ₹{uploadedDoc.deposit_amount.toLocaleString('en-IN')} {uploadedDoc.deposit_ref ? `(${uploadedDoc.deposit_ref})` : ''}
                         </span>
                       ) : null}
@@ -395,7 +395,7 @@ export default function ResidentDocumentsSection({
                       }}
                       className={`px-4 py-2 text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-2 cursor-pointer ${
                         isOwner 
-                          ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-500/20' 
+                          ? 'bg-[#6339CA] hover:bg-[#5D31C7] shadow-[#6339CA]/20' 
                           : 'bg-purple-600 hover:bg-purple-700 shadow-purple-500/20'
                       }`}
                     >
@@ -411,7 +411,7 @@ export default function ResidentDocumentsSection({
                         setActiveViewDoc(uploadedDoc!);
                         setWorkspaceMode('view');
                       }}
-                      className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors shadow-2xs cursor-pointer"
+                      className="px-3.5 py-1.5 bg-[#321F5C] hover:bg-slate-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors shadow-2xs cursor-pointer"
                       title="View Full Document"
                     >
                       <Eye className="w-3.5 h-3.5" />
@@ -457,7 +457,7 @@ export default function ResidentDocumentsSection({
               <Trash2 className="w-6 h-6" />
             </div>
             <div>
-              <h4 className="text-base font-black text-slate-900">Delete Document?</h4>
+              <h4 className="text-base font-black text-[#321F5C]">Delete Document?</h4>
               <p className="text-xs text-slate-500 mt-1 leading-relaxed">
                 Are you sure you want to delete <strong className="text-slate-800 font-bold">"{deletingDoc.document_name}"</strong>? This will remove the uploaded file and reset the document status to <span className="font-bold text-slate-700">NOT UPLOADED</span>.
               </p>

@@ -130,7 +130,7 @@ export function AddEditFinanceWorkspace({
           </button>
           <div>
             <div className="flex items-center gap-2.5">
-              <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+              <h1 className="text-2xl font-black text-[#321F5C] tracking-tight">
                 {mode === 'edit' ? 'Edit Financial Record' : 'Add Financial Record'}
               </h1>
               <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border uppercase tracking-wider ${
@@ -160,7 +160,7 @@ export function AddEditFinanceWorkspace({
             type="button"
             onClick={handleFormSubmit}
             disabled={submitting || amount <= 0}
-            className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-all shadow-md shadow-indigo-500/25 flex items-center gap-2 cursor-pointer disabled:opacity-50"
+            className="px-6 py-2.5 rounded-xl bg-[#6339CA] hover:bg-[#5D31C7] text-white text-xs font-bold transition-all shadow-md shadow-purple-500/25 flex items-center gap-2 cursor-pointer disabled:opacity-50"
           >
             {submitting ? (
               <span>Saving...</span>
@@ -179,11 +179,11 @@ export function AddEditFinanceWorkspace({
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="px-6 py-4 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold">
+              <div className="w-8 h-8 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center font-bold">
                 <Layers className="w-4 h-4" />
               </div>
               <div>
-                <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">
+                <h3 className="text-sm font-black text-[#321F5C] uppercase tracking-wider">
                   Section 1: Transaction Type & Categorization
                 </h3>
                 <p className="text-[11px] text-slate-500 font-medium">Select entry classification and ledger head</p>
@@ -210,7 +210,7 @@ export function AddEditFinanceWorkspace({
                     }`}
                   >
                     <div>
-                      <span className="text-xs font-black uppercase tracking-wider text-slate-900">{t}</span>
+                      <span className="text-xs font-black uppercase tracking-wider text-[#321F5C]">{t}</span>
                       <p className="text-[10px] text-slate-500 mt-0.5">
                         {t === 'Expense' ? 'Money paid out' : t === 'Income' ? 'General revenue' : t === 'Maintenance' ? 'Resident collections' : 'Violation penalty'}
                       </p>
@@ -234,7 +234,7 @@ export function AddEditFinanceWorkspace({
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none text-xs font-bold text-slate-800 bg-white"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-100 outline-none text-xs font-bold text-slate-800 bg-white"
                 >
                   {CATEGORY_SUGGESTIONS[financeType].map(cat => (
                     <option key={cat} value={cat}>{cat}</option>
@@ -247,7 +247,7 @@ export function AddEditFinanceWorkspace({
                 <select
                   value={paymentStatus}
                   onChange={(e) => setPaymentStatus(e.target.value as PaymentStatus)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none text-xs font-bold text-slate-800 bg-white"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-[#6339CA] focus:ring-2 focus:ring-[#6339CA]/10 outline-none text-xs font-bold text-slate-800 bg-white"
                 >
                   <option value="Paid">Paid / Cleared</option>
                   <option value="Pending">Pending Clearance</option>
@@ -266,7 +266,7 @@ export function AddEditFinanceWorkspace({
                 <IndianRupee className="w-4 h-4" />
               </div>
               <div>
-                <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">
+                <h3 className="text-sm font-black text-[#321F5C] uppercase tracking-wider">
                   Section 2: Amount & Payment Details
                 </h3>
                 <p className="text-[11px] text-slate-500 font-medium">Financial numbers and method</p>
@@ -286,7 +286,7 @@ export function AddEditFinanceWorkspace({
                   value={amount || ''}
                   onChange={(e) => setAmount(Number(e.target.value) || 0)}
                   placeholder="e.g. 15000"
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none text-sm font-black font-mono text-slate-900 bg-white"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-[#6339CA] focus:ring-2 focus:ring-[#6339CA]/10 outline-none text-sm font-black font-mono text-[#321F5C] bg-white"
                 />
               </div>
 
@@ -297,7 +297,7 @@ export function AddEditFinanceWorkspace({
                   required
                   value={transactionDate}
                   onChange={(e) => setTransactionDate(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none text-xs font-bold text-slate-800 bg-white"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-[#6339CA] focus:ring-2 focus:ring-[#6339CA]/10 outline-none text-xs font-bold text-slate-800 bg-white"
                 />
               </div>
 
@@ -306,7 +306,7 @@ export function AddEditFinanceWorkspace({
                 <select
                   value={paymentMode}
                   onChange={(e) => setPaymentMode(e.target.value as PaymentMode)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none text-xs font-bold text-slate-800 bg-white"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-[#6339CA] focus:ring-2 focus:ring-[#6339CA]/10 outline-none text-xs font-bold text-slate-800 bg-white"
                 >
                   <option value="Bank Transfer">Bank Transfer (NEFT/RTGS/IMPS)</option>
                   <option value="UPI">UPI (GPay / PhonePe / QR)</option>
@@ -324,11 +324,11 @@ export function AddEditFinanceWorkspace({
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="px-6 py-4 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold">
+              <div className="w-8 h-8 rounded-lg bg-[#6339CA]/10 text-[#6339CA] flex items-center justify-center font-bold">
                 <FileText className="w-4 h-4" />
               </div>
               <div>
-                <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">
+                <h3 className="text-sm font-black text-[#321F5C] uppercase tracking-wider">
                   Section 3: Payee / Vendor & Reference
                 </h3>
                 <p className="text-[11px] text-slate-500 font-medium">Audit documentation and voucher narration</p>
@@ -349,7 +349,7 @@ export function AddEditFinanceWorkspace({
                   value={partyName}
                   onChange={(e) => setPartyName(e.target.value)}
                   placeholder="e.g. Maharashtra State Electricity Board (MSEB) or Apex Security Agency"
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none text-xs font-bold text-slate-800 bg-white"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-[#6339CA] focus:ring-2 focus:ring-[#6339CA]/10 outline-none text-xs font-bold text-slate-800 bg-white"
                 />
               </div>
 
@@ -362,7 +362,7 @@ export function AddEditFinanceWorkspace({
                   value={referenceNumber}
                   onChange={(e) => setReferenceNumber(e.target.value)}
                   placeholder="e.g. UTR-98124921 or CHQ #991023"
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none text-xs font-mono font-bold text-slate-800 bg-white"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-[#6339CA] focus:ring-2 focus:ring-[#6339CA]/10 outline-none text-xs font-mono font-bold text-slate-800 bg-white"
                 />
               </div>
             </div>
@@ -375,7 +375,7 @@ export function AddEditFinanceWorkspace({
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Detailed reason for this transaction, invoice number, approval minutes reference..."
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none text-xs text-slate-800 bg-white"
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-[#6339CA] focus:ring-2 focus:ring-[#6339CA]/10 outline-none text-xs text-slate-800 bg-white"
               />
             </div>
           </div>
@@ -403,7 +403,7 @@ export function AddEditFinanceWorkspace({
             <button
               type="submit"
               disabled={submitting || amount <= 0}
-              className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-all shadow-md shadow-indigo-500/25 flex items-center gap-2 cursor-pointer disabled:opacity-50"
+              className="px-6 py-2.5 rounded-xl bg-[#6339CA] hover:bg-[#5D31C7] text-white text-xs font-bold transition-all shadow-md shadow-[#6339CA]/25 flex items-center gap-2 cursor-pointer disabled:opacity-50"
             >
               {submitting ? (
                 <span>Saving...</span>
@@ -456,7 +456,7 @@ export function ViewFinanceVoucherWorkspace({
           </button>
           <div>
             <div className="flex items-center gap-2.5">
-              <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+              <h1 className="text-2xl font-black text-[#321F5C] tracking-tight">
                 Payment Voucher — {record.finance_id}
               </h1>
               <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border uppercase tracking-wider ${
@@ -494,7 +494,7 @@ export function ViewFinanceVoucherWorkspace({
           <button
             type="button"
             onClick={handlePrint}
-            className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-all shadow-md shadow-indigo-500/20 flex items-center gap-2 cursor-pointer"
+            className="px-5 py-2.5 rounded-xl bg-[#6339CA] hover:bg-[#5D31C7] text-white text-xs font-bold transition-all shadow-md shadow-purple-500/20 flex items-center gap-2 cursor-pointer"
           >
             <Printer className="w-4 h-4" />
             <span>Print Voucher</span>
@@ -507,7 +507,7 @@ export function ViewFinanceVoucherWorkspace({
         {/* Voucher Header */}
         <div className="flex justify-between items-start pb-6 border-b-2 border-slate-900">
           <div>
-            <div className="flex items-center gap-2 text-indigo-700 font-black text-xl tracking-tight">
+            <div className="flex items-center gap-2 text-purple-700 font-black text-xl tracking-tight">
               <Building2 className="w-6 h-6" />
               <span>Joyville Sensorium Co-operative Housing Society</span>
             </div>
@@ -520,7 +520,7 @@ export function ViewFinanceVoucherWorkspace({
             }`}>
               {isIncome ? 'CREDIT / RECEIPT VOUCHER' : 'PAYMENT / DEBIT VOUCHER'}
             </span>
-            <p className="text-xs font-mono font-black text-slate-900 mt-2">VOUCHER #{record.finance_id}</p>
+            <p className="text-xs font-mono font-black text-[#321F5C] mt-2">VOUCHER #{record.finance_id}</p>
             <p className="text-xs text-slate-500 mt-0.5">
               Date: {record.transaction_date ? format(new Date(record.transaction_date), 'dd MMMM yyyy') : format(new Date(), 'dd MMMM yyyy')}
             </p>
@@ -533,21 +533,21 @@ export function ViewFinanceVoucherWorkspace({
             <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">
               {isIncome ? 'Received From' : 'Paid To (Party / Vendor)'}
             </p>
-            <h4 className="text-base font-black text-slate-900 mt-1">{record.party_name || 'Society Office'}</h4>
+            <h4 className="text-base font-black text-[#321F5C] mt-1">{record.party_name || 'Society Office'}</h4>
             <p className="text-slate-600 mt-0.5 font-medium">Head of Account: {record.category}</p>
           </div>
           <div>
             <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Payment Channel & Reference</p>
-            <h4 className="text-base font-black text-slate-900 mt-1">{record.payment_mode}</h4>
+            <h4 className="text-base font-black text-[#321F5C] mt-1">{record.payment_mode}</h4>
             <p className="text-slate-600 mt-0.5 font-mono">Reference: {record.reference_number || 'N/A'}</p>
           </div>
         </div>
 
         {/* Amount Box */}
-        <div className="p-6 rounded-2xl bg-gradient-to-r from-slate-900 to-indigo-950 text-white flex justify-between items-center">
+        <div className="p-6 rounded-2xl bg-gradient-to-r from-[#321F5C] to-[#6339CA] text-white flex justify-between items-center">
           <div>
-            <span className="text-[10px] font-black uppercase tracking-wider text-indigo-300 block">Total Voucher Amount</span>
-            <span className="text-3xl font-black font-mono text-emerald-400">₹{Number(record.amount).toLocaleString('en-IN')}</span>
+            <span className="text-[10px] font-black uppercase tracking-wider text-purple-300 block">Total Voucher Amount</span>
+            <span className="text-3xl font-black font-mono text-[#44D080]">₹{Number(record.amount).toLocaleString('en-IN')}</span>
           </div>
           <span className="px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-white/10 text-white border border-white/20">
             Status: {record.payment_status}
@@ -623,7 +623,7 @@ export function FinanceStatementWorkspace({
         <button
           type="button"
           onClick={() => window.print()}
-          className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shadow-sm"
+          className="px-4 py-2.5 rounded-xl bg-[#321F5C] hover:bg-[#2e1065] text-white text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shadow-sm"
         >
           <Printer className="w-4 h-4" />
           <span>Print Financial Statement</span>
@@ -634,10 +634,10 @@ export function FinanceStatementWorkspace({
       <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm space-y-6">
         <div className="border-b border-slate-200 pb-6 flex justify-between items-start">
           <div>
-            <h2 className="text-2xl font-black text-slate-900">Financial Ledger Statement</h2>
+            <h2 className="text-2xl font-black text-[#321F5C]">Financial Ledger Statement</h2>
             <p className="text-slate-500 text-xs font-medium mt-0.5">Joyville Sensorium • Official Financial Report</p>
           </div>
-          <span className="px-3 py-1 bg-indigo-50 text-indigo-700 font-bold rounded-lg text-xs border border-indigo-200">
+          <span className="px-3 py-1 bg-purple-50 text-purple-700 font-bold rounded-lg text-xs border border-purple-200">
             Current Term
           </span>
         </div>
@@ -652,9 +652,9 @@ export function FinanceStatementWorkspace({
             <span className="text-[10px] font-black uppercase text-rose-700 tracking-wider">Total Expenses Paid</span>
             <p className="text-2xl font-black font-mono text-rose-700 mt-1">₹{totalExpense.toLocaleString('en-IN')}</p>
           </div>
-          <div className="p-4 rounded-2xl bg-indigo-50 border border-indigo-200">
-            <span className="text-[10px] font-black uppercase text-indigo-700 tracking-wider">Net Reserve Balance</span>
-            <p className="text-2xl font-black font-mono text-indigo-700 mt-1">₹{netBalance.toLocaleString('en-IN')}</p>
+          <div className="p-4 rounded-2xl bg-purple-50 border border-purple-200">
+            <span className="text-[10px] font-black uppercase text-purple-700 tracking-wider">Net Reserve Balance</span>
+            <p className="text-2xl font-black font-mono text-purple-700 mt-1">₹{netBalance.toLocaleString('en-IN')}</p>
           </div>
         </div>
 
@@ -756,7 +756,7 @@ export function AddEditStaffSalaryWorkspace({
             <ArrowLeft className="w-5 h-5 text-slate-600" />
           </button>
           <div>
-            <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+            <h1 className="text-2xl font-black text-[#321F5C] tracking-tight">
               {mode === 'edit' ? 'Edit Staff Salary Record' : 'Record Staff Salary / Payroll'}
             </h1>
             <p className="text-xs font-semibold text-slate-500 mt-0.5">
@@ -777,7 +777,7 @@ export function AddEditStaffSalaryWorkspace({
             type="button"
             onClick={handleSubmit}
             disabled={submitting || !staffName.trim() || monthlySalary <= 0}
-            className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-all flex items-center gap-2 disabled:opacity-50"
+            className="px-6 py-2.5 rounded-xl bg-[#6339CA] hover:bg-[#5D31C7] text-white text-xs font-bold transition-all flex items-center gap-2 disabled:opacity-50"
           >
             {submitting ? 'Saving...' : mode === 'edit' ? 'Update Salary' : 'Save Salary Record'}
           </button>
@@ -796,7 +796,7 @@ export function AddEditStaffSalaryWorkspace({
               placeholder="e.g. Amit Jadhav"
               value={staffName}
               onChange={(e) => setStaffName(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold outline-none focus:ring-2 focus:ring-[#6339CA]"
             />
           </div>
 
@@ -810,7 +810,7 @@ export function AddEditStaffSalaryWorkspace({
               placeholder="e.g. Security Supervisor, Housekeeper, Electrician"
               value={role}
               onChange={(e) => setRole(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold outline-none focus:ring-2 focus:ring-[#6339CA]"
             />
           </div>
 
@@ -824,7 +824,7 @@ export function AddEditStaffSalaryWorkspace({
               min={1}
               value={monthlySalary}
               onChange={(e) => setMonthlySalary(Number(e.target.value))}
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-900 font-mono outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-[#321F5C] font-mono outline-none focus:ring-2 focus:ring-[#6339CA]"
             />
           </div>
 
@@ -838,7 +838,7 @@ export function AddEditStaffSalaryWorkspace({
               placeholder="e.g. October 2026"
               value={month}
               onChange={(e) => setMonth(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold outline-none focus:ring-2 focus:ring-[#6339CA]"
             />
           </div>
 
@@ -849,7 +849,7 @@ export function AddEditStaffSalaryWorkspace({
             <select
               value={paymentStatus}
               onChange={(e) => setPaymentStatus(e.target.value as any)}
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-[#6339CA]"
             >
               <option value="Paid">Paid</option>
               <option value="Pending">Pending</option>
@@ -864,7 +864,7 @@ export function AddEditStaffSalaryWorkspace({
             <select
               value={paymentMode}
               onChange={(e) => setPaymentMode(e.target.value as any)}
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-[#6339CA]"
             >
               <option value="Bank Transfer">Bank Transfer</option>
               <option value="UPI">UPI</option>
@@ -881,7 +881,7 @@ export function AddEditStaffSalaryWorkspace({
               type="date"
               value={paymentDate}
               onChange={(e) => setPaymentDate(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold outline-none focus:ring-2 focus:ring-[#6339CA]"
             />
           </div>
 
@@ -894,7 +894,7 @@ export function AddEditStaffSalaryWorkspace({
               placeholder="e.g. Credited via HDFC Bank salary batch"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold outline-none focus:ring-2 focus:ring-[#6339CA]"
             />
           </div>
         </div>
@@ -965,7 +965,7 @@ export function AddEditServiceContractWorkspace({
             <ArrowLeft className="w-5 h-5 text-slate-600" />
           </button>
           <div>
-            <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+            <h1 className="text-2xl font-black text-[#321F5C] tracking-tight">
               {mode === 'edit' ? 'Edit Vendor Service Contract' : 'Add Vendor Service Contract (AMC)'}
             </h1>
             <p className="text-xs font-semibold text-slate-500 mt-0.5">
@@ -986,7 +986,7 @@ export function AddEditServiceContractWorkspace({
             type="button"
             onClick={handleSubmit}
             disabled={submitting || !serviceName.trim() || !vendorName.trim() || contractAmount <= 0}
-            className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-all flex items-center gap-2 disabled:opacity-50"
+            className="px-6 py-2.5 rounded-xl bg-[#6339CA] hover:bg-[#5D31C7] text-white text-xs font-bold transition-all flex items-center gap-2 disabled:opacity-50"
           >
             {submitting ? 'Saving...' : mode === 'edit' ? 'Update Contract' : 'Save Vendor Contract'}
           </button>
@@ -1005,7 +1005,7 @@ export function AddEditServiceContractWorkspace({
               placeholder="e.g. Elevator Comprehensive AMC"
               value={serviceName}
               onChange={(e) => setServiceName(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold outline-none focus:ring-2 focus:ring-[#6339CA]"
             />
           </div>
 
@@ -1019,7 +1019,7 @@ export function AddEditServiceContractWorkspace({
               placeholder="e.g. Otis Elevator Company India Ltd"
               value={vendorName}
               onChange={(e) => setVendorName(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold outline-none focus:ring-2 focus:ring-[#6339CA]"
             />
           </div>
 
@@ -1032,7 +1032,7 @@ export function AddEditServiceContractWorkspace({
               placeholder="e.g. +91 98230 11223"
               value={vendorContact}
               onChange={(e) => setVendorContact(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold outline-none focus:ring-2 focus:ring-[#6339CA]"
             />
           </div>
 
@@ -1043,7 +1043,7 @@ export function AddEditServiceContractWorkspace({
             <select
               value={billingCycle}
               onChange={(e) => setBillingCycle(e.target.value as any)}
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-[#6339CA]"
             >
               <option value="Monthly">Monthly</option>
               <option value="Quarterly">Quarterly</option>
@@ -1062,7 +1062,7 @@ export function AddEditServiceContractWorkspace({
               min={1}
               value={contractAmount}
               onChange={(e) => setContractAmount(Number(e.target.value))}
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-900 font-mono outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-[#321F5C] font-mono outline-none focus:ring-2 focus:ring-[#6339CA]"
             />
           </div>
 
@@ -1073,7 +1073,7 @@ export function AddEditServiceContractWorkspace({
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value as any)}
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-[#6339CA]"
             >
               <option value="Active">Active</option>
               <option value="Under Renewal">Under Renewal</option>
@@ -1089,7 +1089,7 @@ export function AddEditServiceContractWorkspace({
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold outline-none focus:ring-2 focus:ring-[#6339CA]"
             />
           </div>
 
@@ -1101,7 +1101,7 @@ export function AddEditServiceContractWorkspace({
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold outline-none focus:ring-2 focus:ring-[#6339CA]"
             />
           </div>
 
@@ -1114,7 +1114,7 @@ export function AddEditServiceContractWorkspace({
               placeholder="e.g. Includes monthly preventive maintenance visits and 24/7 breakdown support with 2-hour response time."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold outline-none focus:ring-2 focus:ring-[#6339CA]"
             />
           </div>
         </div>

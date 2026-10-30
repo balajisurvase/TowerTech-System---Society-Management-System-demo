@@ -219,16 +219,16 @@ export default function DashboardModulesGrid({
   });
 
   return (
-    <div className="w-full h-full overflow-y-auto custom-scrollbar pr-2 space-y-6 font-sans text-slate-900 animate-in fade-in duration-150">
+    <div className="w-full h-full overflow-y-auto custom-scrollbar pr-2 space-y-6 font-sans text-[#321F5C] animate-in fade-in duration-150">
       
       {/* 1. DASHBOARD HEADER BANNER: JOYVILLE SENSORIUM */}
-      <div className="bg-gradient-to-r from-[#0F172A] via-[#1E293B] to-[#334155] text-white rounded-2xl p-5 sm:p-6 shadow-md border border-slate-700 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="bg-gradient-to-r from-[#321F5C] via-[#5D31C7] to-[#6339CA] text-white rounded-2xl p-5 sm:p-6 shadow-md border border-purple-900/60 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <span className="bg-teal-500 text-white text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full shadow-xs">
+              <span className="bg-[#44D080] text-slate-950 text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full shadow-xs">
                 Official Portal
               </span>
               <span className="text-xs text-slate-300 font-bold">
@@ -253,53 +253,53 @@ export default function DashboardModulesGrid({
         {/* Card 1: Active Residents (Section 1.3 - calculated from actual active resident records) */}
         <div 
           onClick={() => setActiveTab('residents')}
-          className="bg-indigo-50/90 border border-indigo-200/90 p-4 rounded-2xl shadow-xs hover:border-indigo-400 hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
+          className="bg-purple-50/90 border border-purple-200/90 p-4 rounded-2xl shadow-xs hover:border-purple-400 hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
         >
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black text-indigo-800 uppercase tracking-wider">Active Residents</span>
-            <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-xs group-hover:scale-110 transition-transform">
+            <span className="text-[10px] font-black text-purple-800 uppercase tracking-wider">Active Residents</span>
+            <div className="w-8 h-8 rounded-xl bg-[#6339CA] text-white flex items-center justify-center shadow-xs group-hover:scale-110 transition-transform">
               <Users className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-xl sm:text-2xl font-black text-indigo-950 tracking-tight block">
+            <span className="text-xl sm:text-2xl font-black text-purple-950 tracking-tight block">
               {residents.filter(r => (r.status || 'Active').toLowerCase() === 'active').length}
             </span>
-            <span className="text-[10px] font-extrabold text-indigo-700 bg-indigo-100/80 px-2 py-0.5 rounded-md inline-block mt-1">Active Accounts</span>
+            <span className="text-[10px] font-extrabold text-purple-700 bg-purple-100/80 px-2 py-0.5 rounded-md inline-block mt-1">Active Accounts</span>
           </div>
         </div>
 
         {/* Card 2: Notice Count (Requirement 4 replacement) */}
         <div 
           onClick={() => setActiveTab('notices')}
-          className="bg-emerald-50/90 border border-emerald-200/90 p-4 rounded-2xl shadow-xs hover:border-emerald-400 hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
+          className="bg-mint/10 border border-mint/20 p-4 rounded-2xl shadow-xs hover:border-mint/40 hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
         >
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black text-emerald-800 uppercase tracking-wider">Total Notices</span>
-            <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-xs group-hover:scale-110 transition-transform">
+            <span className="text-[10px] font-black text-mint uppercase tracking-wider">Total Notices</span>
+            <div className="w-8 h-8 rounded-xl bg-[#44D080] text-slate-950 flex items-center justify-center shadow-xs group-hover:scale-110 transition-transform">
               <Megaphone className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-xl sm:text-2xl font-black text-emerald-950 tracking-tight block">{totalNoticesCount}</span>
-            <span className="text-[10px] font-extrabold text-emerald-800 bg-emerald-100/80 px-2 py-0.5 rounded-md inline-block mt-1">Society Board</span>
+            <span className="text-xl sm:text-2xl font-black text-slate-950 tracking-tight block">{totalNoticesCount}</span>
+            <span className="text-[10px] font-extrabold text-mint bg-mint/10 px-2 py-0.5 rounded-md inline-block mt-1">Society Board</span>
           </div>
         </div>
 
         {/* Card 3: Pending Maintenance (AMBER/ORANGE BLOCK) */}
         <div 
           onClick={() => setActiveTab('maintenance')}
-          className="bg-amber-50/90 border border-amber-300/90 p-4 rounded-2xl shadow-xs hover:border-amber-400 hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
+          className="bg-gold/10 border border-gold/20 p-4 rounded-2xl shadow-xs hover:border-gold/40 hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
         >
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black text-amber-900 uppercase tracking-wider">Pending Bills</span>
-            <div className="w-8 h-8 rounded-xl bg-orange-500 text-white flex items-center justify-center shadow-xs group-hover:scale-110 transition-transform">
+            <span className="text-[10px] font-black text-gold uppercase tracking-wider">Pending Bills</span>
+            <div className="w-8 h-8 rounded-xl bg-[#FAA928] text-slate-950 flex items-center justify-center shadow-xs group-hover:scale-110 transition-transform">
               <CreditCard className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-lg sm:text-xl font-black text-orange-950 tracking-tight block">₹ {displayUnpaid.toLocaleString('en-IN')}</span>
-            <span className="text-[10px] font-extrabold text-orange-800 bg-amber-100/80 px-2 py-0.5 rounded-md inline-block mt-1">Due: {nextDueDate}</span>
+            <span className="text-lg sm:text-xl font-black text-slate-950 tracking-tight block">₹ {displayUnpaid.toLocaleString('en-IN')}</span>
+            <span className="text-[10px] font-extrabold text-gold bg-gold/10 px-2 py-0.5 rounded-md inline-block mt-1">Due: {nextDueDate}</span>
           </div>
         </div>
 
@@ -310,12 +310,12 @@ export default function DashboardModulesGrid({
         >
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-black text-slate-800 uppercase tracking-wider">Collections</span>
-            <div className="w-8 h-8 rounded-xl bg-slate-800 text-white flex items-center justify-center shadow-xs group-hover:scale-110 transition-transform">
+            <div className="w-8 h-8 rounded-xl bg-[#321F5C] text-white flex items-center justify-center shadow-xs group-hover:scale-110 transition-transform">
               <TrendingUp className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-lg sm:text-xl font-black text-slate-900 tracking-tight block">₹ {displayPaid.toLocaleString('en-IN')}</span>
+            <span className="text-lg sm:text-xl font-black text-[#321F5C] tracking-tight block">₹ {displayPaid.toLocaleString('en-IN')}</span>
             <span className="text-[10px] font-extrabold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md inline-block mt-1">FY 2026-27 YTD</span>
           </div>
         </div>
@@ -327,7 +327,7 @@ export default function DashboardModulesGrid({
         >
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-black text-rose-800 uppercase tracking-wider">Open Complaints</span>
-            <div className="w-8 h-8 rounded-xl bg-rose-600 text-white flex items-center justify-center shadow-xs group-hover:scale-110 transition-transform">
+            <div className="w-8 h-8 rounded-xl bg-#FAA928 text-white flex items-center justify-center shadow-xs group-hover:scale-110 transition-transform">
               <AlertCircle className="w-4 h-4" />
             </div>
           </div>
@@ -363,7 +363,7 @@ export default function DashboardModulesGrid({
         <div className="lg:col-span-2 bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-xs flex flex-col justify-between">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
             <div>
-              <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
+              <h3 className="text-base font-extrabold text-[#321F5C] flex items-center gap-2">
                 <TrendingUp className="w-4 h-4 text-teal-500" />
                 <span>Financial Collections Overview</span>
               </h3>
@@ -377,7 +377,7 @@ export default function DashboardModulesGrid({
               <button
                 onClick={() => setFinancialPeriod('month')}
                 className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  financialPeriod === 'month' ? 'bg-slate-800 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                  financialPeriod === 'month' ? 'bg-slate-800 text-white shadow-xs' : 'text-slate-600 hover:text-[#321F5C]'
                 }`}
               >
                 Monthly
@@ -385,7 +385,7 @@ export default function DashboardModulesGrid({
               <button
                 onClick={() => setFinancialPeriod('quarter')}
                 className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  financialPeriod === 'quarter' ? 'bg-slate-800 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                  financialPeriod === 'quarter' ? 'bg-slate-800 text-white shadow-xs' : 'text-slate-600 hover:text-[#321F5C]'
                 }`}
               >
                 Quarterly
@@ -393,7 +393,7 @@ export default function DashboardModulesGrid({
               <button
                 onClick={() => setFinancialPeriod('year')}
                 className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  financialPeriod === 'year' ? 'bg-slate-800 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                  financialPeriod === 'year' ? 'bg-slate-800 text-white shadow-xs' : 'text-slate-600 hover:text-[#321F5C]'
                 }`}
               >
                 Yearly
@@ -409,13 +409,13 @@ export default function DashboardModulesGrid({
                 return (
                   <div key={idx} className="flex-1 flex flex-col items-center h-full justify-end group relative cursor-pointer">
                     
-                    <div className="absolute -top-10 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-900 text-white text-[10px] font-black px-2 py-1 rounded shadow-lg whitespace-nowrap z-20 pointer-events-none">
+                    <div className="absolute -top-10 opacity-0 group-hover:opacity-100 transition-opacity bg-[#321F5C] text-white text-[10px] font-black px-2 py-1 rounded shadow-lg whitespace-nowrap z-20 pointer-events-none">
                       ₹ {item.amount.toLocaleString('en-IN')}
                     </div>
 
                     <div 
                       style={{ height: `${heightPercent}%` }}
-                      className="w-full max-w-[40px] bg-gradient-to-t from-slate-800 to-slate-500 group-hover:from-teal-500 group-hover:to-teal-400 rounded-t-lg transition-all duration-200 shadow-xs relative"
+                      className="w-full max-w-[40px] bg-gradient-to-t from-[#6339CA] to-[#5D31C7] group-hover:from-[#FAA928] group-hover:to-[#FBAE17] rounded-t-lg transition-all duration-200 shadow-xs relative"
                     >
                       <div className="absolute top-0 inset-x-0 h-1 bg-white/30 rounded-t-lg" />
                     </div>
@@ -431,8 +431,8 @@ export default function DashboardModulesGrid({
 
           <div className="flex items-center justify-between pt-2 text-xs font-bold text-slate-600">
             <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-sm bg-slate-800" />
-              <span>Collected Funds: <span className="text-slate-900 font-black">₹ {displayPaid.toLocaleString('en-IN')}</span></span>
+              <span className="w-3 h-3 rounded-sm bg-[#6339CA]" />
+              <span>Collected Funds: <span className="text-[#321F5C] font-black">₹ {displayPaid.toLocaleString('en-IN')}</span></span>
             </div>
             <button 
               onClick={() => setActiveTab('financial')}
@@ -450,7 +450,7 @@ export default function DashboardModulesGrid({
           <div className="space-y-4">
             <div className="pb-3 border-b border-emerald-100 flex items-center justify-between">
               <h3 className="text-base font-extrabold text-emerald-950 flex items-center gap-2">
-                <Megaphone className="w-4 h-4 text-emerald-600" />
+                <Megaphone className="w-4 h-4 text-#44D080" />
                 <span>Society Notices</span>
               </h3>
               <span className="text-[10px] font-black text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">Board</span>
@@ -459,12 +459,12 @@ export default function DashboardModulesGrid({
             <div className="space-y-2.5">
               <div className="flex items-center justify-between p-3 rounded-xl bg-white border border-emerald-100 shadow-2xs">
                 <span className="text-xs font-bold text-slate-700">Total Notices</span>
-                <span className="text-sm font-black text-emerald-600">{totalNoticesCount} Published</span>
+                <span className="text-sm font-black text-#44D080">{totalNoticesCount} Published</span>
               </div>
 
               <div className="flex items-center justify-between p-3 rounded-xl bg-white border border-emerald-100 shadow-2xs">
                 <span className="text-xs font-bold text-slate-700">Active Residents</span>
-                <span className="text-sm font-black text-indigo-900">{residents.filter(r => (r.status || 'Active').toLowerCase() === 'active').length} Active</span>
+                <span className="text-sm font-black text-[#321F5C]">{residents.filter(r => (r.status || 'Active').toLowerCase() === 'active').length} Active</span>
               </div>
 
               <div className="flex items-center justify-between p-3 rounded-xl bg-white border border-emerald-100 shadow-2xs">
@@ -481,7 +481,7 @@ export default function DashboardModulesGrid({
 
           <button
             onClick={() => setActiveTab('notices')}
-            className="w-full mt-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition-all text-center uppercase tracking-wider cursor-pointer shadow-xs"
+            className="w-full mt-4 py-2.5 bg-#44D080 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition-all text-center uppercase tracking-wider cursor-pointer shadow-xs"
           >
             View All Notices
           </button>
@@ -551,7 +551,7 @@ export default function DashboardModulesGrid({
           <div className="space-y-3">
             <div className="flex items-center justify-between pb-3 border-b border-rose-100">
               <h3 className="text-base font-extrabold text-rose-950 flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 text-rose-600" />
+                <AlertCircle className="w-4 h-4 text-#FAA928" />
                 <span>Complaints Overview</span>
               </h3>
               <span className="text-[10px] font-black text-rose-800 bg-rose-100 px-2 py-0.5 rounded border border-rose-200">
@@ -590,7 +590,7 @@ export default function DashboardModulesGrid({
 
           <button
             onClick={() => setActiveTab('complaints')}
-            className="w-full mt-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl transition-all text-center uppercase tracking-wider cursor-pointer shadow-xs"
+            className="w-full mt-4 py-2.5 bg-#FAA928 hover:bg-rose-700 text-white font-bold text-xs rounded-xl transition-all text-center uppercase tracking-wider cursor-pointer shadow-xs"
           >
             Open Complaints Module
           </button>
@@ -641,7 +641,7 @@ export default function DashboardModulesGrid({
 
           <button
             onClick={() => setActiveTab('notices')}
-            className="w-full mt-4 py-2.5 bg-[#542d87] hover:bg-[#462372] text-white font-bold text-xs rounded-xl transition-all text-center uppercase tracking-wider cursor-pointer shadow-xs"
+            className="w-full mt-4 py-2.5 bg-[#321F5C] hover:bg-[#2e1065] text-white font-bold text-xs rounded-xl transition-all text-center uppercase tracking-wider cursor-pointer shadow-xs"
           >
             Open Notice Management
           </button>
@@ -654,10 +654,10 @@ export default function DashboardModulesGrid({
       {/* PAY NOW MODAL */}
       {/* ======================================================== */}
       {showPayNowModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
+        <div className="fixed inset-0 bg-[#321F5C]/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
           <div className="bg-white rounded-xl shadow-2xl border border-slate-200 max-w-md w-full overflow-hidden flex flex-col animate-in zoom-in-95 duration-150">
             
-            <div className="bg-[#542d87] text-white p-4 flex items-center justify-between shrink-0">
+            <div className="bg-[#321F5C] text-white p-4 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => setShowPayNowModal(false)}
@@ -696,7 +696,7 @@ export default function DashboardModulesGrid({
                     <span className="text-[11px] font-bold text-slate-800 leading-tight">
                       Credit Card
                     </span>
-                    <div className="my-2.5 w-8 h-6 rounded border border-orange-300 bg-orange-100 flex items-center justify-center text-orange-600">
+                    <div className="my-2.5 w-8 h-6 rounded border border-orange-300 bg-orange-100 flex items-center justify-center text-#FAA928">
                       <CreditCard className="w-4 h-4" />
                     </div>
                     <span className="text-[10px] font-bold text-slate-400">+ ₹ 25</span>
@@ -747,7 +747,7 @@ export default function DashboardModulesGrid({
                     <div className="my-2.5 w-8 h-6 rounded border border-slate-300 bg-slate-100 flex items-center justify-center text-slate-600">
                       <Building2 className="w-4 h-4" />
                     </div>
-                    <span className="text-[10px] font-bold text-emerald-600">+ ₹ 0</span>
+                    <span className="text-[10px] font-bold text-#44D080">+ ₹ 0</span>
 
                     {selectedPaymentMethod === 'netbanking' && (
                       <div className="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-orange-500 text-white flex items-center justify-center text-[9px] shadow-xs">
@@ -776,7 +776,7 @@ export default function DashboardModulesGrid({
                 type="button"
                 disabled={isProcessingPayment}
                 onClick={handleProceedToPay}
-                className="w-full py-3.5 bg-[#542d87] hover:bg-[#462372] text-white font-bold text-sm uppercase tracking-wider rounded-lg shadow-sm transition-all active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+                className="w-full py-3.5 bg-[#6339CA] hover:bg-[#5D31C7] text-white font-bold text-sm uppercase tracking-wider rounded-lg shadow-sm transition-all active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
               >
                 {isProcessingPayment ? (
                   <>
@@ -795,7 +795,7 @@ export default function DashboardModulesGrid({
 
       {/* ADD COMPLAINT MODAL */}
       {showAddComplaintModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
+        <div className="fixed inset-0 bg-[#321F5C]/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
           <div className="bg-white rounded-xl shadow-2xl border border-slate-200 max-w-md w-full overflow-hidden flex flex-col">
             <div className="bg-[#542d87] text-white p-4 flex items-center justify-between">
               <h3 className="text-base font-bold text-white tracking-tight">
@@ -863,7 +863,7 @@ export default function DashboardModulesGrid({
 
       {/* COMPLAINT DETAIL MODAL */}
       {selectedComplaint && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
+        <div className="fixed inset-0 bg-[#321F5C]/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
           <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-md w-full overflow-hidden flex flex-col">
             <div className="bg-[#542d87] text-white p-4 flex items-center justify-between">
               <h3 className="text-sm font-bold text-white tracking-tight">

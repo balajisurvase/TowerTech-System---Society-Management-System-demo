@@ -61,39 +61,39 @@ interface FinanceDashboardProps {
 
 // Color schemes aligned with Navy Blue + White theme
 const EXPENSE_COLORS: Record<string, string> = {
-  'Electricity': '#2563EB',             // Royal Blue
-  'Cleaning': '#0D9488',                // Teal
-  'Staff Salary': '#4F46E5',            // Indigo
-  'Security': '#0F172A',                // Dark Navy
-  'Water': '#0284C7',                   // Sky Blue
-  'Repairs & Maintenance': '#D97706',   // Amber
+  'Electricity': '#6339CA',             // Royal Violet
+  'Cleaning': '#44D080',                // Mint Green
+  'Staff Salary': '#5D31C7',            // Secondary Violet
+  'Security': '#321F5C',                // Dark Plum
+  'Water': '#0284C7',                   // Sky Blue (keeping some variety)
+  'Repairs & Maintenance': '#FAA928',   // Vibrant Gold
   'Lift Maintenance': '#7C3AED',        // Violet
   'Other Expenses': '#E11D48',          // Rose Red
-  'Housekeeping & Sanitation': '#0D9488',
-  'Security Services': '#0F172A',
+  'Housekeeping & Sanitation': '#44D080',
+  'Security Services': '#321F5C',
   'Elevator / Lift AMC': '#7C3AED',
-  'Electricity / Utility': '#2563EB',
+  'Electricity / Utility': '#6339CA',
   'Water Supply & Plumbing': '#0284C7',
-  'Building Repairs & Civil Works': '#D97706',
+  'Building Repairs & Civil Works': '#FAA928',
   'DG Generator Fuel': '#EA580C',
   'Gardening & Landscaping': '#16A34A',
   'CCTV & Security Tech AMC': '#64748B'
 };
 
 const INCOME_COLORS: Record<string, string> = {
-  'Maintenance Collection': '#4F46E5',  // Indigo
+  'Maintenance Collection': '#6339CA',  // Royal Violet
   'Parking Charges': '#0284C7',         // Sky Blue
-  'Clubhouse Charges': '#059669',       // Emerald
-  'Penalties/Fines': '#D97706',         // Amber
-  'Other Income': '#6366F1',            // Indigo 500
-  'Amenity Booking': '#059669',
-  'Violation Penalty': '#D97706',
-  'Parking Violation': '#DC2626',
-  'Interest & Investments': '#2563EB',
+  'Clubhouse Charges': '#44D080',       // Mint Green
+  'Penalties/Fines': '#FAA928',         // Vibrant Gold
+  'Other Income': '#5D31C7',            // Secondary Violet
+  'Amenity Booking': '#44D080',
+  'Violation Penalty': '#FAA928',
+  'Parking Violation': '#FAA928',
+  'Interest & Investments': '#6339CA',
   'Move-in / Move-out Charges': '#8B5CF6'
 };
 
-const FALLBACK_PALETTE = ['#4F46E5', '#2563EB', '#0D9488', '#059669', '#D97706', '#7C3AED', '#E11D48', '#0F172A', '#0284C7'];
+const FALLBACK_PALETTE = ['#6339CA', '#5D31C7', '#321F5C', '#FAA928', '#44D080', '#7C3AED', '#E11D48', '#0284C7'];
 
 const CATEGORY_SUGGESTIONS: Record<FinanceType, string[]> = {
   Income: [
@@ -236,15 +236,15 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
   if (!isAdmin) {
     return (
       <div className="bg-white rounded-3xl p-12 border border-rose-100 shadow-sm text-center max-w-2xl mx-auto my-12">
-        <div className="w-16 h-16 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-rose-100">
+        <div className="w-16 h-16 bg-rose-50 text-#FAA928 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-rose-100">
           <ShieldAlert className="w-8 h-8" />
         </div>
-        <h2 className="text-2xl font-black text-slate-900 mb-2">Access Denied / Unauthorized</h2>
+        <h2 className="text-2xl font-black text-[#321F5C] mb-2">Access Denied / Unauthorized</h2>
         <p className="text-sm font-medium text-slate-500 leading-relaxed mb-6">
           The Financial module contains sensitive society balance sheets, revenue streams, and expenditures. Only authorized Administrators have permission to view or manage financial records.
         </p>
         <div className="inline-flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-xl text-xs font-bold text-slate-600 border border-slate-200">
-          <span>Logged in role: <strong className="uppercase text-slate-900">{user.admin_role || user.role}</strong></span>
+          <span>Logged in role: <strong className="uppercase text-[#321F5C]">{user.admin_role || user.role}</strong></span>
         </div>
       </div>
     );
@@ -342,8 +342,8 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
   // Maintenance Progress Donut Data
   const maintenanceChartData = useMemo(() => {
     return [
-      { name: 'Collected', value: maintenanceCollected, color: '#4F46E5', percentage: maintenancePercentage },
-      { name: 'Pending', value: maintenancePending, color: '#F59E0B', percentage: (100 - parseFloat(maintenancePercentage)).toFixed(1) }
+      { name: 'Collected', value: maintenanceCollected, color: '#6339CA', percentage: maintenancePercentage },
+      { name: 'Pending', value: maintenancePending, color: '#FAA928', percentage: (100 - parseFloat(maintenancePercentage)).toFixed(1) }
     ];
   }, [maintenanceCollected, maintenancePending, maintenancePercentage]);
 
@@ -360,7 +360,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
       { 
         name: 'Regular Pending', 
         value: pendingAmount, 
-        color: '#F59E0B', 
+        color: '#FAA928', 
         percentage: pendingDues > 0 ? ((pendingAmount / pendingDues) * 100).toFixed(1) : '0.0' 
       },
       { 
@@ -552,14 +552,14 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
-        <div className="bg-slate-900 text-white p-3 rounded-2xl shadow-xl border border-white/10 text-xs z-50">
+        <div className="bg-[#321F5C] text-white p-3 rounded-2xl shadow-xl border border-white/10 text-xs z-50">
           <p className="font-black text-slate-100 flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ backgroundColor: data.color || payload[0].color }} />
             {data.name}
           </p>
           <div className="mt-1.5 flex items-baseline justify-between gap-4">
             <span className="text-sm font-black text-white">₹{Number(data.value).toLocaleString('en-IN')}</span>
-            <span className="text-[11px] font-bold text-indigo-300">({data.percentage}%)</span>
+            <span className="text-[11px] font-bold text-[#FAA928]">({data.percentage}%)</span>
           </div>
           <p className="text-[9px] text-slate-400 mt-1 font-medium">Click slice to filter records below</p>
         </div>
@@ -652,13 +652,13 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
       {/* --------------------------------------------------------------------- */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 border border-indigo-100 shadow-sm">
+          <div className="w-12 h-12 rounded-2xl bg-[#6339CA]/10 flex items-center justify-center text-[#6339CA] border border-[#6339CA]/20 shadow-sm">
             <IndianRupee className="w-6 h-6" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-2xl font-black text-slate-900 tracking-tight">Financial Dashboard</h2>
-              <span className="bg-indigo-50 text-indigo-700 text-[10px] font-black px-2.5 py-0.5 rounded-full border border-indigo-100 uppercase tracking-wider">
+              <h2 className="text-2xl font-black text-[#321F5C] tracking-tight">Financial Dashboard</h2>
+              <span className="bg-[#6339CA]/10 text-[#6339CA] text-[10px] font-black px-2.5 py-0.5 rounded-full border border-[#6339CA]/20 uppercase tracking-wider">
                 Admin Exclusive
               </span>
             </div>
@@ -682,11 +682,11 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
             className="p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl transition-all"
             title="Refresh Data"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-indigo-600' : ''}`} />
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-[#6339CA]' : ''}`} />
           </button>
           <button
             onClick={handleOpenAddModal}
-            className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-indigo-100 flex items-center gap-2"
+            className="px-5 py-2.5 bg-[#6339CA] hover:bg-[#5D31C7] text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-[#6339CA]/10 flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
             Add Record
@@ -703,7 +703,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
             setActiveTypeTab('Income');
             setClickedFilter(null);
           }}
-          className="bg-[#059669] p-6 rounded-2xl shadow-lg shadow-emerald-500/20 text-white flex flex-col justify-between hover:scale-[1.01] transition-all cursor-pointer group"
+          className="bg-[#44D080] p-6 rounded-2xl shadow-lg shadow-[#44D080]/20 text-white flex flex-col justify-between hover:scale-[1.01] transition-all cursor-pointer group"
         >
           <div className="flex items-center justify-between mb-4">
             <span className="text-[11px] font-black text-white/90 uppercase tracking-widest">Total Income</span>
@@ -719,13 +719,13 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
           </div>
         </div>
 
-        {/* Total Expenses: Solid Red #DC2626 */}
+        {/* Total Expenses: Solid Red #FAA928 */}
         <div 
           onClick={() => {
             setActiveTypeTab('Expense');
             setClickedFilter(null);
           }}
-          className="bg-[#DC2626] p-6 rounded-2xl shadow-lg shadow-red-500/20 text-white flex flex-col justify-between hover:scale-[1.01] transition-all cursor-pointer group"
+          className="bg-[#FAA928] p-6 rounded-2xl shadow-lg shadow-#FAA928/20 text-white flex flex-col justify-between hover:scale-[1.01] transition-all cursor-pointer group"
         >
           <div className="flex items-center justify-between mb-4">
             <span className="text-[11px] font-black text-white/90 uppercase tracking-widest">Total Expenses</span>
@@ -747,7 +747,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
             setActiveTypeTab('PendingDues');
             setClickedFilter(null);
           }}
-          className="bg-[#EA580C] p-6 rounded-2xl shadow-lg shadow-orange-500/20 text-white flex flex-col justify-between hover:scale-[1.01] transition-all cursor-pointer group"
+          className="bg-[#FAA928] p-6 rounded-2xl shadow-lg shadow-[#FAA928]/20 text-white flex flex-col justify-between hover:scale-[1.01] transition-all cursor-pointer group"
         >
           <div className="flex items-center justify-between mb-4">
             <span className="text-[11px] font-black text-white/90 uppercase tracking-widest">Pending Dues</span>
@@ -770,14 +770,14 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
       <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-sm flex flex-col gap-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-slate-100">
           <div>
-            <h3 className="text-lg font-black text-slate-900 tracking-tight uppercase">Expense Breakdown</h3>
+            <h3 className="text-lg font-black text-[#321F5C] tracking-tight uppercase">Expense Breakdown</h3>
             <p className="text-xs font-medium text-slate-500">
               Categorical distribution of operational expenditures and society maintenance costs.
             </p>
           </div>
           <div className="text-right">
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Total Expenses</span>
-            <span className="text-xl font-black text-slate-900">₹{totalExpenses.toLocaleString('en-IN')}</span>
+            <span className="text-xl font-black text-[#321F5C]">₹{totalExpenses.toLocaleString('en-IN')}</span>
           </div>
         </div>
 
@@ -813,7 +813,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
 
             {/* Center Label for Expense Total */}
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+              <span className="text-2xl sm:text-3xl font-black text-[#321F5C] tracking-tight">
                 ₹{totalExpenses.toLocaleString('en-IN')}
               </span>
               <span className="text-[10px] sm:text-xs font-black text-slate-400 uppercase tracking-widest mt-0.5">
@@ -836,7 +836,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
                     }}
                     className={`flex items-center justify-between p-3 rounded-2xl border text-left transition-all ${
                       isSelected 
-                        ? 'bg-indigo-50 border-indigo-400 ring-2 ring-indigo-200' 
+                        ? 'bg-[#6339CA]/5 border-[#6339CA]/40 ring-2 ring-[#6339CA]/10' 
                         : 'bg-slate-50/70 border-slate-200/80 hover:bg-slate-100 hover:border-slate-300'
                     }`}
                   >
@@ -847,7 +847,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
                         <p className="text-[10px] font-bold text-slate-400">{item.percentage}% of total</p>
                       </div>
                     </div>
-                    <span className="text-xs font-black text-slate-900 shrink-0 ml-2">
+                    <span className="text-xs font-black text-[#321F5C] shrink-0 ml-2">
                       ₹{item.value.toLocaleString('en-IN')}
                     </span>
                   </button>
@@ -864,14 +864,14 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
       <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-sm flex flex-col gap-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-slate-100">
           <div>
-            <h3 className="text-lg font-black text-slate-900 tracking-tight uppercase">Income Breakdown</h3>
+            <h3 className="text-lg font-black text-[#321F5C] tracking-tight uppercase">Income Breakdown</h3>
             <p className="text-xs font-medium text-slate-500">
               Revenue sources including flat maintenance collections, amenity rents, and penalties.
             </p>
           </div>
           <div className="text-right">
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Total Income</span>
-            <span className="text-xl font-black text-slate-900">₹{totalIncome.toLocaleString('en-IN')}</span>
+            <span className="text-xl font-black text-[#321F5C]">₹{totalIncome.toLocaleString('en-IN')}</span>
           </div>
         </div>
 
@@ -907,7 +907,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
 
             {/* Center Label for Income Total */}
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+              <span className="text-2xl sm:text-3xl font-black text-[#321F5C] tracking-tight">
                 ₹{totalIncome.toLocaleString('en-IN')}
               </span>
               <span className="text-[10px] sm:text-xs font-black text-slate-400 uppercase tracking-widest mt-0.5">
@@ -930,7 +930,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
                     }}
                     className={`flex items-center justify-between p-3 rounded-2xl border text-left transition-all ${
                       isSelected 
-                        ? 'bg-indigo-50 border-indigo-400 ring-2 ring-indigo-200' 
+                        ? 'bg-[#6339CA]/5 border-[#6339CA]/40 ring-2 ring-[#6339CA]/10' 
                         : 'bg-slate-50/70 border-slate-200/80 hover:bg-slate-100 hover:border-slate-300'
                     }`}
                   >
@@ -941,7 +941,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
                         <p className="text-[10px] font-bold text-slate-400">{item.percentage}% of total</p>
                       </div>
                     </div>
-                    <span className="text-xs font-black text-slate-900 shrink-0 ml-2">
+                    <span className="text-xs font-black text-[#321F5C] shrink-0 ml-2">
                       ₹{item.value.toLocaleString('en-IN')}
                     </span>
                   </button>
@@ -960,10 +960,10 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
         <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between gap-4">
           <div className="flex justify-between items-start pb-2 border-b border-slate-100">
             <div>
-              <h3 className="text-base font-black text-slate-900 uppercase tracking-tight">Maintenance Collection</h3>
+              <h3 className="text-base font-black text-[#321F5C] uppercase tracking-tight">Maintenance Collection</h3>
               <p className="text-[11px] font-medium text-slate-500">Collected vs pending society dues ratio.</p>
             </div>
-            <span className="text-xs font-black text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-xl border border-indigo-100">
+            <span className="text-xs font-black text-[#6339CA] bg-[#6339CA]/10 px-2.5 py-1 rounded-xl border border-[#6339CA]/20">
               {maintenancePercentage}%
             </span>
           </div>
@@ -998,7 +998,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
 
             {/* Percentage in Center */}
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span className="text-2xl font-black text-slate-900 tracking-tight">
+              <span className="text-2xl font-black text-[#321F5C] tracking-tight">
                 {maintenancePercentage}%
               </span>
               <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
@@ -1012,15 +1012,15 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
               onClick={() => setClickedFilter({ label: 'Collected', type: 'maintenance-collection' })}
               className={`p-3 rounded-2xl border text-left transition-all ${
                 clickedFilter?.type === 'maintenance-collection' && clickedFilter.label === 'Collected'
-                  ? 'bg-indigo-50 border-indigo-400'
+                  ? 'bg-[#6339CA]/10 border-white/80'
                   : 'bg-slate-50 border-slate-200 hover:bg-slate-100'
               }`}
             >
               <div className="flex items-center gap-2 mb-1">
-                <span className="w-2.5 h-2.5 rounded-full bg-indigo-600" />
+                <span className="w-2.5 h-2.5 rounded-full bg-[#6339CA]" />
                 <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Collected</span>
               </div>
-              <p className="text-sm font-black text-slate-900">₹{maintenanceCollected.toLocaleString('en-IN')}</p>
+              <p className="text-sm font-black text-[#321F5C]">₹{maintenanceCollected.toLocaleString('en-IN')}</p>
             </button>
 
             <button
@@ -1035,7 +1035,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
                 <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
                 <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Pending</span>
               </div>
-              <p className="text-sm font-black text-slate-900">₹{maintenancePending.toLocaleString('en-IN')}</p>
+              <p className="text-sm font-black text-[#321F5C]">₹{maintenancePending.toLocaleString('en-IN')}</p>
             </button>
           </div>
         </div>
@@ -1044,7 +1044,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
         <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between gap-4">
           <div className="flex justify-between items-start pb-2 border-b border-slate-100">
             <div>
-              <h3 className="text-base font-black text-slate-900 uppercase tracking-tight">Pending Dues</h3>
+              <h3 className="text-base font-black text-[#321F5C] uppercase tracking-tight">Pending Dues</h3>
               <p className="text-[11px] font-medium text-slate-500">Unpaid and overdue maintenance liabilities.</p>
             </div>
             <span className="text-xs font-black text-amber-700 bg-amber-50 px-2.5 py-1 rounded-xl border border-amber-100">
@@ -1082,7 +1082,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
 
             {/* Total Pending Dues in Center */}
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span className="text-2xl font-black text-slate-900 tracking-tight">
+              <span className="text-2xl font-black text-[#321F5C] tracking-tight">
                 ₹{pendingDues.toLocaleString('en-IN')}
               </span>
               <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
@@ -1106,7 +1106,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
                   <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
                   <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider">{item.name}</span>
                 </div>
-                <p className="text-sm font-black text-slate-900">₹{item.value.toLocaleString('en-IN')}</p>
+                <p className="text-sm font-black text-[#321F5C]">₹{item.value.toLocaleString('en-IN')}</p>
               </button>
             ))}
           </div>
@@ -1119,16 +1119,16 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
       <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
         {/* Active Graph Filter Notification Banner */}
         {clickedFilter && (
-          <div className="px-6 py-3 bg-indigo-50 border-b border-indigo-100 flex items-center justify-between gap-4">
+          <div className="px-6 py-3 bg-[#6339CA]/10 border-b border-[#6339CA]/20 flex items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              <PieIcon className="w-4 h-4 text-indigo-600" />
-              <span className="text-xs font-bold text-indigo-900">
+              <PieIcon className="w-4 h-4 text-[#6339CA]" />
+              <span className="text-xs font-bold text-[#321F5C]">
                 Filtering by Graph Selection: <strong className="font-black underline">{clickedFilter.label}</strong>
               </span>
             </div>
             <button
               onClick={() => setClickedFilter(null)}
-              className="text-xs font-black text-indigo-600 hover:text-indigo-800 flex items-center gap-1 uppercase tracking-wider"
+              className="text-xs font-black text-[#6339CA] hover:text-[#321F5C] flex items-center gap-1 uppercase tracking-wider"
             >
               <X className="w-3.5 h-3.5" />
               Clear Selection
@@ -1157,8 +1157,8 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
                   }}
                   className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
                     active
-                      ? 'bg-indigo-600 text-white shadow-sm'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                      ? 'bg-[#6339CA] text-white shadow-sm'
+                      : 'text-slate-600 hover:text-[#321F5C] hover:bg-slate-50'
                   }`}
                 >
                   <span>{tab.label}</span>
@@ -1180,7 +1180,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
               placeholder="Search by ID, party, reference..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-500 text-xs font-medium bg-white"
+              className="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-[#6339CA] text-xs font-medium bg-white"
             />
           </div>
         </div>
@@ -1250,14 +1250,14 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
                 setSearchTerm('');
                 setClickedFilter(null);
               }}
-              className="text-[10px] font-black text-rose-600 hover:underline uppercase tracking-wider ml-auto"
+              className="text-[10px] font-black text-#FAA928 hover:underline uppercase tracking-wider ml-auto"
             >
               Clear All Filters
             </button>
           )}
 
           <div className="ml-auto text-xs font-bold text-slate-500">
-            Showing <strong className="text-slate-900">{filteredFinances.length}</strong> records
+            Showing <strong className="text-[#321F5C]">{filteredFinances.length}</strong> records
           </div>
         </div>
 
@@ -1283,7 +1283,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
                   <tr key={f.finance_id} className="hover:bg-slate-50/70 transition-colors group">
                     <td className="px-6 py-3.5">
                       <div className="space-y-0.5">
-                        <span className="font-black text-indigo-600 block">{f.finance_id}</span>
+                        <span className="font-black text-[#6339CA] block">{f.finance_id}</span>
                         <span className="text-[10px] font-medium text-slate-400">
                           {f.transaction_date ? new Date(f.transaction_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'}
                         </span>
@@ -1294,7 +1294,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
                         <span className={`inline-block px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider ${
                           f.finance_type === 'Income' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' :
                           f.finance_type === 'Expense' ? 'bg-rose-50 text-rose-700 border border-rose-100' :
-                          f.finance_type === 'Maintenance' ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' :
+                          f.finance_type === 'Maintenance' ? 'bg-[#6339CA]/10 text-[#6339CA] border border-[#6339CA]/20' :
                           'bg-amber-50 text-amber-700 border border-amber-100'
                         }`}>
                           {f.finance_type}
@@ -1309,9 +1309,9 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
                     </td>
                     <td className="px-6 py-3.5">
                       <div className="space-y-0.5">
-                        <p className="font-bold text-slate-900">{f.party_name || 'Society Office'}</p>
+                        <p className="font-bold text-[#321F5C]">{f.party_name || 'Society Office'}</p>
                         {f.resident_id && (
-                          <span className="text-[10px] font-medium text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded">
+                          <span className="text-[10px] font-medium text-[#6339CA] bg-[#6339CA]/10 px-1.5 py-0.5 rounded">
                             Res ID: {f.resident_id}
                           </span>
                         )}
@@ -1328,7 +1328,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
                       </div>
                     </td>
                     <td className="px-6 py-3.5">
-                      <span className={`text-sm font-black ${isExpense ? 'text-rose-600' : 'text-emerald-700'}`}>
+                      <span className={`text-sm font-black ${isExpense ? 'text-#FAA928' : 'text-emerald-700'}`}>
                         {isExpense ? '-' : '+'}₹{Number(f.amount).toLocaleString('en-IN')}
                       </span>
                     </td>
@@ -1351,7 +1351,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => setSelectedReceipt(f)}
-                          className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                          className="p-1.5 text-[#6339CA] hover:bg-[#6339CA]/10 rounded-lg transition-all"
                           title="View Voucher Receipt"
                         >
                           <FileText className="w-4 h-4" />
@@ -1365,7 +1365,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
                         </button>
                         <button
                           onClick={() => setFinanceToDelete(f)}
-                          className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
+                          className="p-1.5 text-#FAA928 hover:bg-rose-50 rounded-lg transition-all"
                           title="Delete Record"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -1395,12 +1395,12 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
       {/* Add / Edit Financial Record Modal                                     */}
       {/* --------------------------------------------------------------------- */}
       {showAddEditModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-[#321F5C]/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl shadow-2xl border border-slate-100 w-full max-w-xl overflow-hidden max-h-[90vh] flex flex-col">
-            <div className="p-6 bg-indigo-600 text-white flex justify-between items-center shrink-0">
+            <div className="p-6 bg-[#6339CA] text-white flex justify-between items-center shrink-0">
               <div>
                 <h3 className="text-xl font-black">{editingFinance ? 'Edit Financial Record' : 'Add Financial Record'}</h3>
-                <p className="text-indigo-100 text-xs font-bold uppercase tracking-widest mt-0.5">
+                <p className="text-white/60 text-xs font-bold uppercase tracking-widest mt-0.5">
                   {editingFinance ? `Editing ${editingFinance.finance_id}` : 'Create income, expense, or maintenance entry'}
                 </p>
               </div>
@@ -1424,7 +1424,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
                         category: CATEGORY_SUGGESTIONS[newType]?.[0] || 'General'
                       });
                     }}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-xs bg-white"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-[#6339CA] font-bold text-xs bg-white"
                   >
                     <option value="Income">Income</option>
                     <option value="Expense">Expense</option>
@@ -1441,7 +1441,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
                     placeholder="Category name"
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-xs"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-[#6339CA] font-bold text-xs"
                   />
                   <datalist id="category-options">
                     {CATEGORY_SUGGESTIONS[formData.finance_type]?.map(c => (
@@ -1462,7 +1462,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
                     placeholder="Amount in ₹"
                     value={isNaN(formData.amount) || formData.amount === 0 ? '' : formData.amount}
                     onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-xs"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-[#6339CA] font-bold text-xs"
                   />
                 </div>
 
@@ -1473,7 +1473,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
                     required
                     value={formData.transaction_date}
                     onChange={(e) => setFormData({ ...formData, transaction_date: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-xs"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-[#6339CA] font-bold text-xs"
                   />
                 </div>
               </div>
@@ -1485,7 +1485,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
                   <select
                     value={formData.payment_mode}
                     onChange={(e) => setFormData({ ...formData, payment_mode: e.target.value as PaymentMode })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-xs bg-white"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-[#6339CA] font-bold text-xs bg-white"
                   >
                     <option value="UPI">UPI</option>
                     <option value="Bank Transfer">Bank Transfer (NEFT/RTGS/IMPS)</option>
@@ -1501,7 +1501,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
                   <select
                     value={formData.payment_status}
                     onChange={(e) => setFormData({ ...formData, payment_status: e.target.value as PaymentStatus })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-xs bg-white"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-[#6339CA] font-bold text-xs bg-white"
                   >
                     <option value="Paid">Paid</option>
                     <option value="Pending">Pending</option>
@@ -1520,7 +1520,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
                     placeholder="Resident or Vendor Name"
                     value={formData.party_name || ''}
                     onChange={(e) => setFormData({ ...formData, party_name: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-xs"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-[#6339CA] font-bold text-xs"
                   />
                 </div>
 
@@ -1531,7 +1531,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
                     placeholder="e.g. UPI/9928192 or CHQ-10291"
                     value={formData.reference_number || ''}
                     onChange={(e) => setFormData({ ...formData, reference_number: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-xs"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-[#6339CA] font-bold text-xs"
                   />
                 </div>
               </div>
@@ -1550,7 +1550,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
                       party_name: res ? `${res.name} (Flat ${res.flat})` : formData.party_name
                     });
                   }}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-500 font-medium text-xs bg-white"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-[#6339CA] font-medium text-xs bg-white"
                 >
                   <option value="">-- No Resident Link / External Vendor --</option>
                   {residents.map(r => (
@@ -1570,7 +1570,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
                   placeholder="Detailed notes or line item particulars..."
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-500 font-medium text-xs"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-[#6339CA] font-medium text-xs"
                 />
               </div>
 
@@ -1585,7 +1585,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="flex-[2] py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-indigo-100 flex items-center justify-center gap-2"
+                  className="flex-[2] py-3 bg-[#6339CA] hover:bg-[#5D31C7] text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-[#6339CA]/10 flex items-center justify-center gap-2"
                 >
                   {submitting ? (
                     <>
@@ -1609,11 +1609,11 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
       {/* Printable Receipt / Voucher Modal                                     */}
       {/* --------------------------------------------------------------------- */}
       {selectedReceipt && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-[#321F5C]/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl shadow-2xl border border-slate-100 w-full max-w-xl overflow-hidden flex flex-col">
-            <div className="p-6 bg-slate-900 text-white flex justify-between items-center shrink-0">
+            <div className="p-6 bg-[#321F5C] text-white flex justify-between items-center shrink-0">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white">
+                <div className="w-9 h-9 rounded-xl bg-[#6339CA] flex items-center justify-center text-white">
                   <Building className="w-5 h-5" />
                 </div>
                 <div>
@@ -1631,13 +1631,13 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
               <div className="bg-white p-6 rounded-2xl border border-slate-200 space-y-4 shadow-sm">
                 <div className="flex justify-between items-start pb-4 border-b border-slate-100">
                   <div>
-                    <h4 className="text-base font-black text-slate-900">Green Valley Co-operative Housing Society</h4>
+                    <h4 className="text-base font-black text-[#321F5C]">Green Valley Co-operative Housing Society</h4>
                     <p className="text-xs text-slate-500">Reg. No: MAH/PUN/2026/GV | Society ID: {selectedReceipt.society_id}</p>
                     <p className="text-xs text-slate-500">Baner Road, Pune - 411045</p>
                   </div>
                   <div className="text-right">
                     <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block">Voucher #</span>
-                    <span className="text-sm font-black text-indigo-600">{selectedReceipt.finance_id}</span>
+                    <span className="text-sm font-black text-[#6339CA]">{selectedReceipt.finance_id}</span>
                   </div>
                 </div>
 
@@ -1669,9 +1669,9 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
                   </p>
                 </div>
 
-                <div className="flex justify-between items-center pt-4 border-t border-slate-100 bg-indigo-50/50 p-4 rounded-xl border">
+                <div className="flex justify-between items-center pt-4 border-t border-slate-100 bg-[#6339CA]/10/50 p-4 rounded-xl border">
                   <div>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-indigo-900 block">Payment Status</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-[#321F5C] block">Payment Status</span>
                     <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider ${
                       selectedReceipt.payment_status === 'Paid' ? 'bg-emerald-600 text-white' : 'bg-amber-600 text-white'
                     }`}>
@@ -1680,7 +1680,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
                   </div>
                   <div className="text-right">
                     <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 block">Total Amount</span>
-                    <span className="text-2xl font-black text-slate-900">₹{Number(selectedReceipt.amount).toLocaleString('en-IN')}</span>
+                    <span className="text-2xl font-black text-[#321F5C]">₹{Number(selectedReceipt.amount).toLocaleString('en-IN')}</span>
                   </div>
                 </div>
               </div>
@@ -1688,7 +1688,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
               <div className="flex gap-3">
                 <button
                   onClick={() => window.print()}
-                  className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-100"
+                  className="flex-1 py-3 bg-[#6339CA] hover:bg-[#5D31C7] text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#6339CA]/10"
                 >
                   <Printer className="w-4 h-4" />
                   Print Voucher
@@ -1709,13 +1709,13 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
       {/* Delete Confirmation Modal                                             */}
       {/* --------------------------------------------------------------------- */}
       {financeToDelete && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-[#321F5C]/60 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl shadow-2xl border border-slate-100 w-full max-w-sm overflow-hidden p-6 text-center space-y-4">
-            <div className="w-14 h-14 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center mx-auto border border-rose-100">
+            <div className="w-14 h-14 bg-rose-50 text-#FAA928 rounded-2xl flex items-center justify-center mx-auto border border-rose-100">
               <Trash2 className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="text-lg font-black text-slate-900">Delete Financial Record?</h3>
+              <h3 className="text-lg font-black text-[#321F5C]">Delete Financial Record?</h3>
               <p className="text-xs text-slate-500 mt-1">
                 Are you sure you want to permanently delete record <strong className="text-slate-800">{financeToDelete.finance_id}</strong> (₹{financeToDelete.amount.toLocaleString('en-IN')})? This action cannot be undone.
               </p>
@@ -1730,7 +1730,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
               <button
                 onClick={confirmDeleteFinance}
                 disabled={submitting}
-                className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center justify-center gap-1.5"
+                className="flex-1 py-2.5 bg-#FAA928 hover:bg-rose-700 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center justify-center gap-1.5"
               >
                 {submitting ? <Clock className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                 Delete
@@ -1744,11 +1744,11 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
       {/* Financial Statement / Summary Report Modal                            */}
       {/* --------------------------------------------------------------------- */}
       {showReportModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-[#321F5C]/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl shadow-2xl border border-slate-100 w-full max-w-3xl overflow-hidden max-h-[90vh] flex flex-col">
-            <div className="p-6 bg-slate-900 text-white flex justify-between items-center shrink-0">
+            <div className="p-6 bg-[#321F5C] text-white flex justify-between items-center shrink-0">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white">
+                <div className="w-9 h-9 rounded-xl bg-[#6339CA] flex items-center justify-center text-white">
                   <FileText className="w-5 h-5" />
                 </div>
                 <div>
@@ -1772,9 +1772,9 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
                   <span className="text-[10px] font-black text-rose-800 uppercase tracking-widest block">Total Expenditures</span>
                   <span className="text-xl font-black text-rose-700">₹{totalExpenses.toLocaleString('en-IN')}</span>
                 </div>
-                <div className="p-4 bg-indigo-50 border border-indigo-100 rounded-2xl">
-                  <span className="text-[10px] font-black text-indigo-800 uppercase tracking-widest block">Net Treasury Balance</span>
-                  <span className="text-xl font-black text-indigo-700">₹{(totalIncome - totalExpenses).toLocaleString('en-IN')}</span>
+                <div className="p-4 bg-[#6339CA]/10 border border-[#6339CA]/20 rounded-2xl">
+                  <span className="text-[10px] font-black text-[#321F5C] uppercase tracking-widest block">Net Treasury Balance</span>
+                  <span className="text-xl font-black text-[#6339CA]">₹{(totalIncome - totalExpenses).toLocaleString('en-IN')}</span>
                 </div>
               </div>
 
@@ -1805,13 +1805,13 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
               {/* Maintenance Status Overview */}
               <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between">
                 <div>
-                  <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider">Maintenance Dues Collection Rate</h4>
+                  <h4 className="text-xs font-black text-[#321F5C] uppercase tracking-wider">Maintenance Dues Collection Rate</h4>
                   <p className="text-xs text-slate-500 mt-0.5">
                     Collected: <strong>₹{maintenanceCollected.toLocaleString('en-IN')}</strong> | Pending: <strong>₹{maintenancePending.toLocaleString('en-IN')}</strong>
                   </p>
                 </div>
                 <div className="text-right">
-                  <span className="text-xl font-black text-indigo-600">
+                  <span className="text-xl font-black text-[#6339CA]">
                     {maintenancePercentage}%
                   </span>
                 </div>
@@ -1820,7 +1820,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
               <div className="flex justify-end gap-3 pt-2">
                 <button
                   onClick={() => window.print()}
-                  className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2"
+                  className="px-6 py-2.5 bg-[#6339CA] hover:bg-[#5D31C7] text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2"
                 >
                   <Printer className="w-4 h-4" />
                   Print Statement

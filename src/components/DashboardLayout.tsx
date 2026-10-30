@@ -50,7 +50,7 @@ export default function DashboardLayout({
   const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
 
   return (
-    <div className="min-h-screen bg-background flex font-sans text-slate-900">
+    <div className="min-h-screen bg-background flex font-sans text-[#321F5C]">
       {/* Sidebar - Desktop */}
       <aside 
         style={{ width: isSidebarCollapsed ? '80px' : '280px' }}
@@ -143,7 +143,7 @@ export default function DashboardLayout({
             </div>
             <div className="flex items-center gap-3">
               <div className="text-right hidden sm:block">
-                <p className="text-sm font-black text-slate-900 leading-none">{user.admin_name || user.name || 'Admin'}</p>
+                <p className="text-sm font-black text-[#321F5C] leading-none">{user.admin_name || user.name || 'Admin'}</p>
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1.5">
                   {user.role} {user.role === 'admin' && `• ${user.admin_id || user.resident_id}`}
                 </p>
@@ -168,7 +168,7 @@ export default function DashboardLayout({
         <>
           <div
             onClick={toggleMobileMenu}
-            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] lg:hidden"
+            className="fixed inset-0 bg-[#321F5C]/60 backdrop-blur-sm z-[100] lg:hidden"
           />
           <aside
             className="fixed top-0 left-0 bottom-0 w-72 bg-sidebar text-white z-[101] lg:hidden flex flex-col shadow-2xl"

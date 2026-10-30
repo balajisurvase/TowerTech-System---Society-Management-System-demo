@@ -277,9 +277,9 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
   return (
     <div className="space-y-6 font-sans">
       {/* Top Header Card */}
-      <div className="bg-slate-900 text-white p-6 rounded-3xl border border-slate-800 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="bg-[#321F5C] text-white p-6 rounded-3xl border border-purple-900/60 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-lg shadow-indigo-900/40">
+          <div className="w-12 h-12 rounded-2xl bg-[#6339CA] text-white flex items-center justify-center shrink-0 shadow-lg shadow-purple-900/40">
             <Shield className="w-6 h-6" />
           </div>
           <div>
@@ -287,8 +287,8 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
               <h2 className="text-xl font-black tracking-tight">
                 {isResidentRole ? 'Visitor Management' : isAdminRole ? 'Visitor Management Log' : 'Security Gate Post'}
               </h2>
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-mint/20 text-mint border border-mint/30 flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-mint animate-pulse"></span>
                 Gate Sync Active
               </span>
             </div>
@@ -299,7 +299,7 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
                 <>Administrator View: <span className="text-white font-bold">{user.name}</span> • Society Records</>
               ) : (
                 <>Duty Officer: <span className="text-white font-bold">{user.name}</span> ({user.shift || 'General Shift'})</>
-              )} • <span className="font-mono text-indigo-300">{dateFormatted}, {timeFormatted}</span>
+              )} • <span className="font-mono text-purple-300">{dateFormatted}, {timeFormatted}</span>
             </p>
           </div>
         </div>
@@ -318,7 +318,7 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
                 });
                 setShowPreApproveModal(true);
               }}
-              className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-md flex items-center gap-2 cursor-pointer transition-all"
+              className="px-4 py-2.5 bg-[#FAA928] hover:bg-[#FBAE17] text-slate-950 font-bold text-xs rounded-xl shadow-md flex items-center gap-2 cursor-pointer transition-all"
             >
               <Plus className="w-4 h-4" />
               <span>Pre-Approve Guest Pass</span>
@@ -330,7 +330,7 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
             disabled={refreshing}
             className="p-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl border border-slate-700 transition-colors flex items-center gap-2 text-xs font-bold shrink-0"
           >
-            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin text-indigo-400' : ''}`} />
+            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin text-white/80' : ''}`} />
             <span>Sync Gate Data</span>
           </button>
         </div>
@@ -348,14 +348,14 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
               setFormData(prev => ({ ...prev, visitor_type: 'Guest' }));
               setShowRegisterModal(true);
             }}
-            className="col-span-2 sm:col-span-1 p-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl shadow-md shadow-indigo-600/20 transition-all active:scale-95 text-left flex flex-col justify-between h-28 border border-indigo-500 group"
+            className="col-span-2 sm:col-span-1 p-4 bg-[#6339CA] hover:bg-[#5D31C7] text-white rounded-2xl shadow-md shadow-purple-600/20 transition-all active:scale-95 text-left flex flex-col justify-between h-28 border border-purple-500 group"
           >
             <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
               <UserPlus className="w-5 h-5 text-white" />
             </div>
             <div>
               <p className="text-sm font-black leading-tight">Visitor Check-In</p>
-              <p className="text-[10px] text-indigo-200 font-medium">New guest entry</p>
+              <p className="text-[10px] text-white/80 font-medium">New guest entry</p>
             </div>
           </button>
 
@@ -364,11 +364,11 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
             onClick={() => setStatusFilter('Inside')}
             className="p-4 bg-white hover:bg-slate-50 text-slate-800 rounded-2xl border border-slate-200 shadow-2xs transition-all active:scale-95 text-left flex flex-col justify-between h-28 group"
           >
-            <div className="w-9 h-9 rounded-xl bg-slate-100 group-hover:bg-indigo-50 text-slate-700 group-hover:text-indigo-600 flex items-center justify-center transition-colors">
+            <div className="w-9 h-9 rounded-xl bg-slate-100 group-hover:bg-[#6339CA]/10 text-slate-700 group-hover:text-[#6339CA] flex items-center justify-center transition-colors">
               <LogOutIcon className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-xs font-bold leading-tight text-slate-900">Visitor Check-Out</p>
+              <p className="text-xs font-bold leading-tight text-[#321F5C]">Visitor Check-Out</p>
               <p className="text-[10px] text-slate-400 font-medium">{insideCount} Inside</p>
             </div>
           </button>
@@ -385,7 +385,7 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
               <Package className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-xs font-bold leading-tight text-slate-900">Delivery Entry</p>
+              <p className="text-xs font-bold leading-tight text-[#321F5C]">Delivery Entry</p>
               <p className="text-[10px] text-slate-400 font-medium">Amazon, Swiggy, etc.</p>
             </div>
           </button>
@@ -396,13 +396,13 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
               setFormData(prev => ({ ...prev, visitor_type: 'Cab / Taxi', purpose: 'Cab Entry' }));
               setShowRegisterModal(true);
             }}
-            className="p-4 bg-white hover:bg-blue-50/50 text-slate-800 rounded-2xl border border-slate-200 shadow-2xs transition-all active:scale-95 text-left flex flex-col justify-between h-28 group"
+            className="p-4 bg-white hover:bg-[#6339CA]/10/50 text-slate-800 rounded-2xl border border-slate-200 shadow-2xs transition-all active:scale-95 text-left flex flex-col justify-between h-28 group"
           >
-            <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+            <div className="w-9 h-9 rounded-xl bg-[#6339CA]/10 text-[#6339CA] flex items-center justify-center">
               <Car className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-xs font-bold leading-tight text-slate-900">Vehicle Entry</p>
+              <p className="text-xs font-bold leading-tight text-[#321F5C]">Vehicle Entry</p>
               <p className="text-[10px] text-slate-400 font-medium">Cab / Parking Pass</p>
             </div>
           </button>
@@ -416,7 +416,7 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
               <PhoneCall className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-xs font-bold leading-tight text-slate-900">Resident Call</p>
+              <p className="text-xs font-bold leading-tight text-[#321F5C]">Resident Call</p>
               <p className="text-[10px] text-slate-400 font-medium">Intercom Directory</p>
             </div>
           </button>
@@ -439,7 +439,7 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
 
       {/* LIVE GATE STATUS SUMMARY CARDS (Solid Vibrant Colors) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-[#2563EB] p-5 rounded-2xl shadow-lg shadow-blue-500/20 text-white flex items-center justify-between">
+        <div className="bg-[#6339CA] p-5 rounded-2xl shadow-lg shadow-purple-500/20 text-white flex items-center justify-between">
           <div>
             <p className="text-[11px] font-black uppercase tracking-wider text-white/90">Visitors Inside</p>
             <h3 className="text-3xl font-black text-white font-mono tracking-tight mt-1">{insideCount}</h3>
@@ -450,29 +450,29 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
           </div>
         </div>
 
-        <div className="bg-[#EA580C] p-5 rounded-2xl shadow-lg shadow-orange-500/20 text-white flex items-center justify-between">
+        <div className="bg-[#FAA928] p-5 rounded-2xl shadow-lg shadow-gold/20 text-slate-950 flex items-center justify-between">
           <div>
-            <p className="text-[11px] font-black uppercase tracking-wider text-white/90">Expected Visitors</p>
-            <h3 className="text-3xl font-black text-white font-mono tracking-tight mt-1">{expectedCount}</h3>
-            <p className="text-[11px] font-bold text-white/80 mt-0.5">Pre-approved by flat</p>
+            <p className="text-[11px] font-black uppercase tracking-wider text-[#321F5C]/90">Expected Visitors</p>
+            <h3 className="text-3xl font-black text-slate-950 font-mono tracking-tight mt-1">{expectedCount}</h3>
+            <p className="text-[11px] font-bold text-[#321F5C]/80 mt-0.5">Pre-approved by flat</p>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-white/20 text-white flex items-center justify-center font-black backdrop-blur-xs">
-            <Clock className="w-5 h-5 text-white" />
+          <div className="w-10 h-10 rounded-xl bg-white/20 text-slate-950 flex items-center justify-center font-black backdrop-blur-xs">
+            <Clock className="w-5 h-5 text-slate-950" />
           </div>
         </div>
 
-        <div className="bg-[#059669] p-5 rounded-2xl shadow-lg shadow-emerald-500/20 text-white flex items-center justify-between">
+        <div className="bg-[#44D080] p-5 rounded-2xl shadow-lg shadow-mint/20 text-slate-950 flex items-center justify-between">
           <div>
-            <p className="text-[11px] font-black uppercase tracking-wider text-white/90">Checked Out Today</p>
-            <h3 className="text-3xl font-black text-white font-mono tracking-tight mt-1">{exitedTodayCount}</h3>
-            <p className="text-[11px] font-bold text-white/80 mt-0.5">Exited gate safely</p>
+            <p className="text-[11px] font-black uppercase tracking-wider text-[#321F5C]/90">Checked Out Today</p>
+            <h3 className="text-3xl font-black text-slate-950 font-mono tracking-tight mt-1">{exitedTodayCount}</h3>
+            <p className="text-[11px] font-bold text-[#321F5C]/80 mt-0.5">Exited gate safely</p>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-white/20 text-white flex items-center justify-center font-black backdrop-blur-xs">
-            <LogOutIcon className="w-5 h-5 text-white" />
+          <div className="w-10 h-10 rounded-xl bg-white/20 text-slate-950 flex items-center justify-center font-black backdrop-blur-xs">
+            <LogOutIcon className="w-5 h-5 text-slate-950" />
           </div>
         </div>
 
-        <div className="bg-[#0D9488] p-5 rounded-2xl shadow-lg shadow-teal-500/20 text-white flex items-center justify-between">
+        <div className="bg-[#5D31C7] p-5 rounded-2xl shadow-lg shadow-purple-500/20 text-white flex items-center justify-between">
           <div>
             <p className="text-[11px] font-black uppercase tracking-wider text-white/90">Deliveries Today</p>
             <h3 className="text-3xl font-black text-white font-mono tracking-tight mt-1">{deliveriesCount}</h3>
@@ -488,7 +488,7 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
       <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs p-4 sm:p-6 space-y-4">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
           <div>
-            <h3 className="text-sm font-bold text-slate-900">Live Visitor Log</h3>
+            <h3 className="text-sm font-bold text-[#321F5C]">Live Visitor Log</h3>
             <p className="text-[11px] text-slate-400">Real-time gate passes & status management</p>
           </div>
 
@@ -500,7 +500,7 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
                 placeholder="Search name, flat, mobile..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-800 placeholder-slate-400 outline-none focus:border-indigo-500"
+                className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-800 placeholder-slate-400 outline-none focus:border-[#6339CA]"
               />
             </div>
 
@@ -510,7 +510,7 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
                   key={tab}
                   onClick={() => setStatusFilter(tab)}
                   className={`px-2.5 py-1 text-[10px] font-bold rounded-lg transition-colors ${
-                    statusFilter === tab ? 'bg-white text-indigo-700 shadow-2xs' : 'text-slate-500 hover:text-slate-800'
+                    statusFilter === tab ? 'bg-white text-[#6339CA] shadow-2xs' : 'text-slate-500 hover:text-slate-800'
                   }`}
                 >
                   {tab}
@@ -543,13 +543,13 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
                 >
                   <div className="flex items-center gap-3">
                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 ${
-                      isInside ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' : 'bg-slate-100 text-slate-600'
+                      isInside ? 'bg-[#6339CA]/10 text-[#6339CA] border border-[#6339CA]/20' : 'bg-slate-100 text-slate-600'
                     }`}>
                       {v.visitor_name ? v.visitor_name.charAt(0).toUpperCase() : 'V'}
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-slate-900">{v.visitor_name}</span>
+                        <span className="text-xs font-bold text-[#321F5C]">{v.visitor_name}</span>
                         <span className="text-[10px] font-semibold text-slate-500">({v.visitor_mobile})</span>
                         <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${
                           isInside 
@@ -562,7 +562,7 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
                         </span>
                       </div>
                       <p className="text-xs text-slate-600 mt-0.5">
-                        Visiting: <strong className="text-indigo-700 font-bold">{v.resident_name || 'Resident'}</strong> (Flat {v.tower}-{v.flat}) • Purpose: {v.purpose || 'Visit'}
+                        Visiting: <strong className="text-[#6339CA] font-bold">{v.resident_name || 'Resident'}</strong> (Flat {v.tower}-{v.flat}) • Purpose: {v.purpose || 'Visit'}
                       </p>
                     </div>
                   </div>
@@ -576,7 +576,7 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
                     {isInside && (
                       <button
                         onClick={() => handleMarkExit(v.visitor_id || v.id!)}
-                        className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all shadow-2xs"
+                        className="px-3 py-1.5 bg-[#321F5C] hover:bg-[#2d1b54] text-white rounded-xl text-xs font-bold transition-all shadow-2xs"
                       >
                         Check Out
                       </button>
@@ -591,7 +591,7 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
 
       {/* VISITOR CHECK-IN MODAL */}
       {showRegisterModal && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 z-[100] overflow-y-auto">
+        <div className="fixed inset-0 bg-[#321F5C]/50 backdrop-blur-xs flex items-center justify-center p-4 z-[100] overflow-y-auto">
           <div className="bg-white rounded-3xl shadow-2xl p-6 sm:p-8 max-w-lg w-full relative border border-slate-200 my-8 animate-in zoom-in-95 duration-150">
             <button
               onClick={() => setShowRegisterModal(false)}
@@ -601,11 +601,11 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
             </button>
 
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center shrink-0">
+              <div className="w-12 h-12 bg-[#6339CA]/10 text-[#6339CA] rounded-2xl flex items-center justify-center shrink-0">
                 <UserPlus className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-slate-900">Visitor Check-In</h3>
+                <h3 className="text-xl font-bold text-[#321F5C]">Visitor Check-In</h3>
                 <p className="text-xs text-slate-500 font-medium">Log visitor details for immediate gate pass entry</p>
               </div>
             </div>
@@ -628,7 +628,7 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
                         setSelectedResident(null);
                       }
                     }}
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-xs font-semibold text-slate-800"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#6339CA]/20 focus:border-[#6339CA] text-xs font-semibold text-slate-800"
                   />
                 </div>
 
@@ -645,7 +645,7 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
                             setSelectedResident(res);
                             setResidentSearch(`${res.name} (Tower ${res.tower} - Flat ${res.flat})`);
                           }}
-                          className="w-full p-2.5 text-left hover:bg-indigo-50/50 flex items-center justify-between text-xs transition"
+                          className="w-full p-2.5 text-left hover:bg-[#6339CA]/10/50 flex items-center justify-between text-xs transition"
                         >
                           <div>
                             <strong className="text-slate-800">{res.name}</strong>
@@ -661,10 +661,10 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
                 )}
 
                 {selectedResident && (
-                  <div className="mt-2 p-3 bg-indigo-50/60 rounded-xl border border-indigo-100 flex items-center justify-between text-xs">
+                  <div className="mt-2 p-3 bg-[#6339CA]/10/60 rounded-xl border border-[#6339CA]/20 flex items-center justify-between text-xs">
                     <div>
-                      <p className="font-bold text-indigo-900">{selectedResident.name}</p>
-                      <p className="text-[11px] text-indigo-700">
+                      <p className="font-bold text-[#321F5C]">{selectedResident.name}</p>
+                      <p className="text-[11px] text-[#6339CA]">
                         Tower {selectedResident.tower} • Flat {selectedResident.flat} • Phone: {selectedResident.phone}
                       </p>
                     </div>
@@ -674,7 +674,7 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
                         setSelectedResident(null);
                         setResidentSearch('');
                       }}
-                      className="text-indigo-600 hover:text-indigo-800 font-bold text-[11px]"
+                      className="text-[#6339CA] hover:text-[#321F5C] font-bold text-[11px]"
                     >
                       Change
                     </button>
@@ -694,7 +694,7 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
                     placeholder="e.g. Amit Sharma"
                     value={formData.visitor_name}
                     onChange={(e) => setFormData(prev => ({ ...prev, visitor_name: e.target.value }))}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 outline-none focus:border-indigo-500"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 outline-none focus:border-[#6339CA]"
                   />
                 </div>
 
@@ -708,7 +708,7 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
                     placeholder="e.g. 9876543210"
                     value={formData.visitor_mobile}
                     onChange={(e) => setFormData(prev => ({ ...prev, visitor_mobile: e.target.value }))}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 outline-none focus:border-indigo-500"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 outline-none focus:border-[#6339CA]"
                   />
                 </div>
               </div>
@@ -721,7 +721,7 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
                   <select
                     value={formData.visitor_type}
                     onChange={(e) => setFormData(prev => ({ ...prev, visitor_type: e.target.value }))}
-                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 bg-white outline-none focus:border-indigo-500"
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 bg-white outline-none focus:border-[#6339CA]"
                   >
                     <option value="Guest">Guest / Friend</option>
                     <option value="Delivery">Delivery / Courier</option>
@@ -741,7 +741,7 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
                     placeholder="e.g. MH-12-AB-1234"
                     value={formData.vehicle_number}
                     onChange={(e) => setFormData(prev => ({ ...prev, vehicle_number: e.target.value }))}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 outline-none focus:border-indigo-500"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 outline-none focus:border-[#6339CA]"
                   />
                 </div>
               </div>
@@ -756,7 +756,7 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
                   placeholder="e.g. Guest Visit / Parcel Delivery"
                   value={formData.purpose}
                   onChange={(e) => setFormData(prev => ({ ...prev, purpose: e.target.value }))}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 outline-none focus:border-indigo-500"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 outline-none focus:border-[#6339CA]"
                 />
               </div>
 
@@ -771,7 +771,7 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
                 <button
                   type="submit"
                   disabled={registerLoading || !selectedResident}
-                  className="flex-[1.5] py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white font-bold rounded-xl text-xs uppercase tracking-wider shadow-lg shadow-indigo-600/20 transition flex items-center justify-center gap-2"
+                  className="flex-[1.5] py-3 bg-[#6339CA] hover:bg-[#5D31C7] disabled:bg-slate-300 text-white font-bold rounded-xl text-xs uppercase tracking-wider shadow-lg shadow-[#6339CA]/20 transition flex items-center justify-center gap-2"
                 >
                   {registerLoading ? (
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -787,7 +787,7 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
 
       {/* RESIDENT CALL DIRECTORY MODAL */}
       {showResidentCallModal && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 z-[100]">
+        <div className="fixed inset-0 bg-[#321F5C]/50 backdrop-blur-xs flex items-center justify-center p-4 z-[100]">
           <div className="bg-white rounded-3xl shadow-2xl p-6 max-w-lg w-full relative border border-slate-200 animate-in zoom-in-95 duration-150">
             <button
               onClick={() => setShowResidentCallModal(false)}
@@ -800,7 +800,7 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
                 <PhoneCall className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-slate-900">Intercom & Resident Directory</h3>
+                <h3 className="text-base font-bold text-[#321F5C]">Intercom & Resident Directory</h3>
                 <p className="text-xs text-slate-400">Quick dial security intercom to resident flat</p>
               </div>
             </div>
@@ -829,7 +829,7 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
 
       {/* PRE-APPROVE GUEST PASS MODAL (FOR RESIDENTS) */}
       {showPreApproveModal && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 z-[100]">
+        <div className="fixed inset-0 bg-[#321F5C]/50 backdrop-blur-xs flex items-center justify-center p-4 z-[100]">
           <div className="bg-white rounded-3xl shadow-2xl p-6 sm:p-8 max-w-md w-full relative border border-slate-200 animate-in zoom-in-95 duration-150">
             <button
               onClick={() => setShowPreApproveModal(false)}
@@ -839,11 +839,11 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
             </button>
 
             <div className="flex items-center gap-3 mb-5">
-              <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center font-bold">
+              <div className="w-10 h-10 bg-[#6339CA]/10 text-[#6339CA] rounded-xl flex items-center justify-center font-bold">
                 <Shield className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-lg font-black text-slate-900">Pre-Approve Guest Gate Pass</h3>
+                <h3 className="text-lg font-black text-[#321F5C]">Pre-Approve Guest Gate Pass</h3>
                 <p className="text-xs text-slate-400">Flat {user.flat || 'A-102'} • Seamless Gate Access</p>
               </div>
             </div>
@@ -857,7 +857,7 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
                   placeholder="e.g. Ramesh Kumar"
                   value={formData.visitor_name}
                   onChange={(e) => setFormData(prev => ({ ...prev, visitor_name: e.target.value }))}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 outline-none focus:border-indigo-500"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 outline-none focus:border-[#6339CA]"
                 />
               </div>
 
@@ -869,7 +869,7 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
                   placeholder="10-digit mobile number"
                   value={formData.visitor_mobile}
                   onChange={(e) => setFormData(prev => ({ ...prev, visitor_mobile: e.target.value }))}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 outline-none focus:border-indigo-500 font-mono"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 outline-none focus:border-[#6339CA] font-mono"
                 />
               </div>
 
@@ -879,7 +879,7 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
                   <select
                     value={formData.visitor_type}
                     onChange={(e) => setFormData(prev => ({ ...prev, visitor_type: e.target.value }))}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 outline-none focus:border-indigo-500 bg-white"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 outline-none focus:border-[#6339CA] bg-white"
                   >
                     <option value="Guest">Guest / Friend</option>
                     <option value="Delivery">Delivery (Parcel / Food)</option>
@@ -895,7 +895,7 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
                     placeholder="MH-12-XX-1234"
                     value={formData.vehicle_number}
                     onChange={(e) => setFormData(prev => ({ ...prev, vehicle_number: e.target.value }))}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 outline-none focus:border-indigo-500 font-mono uppercase"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 outline-none focus:border-[#6339CA] font-mono uppercase"
                   />
                 </div>
               </div>
@@ -907,7 +907,7 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
                   placeholder="e.g. Dinner visit / Amazon parcel"
                   value={formData.purpose}
                   onChange={(e) => setFormData(prev => ({ ...prev, purpose: e.target.value }))}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 outline-none focus:border-indigo-500"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 outline-none focus:border-[#6339CA]"
                 />
               </div>
 
@@ -922,7 +922,7 @@ export default function SecurityDashboard({ user, residents, onLogout }: Securit
                 <button
                   type="submit"
                   disabled={registerLoading}
-                  className="flex-[1.5] py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white font-bold rounded-xl text-xs uppercase shadow-lg shadow-indigo-600/20 transition flex items-center justify-center gap-2"
+                  className="flex-[1.5] py-3 bg-[#6339CA] hover:bg-[#5D31C7] disabled:bg-slate-300 text-white font-bold rounded-xl text-xs uppercase shadow-lg shadow-[#6339CA]/20 transition flex items-center justify-center gap-2"
                 >
                   {registerLoading ? (
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />

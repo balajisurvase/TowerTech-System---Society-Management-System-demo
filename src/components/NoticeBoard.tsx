@@ -179,15 +179,15 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
       case 'maintenance':
         return { icon: Wrench, bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' };
       case 'event':
-        return { icon: PartyPopper, bg: 'bg-[#EAE6DE]', text: 'text-[#226192]', border: 'border-[#226192]/20' };
+        return { icon: PartyPopper, bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' };
       case 'meeting':
-        return { icon: Users, bg: 'bg-[#226192]/10', text: 'text-[#226192]', border: 'border-[#226192]/20' };
+        return { icon: Users, bg: 'bg-purple-100/50', text: 'text-purple-800', border: 'border-purple-200' };
       case 'security':
         return { icon: ShieldAlert, bg: 'bg-slate-100', text: 'text-slate-800', border: 'border-slate-300' };
       case 'financial':
         return { icon: FileText, bg: 'bg-emerald-50', text: 'text-emerald-800', border: 'border-emerald-200' };
       default:
-        return { icon: Info, bg: 'bg-[#EAE6DE]/50', text: 'text-slate-700', border: 'border-[#EAE6DE]' };
+        return { icon: Info, bg: 'bg-purple-50/50', text: 'text-slate-700', border: 'border-purple-100' };
     }
   };
 
@@ -197,9 +197,9 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
       case 'urgent':
         return 'bg-[#EF8557] text-white';
       case 'important':
-        return 'bg-amber-500 text-white';
+        return 'bg-[#FAA928] text-slate-950';
       case 'normal':
-        return 'bg-[#226192] text-white';
+        return 'bg-[#6339CA] text-white';
       default:
         return 'bg-slate-600 text-white';
     }
@@ -509,7 +509,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
   }, [currentCalendarMonth]);
 
   return (
-    <div className="flex flex-col gap-6 max-w-7xl mx-auto w-full font-sans animate-in fade-in duration-200 bg-[#EAE6DE]/25 p-2 sm:p-4 rounded-3xl border border-[#EAE6DE]/60">
+    <div className="flex flex-col gap-6 max-w-7xl mx-auto w-full font-sans animate-in fade-in duration-200 bg-purple-50/30 p-2 sm:p-4 rounded-3xl border border-purple-200/60">
       
       {/* =========================================================================
           1. PAGE HEADER (Clean Horizontal Single Row, Back to Dashboard, + Create)
@@ -519,17 +519,17 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
           <button
             type="button"
             onClick={() => onSwitchTab ? onSwitchTab('dashboard') : window.history.back()}
-            className="w-9 h-9 rounded-xl bg-[#EAE6DE]/50 hover:bg-[#226192] hover:text-white text-slate-700 flex items-center justify-center transition-all cursor-pointer shadow-2xs group shrink-0"
+            className="w-9 h-9 rounded-xl bg-purple-100/50 hover:bg-[#6339CA] hover:text-white text-slate-700 flex items-center justify-center transition-all cursor-pointer shadow-2xs group shrink-0"
             title="Back to Dashboard"
           >
             <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
           </button>
           
           {/* Top Module Switcher */}
-          <div className="flex items-center gap-1 bg-[#EAE6DE]/30 p-1 rounded-xl border border-[#EAE6DE]">
+          <div className="flex items-center gap-1 bg-purple-100/30 p-1 rounded-xl border border-purple-200">
             <button
               type="button"
-              className="px-3.5 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider bg-[#226192] text-white shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
+              className="px-3.5 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider bg-[#6339CA] text-white shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
             >
               <Megaphone className="w-3.5 h-3.5" />
               <span>Notices</span>
@@ -537,7 +537,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
             <button
               type="button"
               onClick={() => onSwitchTab && onSwitchTab('communication')}
-              className="px-3.5 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider text-slate-600 hover:text-slate-900 hover:bg-white flex items-center gap-1.5 transition-all cursor-pointer"
+              className="px-3.5 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider text-slate-600 hover:text-[#321F5C] hover:bg-white flex items-center gap-1.5 transition-all cursor-pointer"
             >
               <MessageSquare className="w-3.5 h-3.5" />
               <span>Chat</span>
@@ -551,7 +551,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
             <button
               type="button"
               onClick={handleOpenCreate}
-              className="px-4 sm:px-5 py-2.5 bg-[#226192] hover:bg-[#1a4d75] active:scale-95 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center gap-2 cursor-pointer"
+              className="px-4 sm:px-5 py-2.5 bg-[#6339CA] hover:bg-[#5D31C7] active:scale-95 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center gap-2 cursor-pointer"
             >
               <Plus className="w-4 h-4 stroke-[2.5]" />
               <span>Create Notice</span>
@@ -565,8 +565,8 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
           ========================================================================= */}
       <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {/* Card 1: Total Published Notices */}
-        <div className="bg-white rounded-2xl p-4.5 border border-[#EAE6DE] shadow-2xs hover:shadow-sm transition-all flex items-center gap-4">
-          <div className="w-11 h-11 rounded-xl bg-[#226192]/10 text-[#226192] flex items-center justify-center font-black shrink-0">
+        <div className="bg-white rounded-2xl p-4.5 border border-purple-200 shadow-2xs hover:shadow-sm transition-all flex items-center gap-4">
+          <div className="w-11 h-11 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-black shrink-0">
             <Megaphone className="w-5 h-5" />
           </div>
           <div>
@@ -574,7 +574,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
               Total Published Notices
             </p>
             <div className="flex items-baseline gap-2 mt-0.5">
-              <span className="text-2xl font-black text-slate-900 font-mono tabular-nums">
+              <span className="text-2xl font-black text-[#321F5C] font-mono tabular-nums">
                 {publishedCount}
               </span>
               <span className="text-[11px] font-medium text-slate-500">active circulars</span>
@@ -592,7 +592,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
               Urgent Notices
             </p>
             <div className="flex items-baseline gap-2 mt-0.5">
-              <span className="text-2xl font-black text-slate-900 font-mono tabular-nums">
+              <span className="text-2xl font-black text-[#321F5C] font-mono tabular-nums">
                 {urgentCount}
               </span>
               <span className="text-[11px] font-medium text-[#EF8557]">high priority alerts</span>
@@ -601,8 +601,8 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
         </div>
 
         {/* Card 3: Scheduled Events */}
-        <div className="bg-white rounded-2xl p-4.5 border border-[#EAE6DE] hover:border-[#226192]/40 shadow-2xs hover:shadow-sm transition-all flex items-center gap-4">
-          <div className="w-11 h-11 rounded-xl bg-[#EAE6DE] text-[#226192] flex items-center justify-center font-black shrink-0">
+        <div className="bg-white rounded-2xl p-4.5 border border-purple-200 hover:border-purple-400/40 shadow-2xs hover:shadow-sm transition-all flex items-center gap-4">
+          <div className="w-11 h-11 rounded-xl bg-purple-100 text-purple-800 flex items-center justify-center font-black shrink-0">
             <CalendarIcon className="w-5 h-5" />
           </div>
           <div>
@@ -610,7 +610,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
               Scheduled Events
             </p>
             <div className="flex items-baseline gap-2 mt-0.5">
-              <span className="text-2xl font-black text-slate-900 font-mono tabular-nums">
+              <span className="text-2xl font-black text-[#321F5C] font-mono tabular-nums">
                 {eventsCount}
               </span>
               <span className="text-[11px] font-medium text-slate-500">meetings & programmes</span>
@@ -635,7 +635,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                 placeholder="Search notices by title, description or author..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-8 py-2 rounded-xl bg-slate-50 border border-slate-200 focus:border-[#226192] focus:bg-white focus:ring-1 focus:ring-[#226192] text-xs font-semibold text-slate-800 placeholder:text-slate-400 outline-none transition-all"
+                className="w-full pl-9 pr-8 py-2 rounded-xl bg-slate-50 border border-slate-200 focus:border-[#6339CA] focus:bg-white focus:ring-1 focus:ring-[#6339CA]/20 text-xs font-semibold text-slate-800 placeholder:text-slate-400 outline-none transition-all"
               />
               {searchQuery && (
                 <button
@@ -731,7 +731,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                       className={`flex-1 py-1 text-[11px] font-semibold rounded-md transition-all ${
                         calendarDateField === 'posted_date'
                           ? 'bg-white text-[#226192] shadow-2xs font-bold'
-                          : 'text-slate-600 hover:text-slate-900'
+                          : 'text-slate-600 hover:text-[#321F5C]'
                       }`}
                     >
                       Published Date
@@ -742,7 +742,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                       className={`flex-1 py-1 text-[11px] font-semibold rounded-md transition-all ${
                         calendarDateField === 'expiry_date'
                           ? 'bg-white text-[#226192] shadow-2xs font-bold'
-                          : 'text-slate-600 hover:text-slate-900'
+                          : 'text-slate-600 hover:text-[#321F5C]'
                       }`}
                     >
                       Event / Date
@@ -871,7 +871,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
               <button
                 type="button"
                 onClick={handleClearAllFilters}
-                className="px-2.5 py-2 text-xs font-bold text-slate-500 hover:text-slate-900 flex items-center gap-1 transition-colors cursor-pointer"
+                className="px-2.5 py-2 text-xs font-bold text-slate-500 hover:text-[#321F5C] flex items-center gap-1 transition-colors cursor-pointer"
                 title="Reset all search & filter controls"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
@@ -885,7 +885,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
             <button
               type="button"
               onClick={() => onSwitchTab && onSwitchTab('communication')}
-              className="px-3.5 py-2 bg-[#226192]/10 hover:bg-[#226192]/20 text-[#226192] text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs"
+              className="px-3.5 py-2 bg-[#6339CA]/10 hover:bg-[#6339CA]/20 text-[#6339CA] text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs"
               title="Switch to Community Chat"
             >
               <MessageSquare className="w-3.5 h-3.5" />
@@ -976,7 +976,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
 
                     <h2
                       onClick={() => handleOpenNotice(notice)}
-                      className="text-sm font-bold text-slate-900 group-hover:text-[#226192] transition-colors cursor-pointer leading-snug line-clamp-2"
+                      className="text-sm font-bold text-[#321F5C] group-hover:text-[#226192] transition-colors cursor-pointer leading-snug line-clamp-2"
                       title={notice.title}
                     >
                       {notice.title}
@@ -995,7 +995,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                       {publisher.avatar ? (
                         <img src={publisher.avatar} alt={publisher.name} className="w-6 h-6 rounded-full object-cover shrink-0" />
                       ) : (
-                        <div className="w-6 h-6 rounded-full bg-[#226192] text-white flex items-center justify-center font-bold text-[9px] shrink-0">
+                        <div className="w-6 h-6 rounded-full bg-[#6339CA] text-white flex items-center justify-center font-bold text-[9px] shrink-0">
                           {publisher.name.slice(0, 2).toUpperCase()}
                         </div>
                       )}
@@ -1005,7 +1005,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                     <button
                       type="button"
                       onClick={() => handleOpenNotice(notice)}
-                      className="px-3 py-1 bg-[#226192] hover:bg-[#1a4d75] text-white text-[11px] font-bold rounded-lg transition-all shrink-0 cursor-pointer"
+                      className="px-3 py-1 bg-[#6339CA] hover:bg-[#5D31C7] text-white text-[11px] font-bold rounded-lg transition-all shrink-0 cursor-pointer"
                     >
                       Read
                     </button>
@@ -1031,7 +1031,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                     {/* Notice Title */}
                     <h2
                       onClick={() => handleOpenNotice(notice)}
-                      className="text-sm sm:text-base font-bold text-slate-900 group-hover:text-[#226192] transition-colors cursor-pointer leading-snug line-clamp-1"
+                      className="text-sm sm:text-base font-bold text-[#321F5C] group-hover:text-[#226192] transition-colors cursor-pointer leading-snug line-clamp-1"
                       title={notice.title}
                     >
                       {notice.title}
@@ -1193,7 +1193,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
         const isImage = viewingNotice.attachment_type?.startsWith('image/') || /\.(png|jpe?g|webp)$/i.test(viewingNotice.attachment_url || '');
 
         return (
-          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-[100] flex items-center justify-center p-3 sm:p-5">
+          <div className="fixed inset-0 bg-[#321F5C]/60 backdrop-blur-xs z-[100] flex items-center justify-center p-3 sm:p-5">
             <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-150 flex flex-col max-h-[90vh]">
               
               {/* Modal Top Banner */}
@@ -1280,7 +1280,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                 {viewingNotice.attachment_url && (
                   <div className="p-4 rounded-2xl border border-slate-200 bg-slate-50 space-y-3">
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-xs font-bold text-slate-900">
+                      <div className="flex items-center gap-2 text-xs font-bold text-[#321F5C]">
                         <Paperclip className="w-4 h-4 text-[#226192]" />
                         <span>Official Notice Attachment</span>
                       </div>
@@ -1291,7 +1291,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
 
                     {/* Image Preview */}
                     {isImage && (
-                      <div className="rounded-xl overflow-hidden border border-slate-200 max-h-64 bg-slate-900 flex items-center justify-center">
+                      <div className="rounded-xl overflow-hidden border border-slate-200 max-h-64 bg-[#321F5C] flex items-center justify-center">
                         <img 
                           src={viewingNotice.attachment_url} 
                           alt="Notice media preview"
@@ -1398,7 +1398,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                   <button
                     type="button"
                     onClick={() => setViewingNotice(null)}
-                    className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow-2xs"
+                    className="px-5 py-2 bg-[#321F5C] hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow-2xs"
                   >
                     Close
                   </button>
@@ -1413,7 +1413,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
           6. CREATE / EDIT NOTICE MODAL (Validated Media Upload, Clean Typography)
           ========================================================================= */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-[100] flex items-center justify-center p-3 sm:p-5">
+        <div className="fixed inset-0 bg-[#321F5C]/60 backdrop-blur-xs z-[100] flex items-center justify-center p-3 sm:p-5">
           <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-150 flex flex-col max-h-[90vh]">
             
             {/* Modal Header */}

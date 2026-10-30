@@ -140,9 +140,9 @@ export default function CalendarView({ user, notices, onRefresh, onViewNotice }:
       case 'celebration':
         return { icon: PartyPopper, bg: 'bg-purple-500', text: 'text-purple-700', badge: 'bg-purple-50 text-purple-700 border-purple-200' };
       case 'meeting':
-        return { icon: Users, bg: 'bg-indigo-600', text: 'text-indigo-700', badge: 'bg-indigo-50 text-indigo-700 border-indigo-200' };
+        return { icon: Users, bg: 'bg-[#6339CA]', text: 'text-[#6339CA]', badge: 'bg-[#6339CA]/10 text-[#6339CA] border-[#6339CA]/20' };
       default:
-        return { icon: Megaphone, bg: 'bg-blue-600', text: 'text-blue-700', badge: 'bg-blue-50 text-blue-700 border-blue-200' };
+        return { icon: Megaphone, bg: 'bg-[#6339CA]', text: 'text-[#6339CA]', badge: 'bg-[#6339CA]/10 text-[#6339CA] border-blue-200' };
     }
   };
 
@@ -232,7 +232,7 @@ export default function CalendarView({ user, notices, onRefresh, onViewNotice }:
             </button>
           </div>
 
-          <h2 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
+          <h2 className="text-lg sm:text-xl font-black text-[#321F5C] tracking-tight">
             {format(currentDate, 'MMMM yyyy')}
           </h2>
         </div>
@@ -243,7 +243,7 @@ export default function CalendarView({ user, notices, onRefresh, onViewNotice }:
             <button
               onClick={() => setViewMode('month')}
               className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all flex items-center gap-1.5 ${
-                viewMode === 'month' ? 'bg-[#542d87] text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                viewMode === 'month' ? 'bg-[#542d87] text-white shadow-sm' : 'text-slate-600 hover:text-[#321F5C]'
               }`}
             >
               <CalendarDays className="w-3.5 h-3.5" />
@@ -252,7 +252,7 @@ export default function CalendarView({ user, notices, onRefresh, onViewNotice }:
             <button
               onClick={() => setViewMode('week')}
               className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all flex items-center gap-1.5 ${
-                viewMode === 'week' ? 'bg-[#542d87] text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                viewMode === 'week' ? 'bg-[#542d87] text-white shadow-sm' : 'text-slate-600 hover:text-[#321F5C]'
               }`}
             >
               <CalendarRange className="w-3.5 h-3.5" />
@@ -261,7 +261,7 @@ export default function CalendarView({ user, notices, onRefresh, onViewNotice }:
             <button
               onClick={() => setViewMode('agenda')}
               className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all flex items-center gap-1.5 ${
-                viewMode === 'agenda' ? 'bg-[#542d87] text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                viewMode === 'agenda' ? 'bg-[#542d87] text-white shadow-sm' : 'text-slate-600 hover:text-[#321F5C]'
               }`}
             >
               <ListTodo className="w-3.5 h-3.5" />
@@ -297,7 +297,7 @@ export default function CalendarView({ user, notices, onRefresh, onViewNotice }:
         <span className="font-black text-slate-400 uppercase tracking-widest text-[10px]">Event Categories:</span>
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded-full bg-indigo-600"></span>
+            <span className="w-3 h-3 rounded-full bg-[#6339CA]"></span>
             <span className="font-bold text-slate-700">Meeting</span>
           </div>
           <div className="flex items-center gap-1.5">
@@ -313,7 +313,7 @@ export default function CalendarView({ user, notices, onRefresh, onViewNotice }:
             <span className="font-bold text-slate-700">Emergency / Security</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded-full bg-blue-600"></span>
+            <span className="w-3 h-3 rounded-full bg-[#6339CA]"></span>
             <span className="font-bold text-slate-700">General Notice</span>
           </div>
         </div>
@@ -431,7 +431,7 @@ export default function CalendarView({ user, notices, onRefresh, onViewNotice }:
                   <div className="border-b border-slate-200/80 pb-2 flex items-center justify-between">
                     <div>
                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{format(day, 'EEE')}</p>
-                      <h4 className="text-base font-black text-slate-900">{format(day, 'dd MMM')}</h4>
+                      <h4 className="text-base font-black text-[#321F5C]">{format(day, 'dd MMM')}</h4>
                     </div>
                     {isToday && (
                       <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-[#542d87] text-white">Today</span>
@@ -465,7 +465,7 @@ export default function CalendarView({ user, notices, onRefresh, onViewNotice }:
                               <span className={`w-2 h-2 rounded-full ${meta.bg}`}></span>
                               <span className="uppercase text-[9px] font-black tracking-wider">{evt.category}</span>
                             </div>
-                            <p className="font-black text-slate-900 line-clamp-2">{evt.title}</p>
+                            <p className="font-black text-[#321F5C] line-clamp-2">{evt.title}</p>
                             {evt.start_time && (
                               <p className="text-[10px] text-slate-500 mt-1 flex items-center gap-1 font-medium">
                                 <Clock className="w-3 h-3" />
@@ -485,7 +485,7 @@ export default function CalendarView({ user, notices, onRefresh, onViewNotice }:
       ) : (
         /* AGENDA / LIST VIEW */
         <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden p-6 space-y-4">
-          <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-3">
+          <h3 className="text-sm font-black text-[#321F5C] uppercase tracking-wider border-b border-slate-100 pb-3">
             Chronological Society Events & Notice Schedule
           </h3>
 
@@ -529,7 +529,7 @@ export default function CalendarView({ user, notices, onRefresh, onViewNotice }:
                             </span>
                           )}
                         </div>
-                        <h4 className="text-base font-black text-slate-900 leading-snug">{evt.title}</h4>
+                        <h4 className="text-base font-black text-[#321F5C] leading-snug">{evt.title}</h4>
                         <p className="text-xs text-slate-500 font-medium line-clamp-1">{evt.description}</p>
                       </div>
                     </div>
@@ -556,7 +556,7 @@ export default function CalendarView({ user, notices, onRefresh, onViewNotice }:
 
       {/* DAY DETAILS MODAL */}
       {showDayModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-[#321F5C]/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl shadow-2xl border border-slate-100 w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="p-6 bg-[#542d87] text-white flex justify-between items-center">
               <div>
@@ -614,7 +614,7 @@ export default function CalendarView({ user, notices, onRefresh, onViewNotice }:
                           </span>
                         )}
                       </div>
-                      <h4 className="text-base font-black text-slate-900">{evt.title}</h4>
+                      <h4 className="text-base font-black text-[#321F5C]">{evt.title}</h4>
                       <p className="text-xs text-slate-600 font-medium leading-relaxed">{evt.description}</p>
                     </div>
                   );
@@ -625,7 +625,7 @@ export default function CalendarView({ user, notices, onRefresh, onViewNotice }:
             <div className="p-4 bg-slate-50 border-t border-slate-100 flex justify-end">
               <button
                 onClick={() => setShowDayModal(false)}
-                className="px-5 py-2.5 bg-slate-900 text-white rounded-xl text-xs font-black uppercase tracking-wider hover:bg-slate-800 transition-all"
+                className="px-5 py-2.5 bg-[#321F5C] text-white rounded-xl text-xs font-black uppercase tracking-wider hover:bg-slate-800 transition-all"
               >
                 Close
               </button>
@@ -636,7 +636,7 @@ export default function CalendarView({ user, notices, onRefresh, onViewNotice }:
 
       {/* VIEW EVENT DETAILS MODAL */}
       {viewingEvent && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-[#321F5C]/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl shadow-2xl border border-slate-100 w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="p-6 bg-[#542d87] text-white flex justify-between items-center">
               <div>
@@ -685,7 +685,7 @@ export default function CalendarView({ user, notices, onRefresh, onViewNotice }:
               )}
               <button
                 onClick={() => setViewingEvent(null)}
-                className="px-5 py-2.5 bg-slate-900 text-white rounded-xl text-xs font-black uppercase tracking-wider hover:bg-slate-800 transition-all ml-auto"
+                className="px-5 py-2.5 bg-[#321F5C] text-white rounded-xl text-xs font-black uppercase tracking-wider hover:bg-slate-800 transition-all ml-auto"
               >
                 Close
               </button>
@@ -696,7 +696,7 @@ export default function CalendarView({ user, notices, onRefresh, onViewNotice }:
 
       {/* CREATE / EDIT EVENT MODAL (ADMIN ONLY) */}
       {showEventModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-[#321F5C]/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl shadow-2xl border border-slate-100 w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="p-6 bg-[#542d87] text-white flex justify-between items-center">
               <div>

@@ -176,11 +176,11 @@ export function UploadDocumentWorkspace({
           </button>
           <div>
             <div className="flex items-center gap-2.5">
-              <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+              <h1 className="text-2xl font-black text-[#321F5C] tracking-tight">
                 Upload Document
               </h1>
               <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border uppercase tracking-wider ${
-                isOwner ? 'bg-blue-50 text-blue-800 border-blue-200' : 'bg-purple-50 text-purple-800 border-purple-200'
+                isOwner ? 'bg-purple-50 text-purple-800 border-purple-200' : 'bg-purple-50 text-purple-800 border-purple-200'
               }`}>
                 {isOwner ? 'Owner Record' : 'Tenant Verification'}
               </span>
@@ -206,8 +206,8 @@ export function UploadDocumentWorkspace({
             disabled={!selectedFile || uploading}
             className={`px-6 py-2.5 rounded-xl text-white text-xs font-bold transition-all shadow-md flex items-center gap-2 cursor-pointer disabled:opacity-50 ${
               isOwner 
-                ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-500/25' 
-                : 'bg-purple-600 hover:bg-purple-700 shadow-purple-500/25'
+                ? 'bg-[#6339CA] hover:bg-[#5D31C7] shadow-purple-500/25' 
+                : 'bg-[#6339CA] hover:bg-[#5D31C7] shadow-purple-500/25'
             }`}
           >
             {uploading ? (
@@ -227,11 +227,11 @@ export function UploadDocumentWorkspace({
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="px-6 py-4 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold">
+              <div className="w-8 h-8 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center font-bold">
                 <FileText className="w-4 h-4" />
               </div>
               <div>
-                <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">
+                <h3 className="text-sm font-black text-[#321F5C] uppercase tracking-wider">
                   Section 1: Select Document Type
                 </h3>
                 <p className="text-[11px] text-slate-500 font-medium">Choose from required verification categories</p>
@@ -250,14 +250,14 @@ export function UploadDocumentWorkspace({
                     onClick={() => handleTypeSelect(def.type)}
                     className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all flex flex-col justify-between h-28 ${
                       isSelected
-                        ? 'border-blue-600 bg-blue-50/60 shadow-xs'
+                        ? 'border-purple-600 bg-purple-50/60 shadow-xs'
                         : 'border-slate-200 hover:border-slate-300 bg-white'
                     }`}
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <span className="text-xs font-bold text-slate-900 leading-tight">{def.name}</span>
+                      <span className="text-xs font-bold text-[#321F5C] leading-tight">{def.name}</span>
                       <div className={`w-3.5 h-3.5 rounded-full border-2 shrink-0 mt-0.5 flex items-center justify-center ${
-                        isSelected ? 'border-blue-600 bg-blue-600' : 'border-slate-300'
+                        isSelected ? 'border-purple-600 bg-purple-600' : 'border-slate-300'
                       }`}>
                         {isSelected && <div className="w-1 h-1 rounded-full bg-white" />}
                       </div>
@@ -274,11 +274,11 @@ export function UploadDocumentWorkspace({
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="px-6 py-4 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold">
+              <div className="w-8 h-8 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center font-bold">
                 <ShieldCheck className="w-4 h-4" />
               </div>
               <div>
-                <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">
+                <h3 className="text-sm font-black text-[#321F5C] uppercase tracking-wider">
                   Section 2: Document Information
                 </h3>
                 <p className="text-[11px] text-slate-500 font-medium">Verify metadata and notes</p>
@@ -296,7 +296,7 @@ export function UploadDocumentWorkspace({
                   required
                   value={documentName}
                   onChange={(e) => setDocumentName(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-xs font-bold text-slate-800 bg-white"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-100 outline-none text-xs font-bold text-slate-800 bg-white"
                 />
               </div>
 
@@ -306,7 +306,7 @@ export function UploadDocumentWorkspace({
                   type="text"
                   value={purpose}
                   onChange={(e) => setPurpose(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-xs text-slate-700 bg-white"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-100 outline-none text-xs text-slate-700 bg-white"
                 />
               </div>
             </div>
@@ -363,7 +363,7 @@ export function UploadDocumentWorkspace({
                 <Upload className="w-4 h-4" />
               </div>
               <div>
-                <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">
+                <h3 className="text-sm font-black text-[#321F5C] uppercase tracking-wider">
                   Section 3: File Upload Area
                 </h3>
                 <p className="text-[11px] text-slate-500 font-medium">Clear and large upload viewport</p>
@@ -389,10 +389,10 @@ export function UploadDocumentWorkspace({
               onClick={() => fileInputRef.current?.click()}
               className={`w-full min-h-[260px] rounded-2xl border-2 border-dashed flex flex-col items-center justify-center p-8 transition-all cursor-pointer ${
                 isDragging
-                  ? 'border-blue-600 bg-blue-50/80 scale-[1.01]'
+                  ? 'border-purple-600 bg-purple-50/80 scale-[1.01]'
                   : selectedFile
                     ? 'border-emerald-400 bg-emerald-50/30'
-                    : 'border-slate-300 hover:border-blue-500 bg-slate-50/50 hover:bg-slate-50'
+                    : 'border-slate-300 hover:border-[#6339CA] bg-slate-50/50 hover:bg-slate-50'
               }`}
             >
               {selectedFile ? (
@@ -401,7 +401,7 @@ export function UploadDocumentWorkspace({
                     <FileCheck className="w-8 h-8" />
                   </div>
                   <div>
-                    <h4 className="text-sm font-black text-slate-900">{selectedFile.name}</h4>
+                    <h4 className="text-sm font-black text-[#321F5C]">{selectedFile.name}</h4>
                     <p className="text-xs text-slate-500 mt-0.5">
                       {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB • {selectedFile.type || 'Document'}
                     </p>
@@ -428,11 +428,11 @@ export function UploadDocumentWorkspace({
                 </div>
               ) : (
                 <div className="flex flex-col items-center text-center space-y-4">
-                  <div className="w-16 h-16 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-xs">
+                  <div className="w-16 h-16 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center shadow-xs">
                     <Upload className="w-8 h-8" />
                   </div>
                   <div>
-                    <h4 className="text-base font-black text-slate-900">Upload Document</h4>
+                    <h4 className="text-base font-black text-[#321F5C]">Upload Document</h4>
                     <p className="text-sm font-bold text-slate-600 mt-1">Drag & Drop File Here</p>
                     <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider my-1">OR</p>
                   </div>
@@ -442,7 +442,7 @@ export function UploadDocumentWorkspace({
                       e.stopPropagation();
                       fileInputRef.current?.click();
                     }}
-                    className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-blue-500/25"
+                    className="px-6 py-2.5 bg-[#6339CA] hover:bg-[#5D31C7] text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-purple-500/25"
                   >
                     Choose File
                   </button>
@@ -479,8 +479,8 @@ export function UploadDocumentWorkspace({
               disabled={!selectedFile || uploading}
               className={`px-6 py-2.5 rounded-xl text-white text-xs font-bold transition-all shadow-md flex items-center gap-2 cursor-pointer disabled:opacity-50 ${
                 isOwner 
-                  ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-500/25' 
-                  : 'bg-purple-600 hover:bg-purple-700 shadow-purple-500/25'
+                  ? 'bg-[#6339CA] hover:bg-[#5D31C7] shadow-purple-500/25' 
+                  : 'bg-[#6339CA] hover:bg-[#5D31C7] shadow-purple-500/25'
               }`}
             >
               {uploading ? (
@@ -599,7 +599,7 @@ export function ViewDocumentWorkspace({
           </button>
           <div>
             <div className="flex items-center gap-2.5">
-              <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+              <h1 className="text-2xl font-black text-[#321F5C] tracking-tight">
                 {doc.document_name}
               </h1>
               {getStatusBadge(doc.status)}
@@ -717,7 +717,7 @@ export function ViewDocumentWorkspace({
           </div>
           <div>
             <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Verification Status</p>
-            <p className="font-bold mt-0.5 text-indigo-700">{doc.status}</p>
+            <p className="font-bold mt-0.5 text-[#6339CA]">{doc.status}</p>
           </div>
         </div>
 
@@ -762,7 +762,7 @@ export function ViewDocumentWorkspace({
               href={doc.file_url}
               target="_blank"
               rel="noreferrer"
-              className="text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1"
+              className="text-xs font-bold text-purple-600 hover:text-purple-800 flex items-center gap-1"
             >
               <span>Open in New Tab</span>
               <ExternalLink className="w-3.5 h-3.5" />
@@ -785,11 +785,11 @@ export function ViewDocumentWorkspace({
             />
           ) : (
             <div className="text-center p-10 bg-white rounded-3xl border border-slate-200 shadow-sm max-w-lg space-y-4">
-              <div className="w-20 h-20 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto shadow-inner">
+              <div className="w-20 h-20 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center mx-auto shadow-inner">
                 <FileCheck className="w-10 h-10" />
               </div>
               <div>
-                <h4 className="text-lg font-black text-slate-900">{doc.document_name}</h4>
+                <h4 className="text-lg font-black text-[#321F5C]">{doc.document_name}</h4>
                 <p className="text-xs text-slate-500 mt-1">{doc.purpose}</p>
                 <p className="text-xs font-mono font-bold text-slate-700 mt-2 bg-slate-50 py-1.5 px-3 rounded-lg border border-slate-200 inline-block">
                   {doc.file_name || 'document_file.pdf'}
@@ -802,7 +802,7 @@ export function ViewDocumentWorkspace({
                     download={doc.file_name || 'document.pdf'}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-500/25 transition-all"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#6339CA] hover:bg-[#5D31C7] text-white rounded-xl text-xs font-bold shadow-md shadow-purple-500/25 transition-all"
                   >
                     <Download className="w-4 h-4" />
                     <span>Download Original File</span>
