@@ -164,6 +164,44 @@ export default function ResidentDashboard({
   const [billSearchTerm, setBillSearchTerm] = useState('');
   const [billsViewMode, setBillsViewMode] = useState<'both' | 'cards' | 'table'>('both');
 
+  const [residentVisitors, setResidentVisitors] = useState<any[]>([]);
+  const [residentNotices, setResidentNotices] = useState<any[]>([]);
+  const [residentComms, setResidentComms] = useState<any[]>([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchPortalData = async () => {
+      try {
+        const [vData, nData, cData] = await Promise.all([
+          societyService.getVisitors().catch(() => []),
+          societyService.getNotices().catch(() => []),
+          societyService.getCommunications ? societyService.getCommunications(resident.society_id).catch(() => []) : Promise.resolve([])
+        ]);
+
+        if (!isMounted) return;
+
+        const myResId = resident.resident_id || (resident as any).id;
+        const myFlat = resident.flat;
+        const filteredV = (vData || []).filter((v: any) => {
+          const matchRes = myResId && String(v.resident_id) === String(myResId);
+          const matchFlat = myFlat && String(v.flat).toLowerCase().trim() === String(myFlat).toLowerCase().trim();
+          return matchRes || matchFlat;
+        });
+        setResidentVisitors(filteredV);
+
+        const filteredN = (nData || []).filter((n: any) => n.status !== 'Expired' && n.status !== 'Archived');
+        setResidentNotices(filteredN);
+
+        setResidentComms(cData || []);
+      } catch (err) {
+        console.warn('Notice: Could not load supplementary portal metrics:', err);
+      }
+    };
+
+    fetchPortalData();
+    return () => { isMounted = false; };
+  }, [resident.resident_id, resident.flat]);
+
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
@@ -2016,9 +2054,11 @@ export default function ResidentDashboard({
 
         return (
           <div className="flex flex-col gap-5">
-            {/* Professional Welcome Banner & Occupancy Distinction */}
-            <div className="bg-slate-900 text-white p-6 rounded-2xl shadow-sm border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div className="space-y-1">
+            {/* Professional Welcome Banner & Occupancy Distinction (Updated Style) */}
+            <div className="bg-gradient-to-r from-[#0F172A] via-[#1E1B4B] to-[#172554] p-6 sm:p-8 rounded-3xl text-white shadow-xl relative overflow-hidden border border-indigo-900/60 flex flex-col lg:flex-row items-center justify-between gap-6">
+              <div className="absolute top-0 right-0 w-80 h-80 bg-blue-500/10 rounded-full -mr-32 -mt-32 blur-3xl pointer-events-none"></div>
+              
+              <div className="space-y-1 relative z-10">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${
                     isOwner 
@@ -2036,48 +2076,42 @@ export default function ResidentDashboard({
                     {flatType} • {sqft} sq.ft.
                   </span>
                 </div>
-                <h2 className="text-2xl font-black tracking-tight text-white">
+                <h2 className="text-3xl font-black tracking-tight text-white leading-tight">
                   Welcome back, {resident.name}
                 </h2>
                 {!isOwner && (
-                  <p className="text-xs text-slate-400 font-medium">
+                  <p className="text-xs text-slate-300 font-medium">
                     Owner: <span className="font-bold text-amber-300">{linkedOwner?.name || resident.owner_name || 'Deepak Yadav'}</span>
                   </p>
                 )}
-                <p className="text-slate-400 text-xs font-medium">
+                <p className="text-slate-300 text-xs font-medium">
                   Green Park Residency • Resident Management Portal
                 </p>
               </div>
 
               {/* Quick Action Buttons */}
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap items-center gap-3 relative z-10">
                 <button
                   onClick={() => setActiveTab('documents')}
-                  className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
+                  className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl transition-all shadow-md shadow-indigo-600/30 flex items-center gap-2 cursor-pointer uppercase tracking-wider"
                 >
-                  <FileText className="w-3.5 h-3.5" />
+                  <FileText className="w-4 h-4" />
                   <span>Upload Documents</span>
                 </button>
                 <button
                   onClick={() => setActiveTab('maintenance')}
-                  className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs rounded-xl transition-all flex items-center gap-1.5 border border-slate-700 cursor-pointer"
+                  className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs rounded-xl transition-all border border-slate-700 flex items-center gap-2 cursor-pointer uppercase tracking-wider"
                 >
-                  <CreditCard className="w-3.5 h-3.5" />
+                  <CreditCard className="w-4 h-4" />
                   <span>Pay Maintenance</span>
-                </button>
-                <button
-                  onClick={() => setActiveTab('complaints')}
-                  className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs rounded-xl transition-all flex items-center gap-1.5 border border-slate-700 cursor-pointer"
-                >
-                  <MessageSquare className="w-3.5 h-3.5" />
-                  <span>Raise Complaint</span>
                 </button>
               </div>
             </div>
 
             <div className="space-y-6">
-              {/* Quick Summary Cards (Solid Vibrant Colors) */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {/* 6 Resident-Specific Dashboard Summary Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {/* Card 1: Maintenance Overview */}
                 <button 
                   onClick={() => setActiveTab('maintenance')}
                   className="bg-[#2563EB] p-5 rounded-2xl shadow-lg shadow-blue-500/20 text-white text-left transition-transform hover:-translate-y-0.5 cursor-pointer group"
@@ -2092,15 +2126,16 @@ export default function ResidentDashboard({
                       {residentMaintenance.some(m => m.status === 'Unpaid') ? 'DUE' : 'CLEARED'}
                     </span>
                   </div>
-                  <p className="text-[10px] font-black uppercase tracking-wider text-white/90 mb-0.5">Maintenance Status</p>
+                  <p className="text-[10px] font-black uppercase tracking-wider text-white/90 mb-0.5">Maintenance Overview</p>
                   <h3 className="text-2xl font-black text-white font-mono tracking-tight">
                     {residentMaintenance.some(m => m.status === 'Unpaid') ? 'Payment Due' : 'All Settled'}
                   </h3>
                   <p className="text-xs text-white/80 font-bold mt-1">
-                    {residentMaintenance.filter(m => m.status === 'Unpaid').length} pending bills
+                    {residentMaintenance.filter(m => m.status === 'Unpaid').length} pending bill(s)
                   </p>
                 </button>
 
+                {/* Card 2: My Complaints */}
                 <button 
                   onClick={() => setActiveTab('complaints')}
                   className="bg-[#EA580C] p-5 rounded-2xl shadow-lg shadow-orange-500/20 text-white text-left transition-transform hover:-translate-y-0.5 cursor-pointer group"
@@ -2114,10 +2149,11 @@ export default function ResidentDashboard({
                   <p className="text-[10px] font-black uppercase tracking-wider text-white/90 mb-0.5">My Complaints</p>
                   <h3 className="text-2xl font-black text-white font-mono tracking-tight">{myComplaints.length} Tickets</h3>
                   <p className="text-xs text-white/80 font-bold mt-1">
-                    {myComplaints.filter(c => c.status === 'Pending').length} active in progress
+                    {myComplaints.filter(c => c.status === 'Pending' || c.status === 'Process').length} active in progress
                   </p>
                 </button>
 
+                {/* Card 3: My Amenity Bookings */}
                 <button 
                   onClick={() => setActiveTab('bookings')}
                   className="bg-[#059669] p-5 rounded-2xl shadow-lg shadow-emerald-500/20 text-white text-left transition-transform hover:-translate-y-0.5 cursor-pointer group"
@@ -2128,12 +2164,120 @@ export default function ResidentDashboard({
                     </div>
                     <ChevronRight className="w-4 h-4 text-white/80 group-hover:text-white transition-colors" />
                   </div>
-                  <p className="text-[10px] font-black uppercase tracking-wider text-white/90 mb-0.5">Amenity Bookings</p>
+                  <p className="text-[10px] font-black uppercase tracking-wider text-white/90 mb-0.5">My Amenity Bookings</p>
                   <h3 className="text-2xl font-black text-white font-mono tracking-tight">{residentBookings.length} Reservations</h3>
                   <p className="text-xs text-white/80 font-bold mt-1">
-                    {residentBookings.filter(b => b.status === 'Approved').length} approved bookings
+                    {residentBookings.filter(b => b.status === 'Approved').length} approved booking(s)
                   </p>
                 </button>
+
+                {/* Card 4: My Visitor Requests */}
+                <button 
+                  onClick={() => setActiveTab('security')}
+                  className="bg-[#4F46E5] p-5 rounded-2xl shadow-lg shadow-indigo-500/20 text-white text-left transition-transform hover:-translate-y-0.5 cursor-pointer group"
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="w-10 h-10 bg-white/20 text-white rounded-xl flex items-center justify-center font-black backdrop-blur-xs">
+                      <Users className="w-5 h-5 text-white" />
+                    </div>
+                    <span className="text-[10px] font-black px-2 py-0.5 rounded bg-white/20 text-white uppercase">
+                      Gate Control
+                    </span>
+                  </div>
+                  <p className="text-[10px] font-black uppercase tracking-wider text-white/90 mb-0.5">My Visitor Requests</p>
+                  <h3 className="text-2xl font-black text-white font-mono tracking-tight">{residentVisitors.length} Visitors</h3>
+                  <p className="text-xs text-white/80 font-bold mt-1">
+                    {residentVisitors.filter(v => v.status === 'Pending' || v.approval_status === 'Pending').length} pending approval(s)
+                  </p>
+                </button>
+
+                {/* Card 5: Unread Notices */}
+                <button 
+                  onClick={() => setActiveTab('notices')}
+                  className="bg-[#7C3AED] p-5 rounded-2xl shadow-lg shadow-purple-500/20 text-white text-left transition-transform hover:-translate-y-0.5 cursor-pointer group"
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="w-10 h-10 bg-white/20 text-white rounded-xl flex items-center justify-center font-black backdrop-blur-xs">
+                      <Megaphone className="w-5 h-5 text-white" />
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-white/80 group-hover:text-white transition-colors" />
+                  </div>
+                  <p className="text-[10px] font-black uppercase tracking-wider text-white/90 mb-0.5">Society Notices</p>
+                  <h3 className="text-2xl font-black text-white font-mono tracking-tight">{residentNotices.length} Published</h3>
+                  <p className="text-xs text-white/80 font-bold mt-1">
+                    Active society announcements
+                  </p>
+                </button>
+
+                {/* Card 6: My Open Communication Requests */}
+                <button 
+                  onClick={() => setActiveTab('communication')}
+                  className="bg-[#0D9488] p-5 rounded-2xl shadow-lg shadow-teal-500/20 text-white text-left transition-transform hover:-translate-y-0.5 cursor-pointer group"
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="w-10 h-10 bg-white/20 text-white rounded-xl flex items-center justify-center font-black backdrop-blur-xs">
+                      <Send className="w-5 h-5 text-white" />
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-white/80 group-hover:text-white transition-colors" />
+                  </div>
+                  <p className="text-[10px] font-black uppercase tracking-wider text-white/90 mb-0.5">Communication Requests</p>
+                  <h3 className="text-2xl font-black text-white font-mono tracking-tight">{residentComms.length} Conversations</h3>
+                  <p className="text-xs text-white/80 font-bold mt-1">
+                    {residentComms.filter(c => c.status === 'Open' || c.status === 'In Progress').length} open query ticket(s)
+                  </p>
+                </button>
+              </div>
+
+              {/* 6 Quick Action Buttons */}
+              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                  <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">Quick Resident Actions</h3>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase">One-Tap Shortcuts</span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
+                  <button
+                    onClick={() => setActiveTab('maintenance')}
+                    className="p-3 bg-blue-50 hover:bg-blue-100 text-blue-900 rounded-xl font-bold text-xs flex flex-col items-center justify-center gap-1.5 transition-all border border-blue-100 text-center cursor-pointer"
+                  >
+                    <CreditCard className="w-4 h-4 text-blue-600" />
+                    <span>View Maintenance</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('complaints')}
+                    className="p-3 bg-orange-50 hover:bg-orange-100 text-orange-900 rounded-xl font-bold text-xs flex flex-col items-center justify-center gap-1.5 transition-all border border-orange-100 text-center cursor-pointer"
+                  >
+                    <MessageSquare className="w-4 h-4 text-orange-600" />
+                    <span>Raise Complaint</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('bookings')}
+                    className="p-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 rounded-xl font-bold text-xs flex flex-col items-center justify-center gap-1.5 transition-all border border-emerald-100 text-center cursor-pointer"
+                  >
+                    <Calendar className="w-4 h-4 text-emerald-600" />
+                    <span>Book Amenity</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('security')}
+                    className="p-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-900 rounded-xl font-bold text-xs flex flex-col items-center justify-center gap-1.5 transition-all border border-indigo-100 text-center cursor-pointer"
+                  >
+                    <Users className="w-4 h-4 text-indigo-600" />
+                    <span>View Visitors</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('notices')}
+                    className="p-3 bg-purple-50 hover:bg-purple-100 text-purple-900 rounded-xl font-bold text-xs flex flex-col items-center justify-center gap-1.5 transition-all border border-purple-100 text-center cursor-pointer"
+                  >
+                    <Megaphone className="w-4 h-4 text-purple-600" />
+                    <span>View Notices</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('communication')}
+                    className="p-3 bg-teal-50 hover:bg-teal-100 text-teal-900 rounded-xl font-bold text-xs flex flex-col items-center justify-center gap-1.5 transition-all border border-teal-100 text-center cursor-pointer"
+                  >
+                    <Send className="w-4 h-4 text-teal-600" />
+                    <span>Open Communication</span>
+                  </button>
+                </div>
               </div>
 
               {/* Owner Documents Section on Dashboard (Requirement 3) */}

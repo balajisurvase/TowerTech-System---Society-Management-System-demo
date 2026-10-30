@@ -245,16 +245,61 @@ export default function App() {
 
         {/* Main Workspace Area */}
         <main className="flex-1 w-full max-w-7xl mx-auto p-3 sm:p-5 md:p-6 overflow-y-auto">
-          {/* Main Dashboard Module Grid View */}
           {activeTab === 'dashboard' ? (
-            <DashboardModulesGrid 
-              user={user}
-              setActiveTab={setActiveTab}
-              residents={residents}
-              maintenance={maintenance}
-              complaints={complaints}
-              bookings={bookings}
-            />
+            isAdmin ? (
+              <DashboardModulesGrid 
+                user={user}
+                setActiveTab={setActiveTab}
+                residents={residents}
+                maintenance={maintenance}
+                complaints={complaints}
+                bookings={bookings}
+              />
+            ) : user.role === 'security' ? (
+              <SecurityDashboard 
+                user={user}
+                residents={residents}
+                onLogout={handleLogout}
+                onUserUpdate={handleUserUpdate}
+              />
+            ) : currentResident ? (
+              (currentResident.role === 'Tenant' || currentResident.occupancy_type === 'Tenant' || user.occupancy_type === 'Tenant') ? (
+                <TenantDashboard 
+                  activeTab="dashboard"
+                  resident={currentResident}
+                  residents={residents}
+                  maintenance={maintenance}
+                  complaints={complaints}
+                  bookings={bookings}
+                  onRefresh={fetchData}
+                  setActiveTab={setActiveTab}
+                  onLogout={handleLogout}
+                  onUserUpdate={handleUserUpdate}
+                />
+              ) : (
+                <ResidentDashboard 
+                  activeTab="dashboard"
+                  resident={currentResident}
+                  residents={residents}
+                  maintenance={maintenance}
+                  complaints={complaints}
+                  bookings={bookings}
+                  onRefresh={fetchData}
+                  setActiveTab={setActiveTab}
+                  onLogout={handleLogout}
+                  onUserUpdate={handleUserUpdate}
+                />
+              )
+            ) : (
+              <DashboardModulesGrid 
+                user={user}
+                setActiveTab={setActiveTab}
+                residents={residents}
+                maintenance={maintenance}
+                complaints={complaints}
+                bookings={bookings}
+              />
+            )
           ) : (
             <div className="space-y-6">
               {/* Top Back Navigation Bar for Module Views (Notices module has its own integrated clean header) */}
@@ -276,7 +321,23 @@ export default function App() {
               )}
 
             {/* Active Module Content */}
-            {user.role === 'security' && activeTab === 'notices' ? (
+            {(!isAdmin && ['financial', 'residents'].includes(activeTab)) ? (
+              <div className="bg-white rounded-3xl p-12 border border-rose-100 shadow-sm text-center max-w-2xl mx-auto my-12">
+                <div className="w-16 h-16 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-rose-100">
+                  <ShieldAlert className="w-8 h-8" />
+                </div>
+                <h2 className="text-2xl font-black text-slate-900 mb-2">Access Denied / Unauthorized</h2>
+                <p className="text-sm font-medium text-slate-500 leading-relaxed mb-6">
+                  You do not have permission to access the requested module. Access is restricted according to your assigned user role.
+                </p>
+                <button
+                  onClick={() => setActiveTab('dashboard')}
+                  className="px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-md"
+                >
+                  Return to Dashboard
+                </button>
+              </div>
+            ) : user.role === 'security' && activeTab === 'notices' ? (
               <NoticeBoard 
                 user={user}
                 onSwitchTab={(tab) => setActiveTab(tab)}

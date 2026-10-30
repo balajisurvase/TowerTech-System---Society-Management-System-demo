@@ -171,20 +171,23 @@ export default function Login({ onLogin }: LoginProps) {
       )}
 
       {/* LEFT COLUMN: LOGIN FORM PANEL */}
-      <div className="w-full md:w-[48%] lg:w-[42%] xl:w-[38%] min-h-screen md:min-h-0 md:h-full bg-white p-6 sm:p-8 lg:p-10 flex flex-col justify-between overflow-y-auto z-20 shrink-0 shadow-2xl">
+      <div className="w-full md:w-[48%] lg:w-[42%] xl:w-[38%] min-h-screen md:min-h-0 md:h-full bg-white p-6 sm:p-8 lg:p-12 flex flex-col justify-between overflow-y-auto z-20 shrink-0 shadow-2xl font-sans">
         
-        <div>
+        <div className="my-auto py-2">
           {/* Header Title */}
-          <div className="mb-5">
-            <div className="flex items-center gap-2.5 mb-1">
-              <div className="w-8 h-8 rounded-xl bg-[#1d72fe]/10 text-[#1d72fe] flex items-center justify-center font-black text-sm">
-                <Building2 className="w-4 h-4" />
+          <div className="mb-6">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 rounded-2xl bg-[#1d72fe]/10 text-[#1d72fe] flex items-center justify-center font-black text-sm border border-[#1d72fe]/20 shadow-2xs">
+                <Building2 className="w-5 h-5 text-[#1d72fe]" />
               </div>
-              <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-                Login
-              </h1>
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+                  Welcome Back
+                </h1>
+                <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Green Park Residency</p>
+              </div>
             </div>
-            <p className="text-xs font-medium text-slate-500 ml-0.5">
+            <p className="text-xs font-semibold text-slate-500 mt-2">
               Don't have an account?{' '}
               <button 
                 type="button" 
@@ -197,11 +200,11 @@ export default function Login({ onLogin }: LoginProps) {
           </div>
 
           {/* Login Form */}
-          <form onSubmit={handleLogin} className="space-y-3.5 w-full">
+          <form onSubmit={handleLogin} className="space-y-4 w-full">
             
             {/* Society ID Field */}
-            <div className="space-y-1">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-0.5">
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block ml-0.5">
                 SOCIETY ID
               </label>
               <div className="relative group">
@@ -211,15 +214,15 @@ export default function Login({ onLogin }: LoginProps) {
                   value={societyId}
                   onChange={(e) => setSocietyId(e.target.value)}
                   placeholder="GV2026"
-                  className="w-full pl-10 pr-4 h-10 sm:h-11 rounded-xl border border-slate-200/90 focus:border-[#1d72fe] focus:ring-2 focus:ring-blue-100 outline-none text-xs sm:text-sm font-black text-slate-800 bg-slate-50/50 focus:bg-white transition-all"
+                  className="w-full pl-10 pr-4 h-11 rounded-xl border border-slate-200 focus:border-[#1d72fe] focus:ring-2 focus:ring-[#1d72fe]/15 outline-none text-xs sm:text-sm font-black text-slate-800 bg-slate-50/60 focus:bg-white transition-all shadow-2xs placeholder:text-slate-300"
                   required
                 />
               </div>
             </div>
 
             {/* User ID / Email Field */}
-            <div className="space-y-1">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-0.5">
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block ml-0.5">
                 USER ID / EMAIL
               </label>
               <div className="relative group">
@@ -228,16 +231,16 @@ export default function Login({ onLogin }: LoginProps) {
                   type="text"
                   value={loginId}
                   onChange={(e) => setLoginId(e.target.value)}
-                  placeholder="Username or Email"
-                  className="w-full pl-10 pr-4 h-10 sm:h-11 rounded-xl border border-slate-200/90 focus:border-[#1d72fe] focus:ring-2 focus:ring-blue-100 outline-none text-xs sm:text-sm font-bold text-slate-800 bg-slate-50/50 focus:bg-white transition-all placeholder:text-slate-300"
+                  placeholder="Enter User ID or Email"
+                  className="w-full pl-10 pr-4 h-11 rounded-xl border border-slate-200 focus:border-[#1d72fe] focus:ring-2 focus:ring-[#1d72fe]/15 outline-none text-xs sm:text-sm font-bold text-slate-800 bg-slate-50/60 focus:bg-white transition-all shadow-2xs placeholder:text-slate-300"
                   required
                 />
               </div>
             </div>
 
             {/* Password Field */}
-            <div className="space-y-1">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-0.5">
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block ml-0.5">
                 PASSWORD
               </label>
               <div className="relative group">
@@ -246,14 +249,15 @@ export default function Login({ onLogin }: LoginProps) {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Password"
-                  className="w-full pl-10 pr-10 h-10 sm:h-11 rounded-xl border border-slate-200/90 focus:border-[#1d72fe] focus:ring-2 focus:ring-blue-100 outline-none text-xs sm:text-sm font-bold text-slate-800 bg-slate-50/50 focus:bg-white transition-all placeholder:text-slate-300"
+                  placeholder="Enter Password"
+                  className="w-full pl-10 pr-10 h-11 rounded-xl border border-slate-200 focus:border-[#1d72fe] focus:ring-2 focus:ring-[#1d72fe]/15 outline-none text-xs sm:text-sm font-bold text-slate-800 bg-slate-50/60 focus:bg-white transition-all shadow-2xs placeholder:text-slate-300"
                   required
                 />
                 <button 
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer p-1"
+                  title={showPassword ? "Hide Password" : "Show Password"}
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -261,13 +265,13 @@ export default function Login({ onLogin }: LoginProps) {
             </div>
 
             {/* Remember Me & Forgot Password Row */}
-            <div className="flex items-center justify-between pt-0.5 text-xs">
+            <div className="flex items-center justify-between pt-1 text-xs">
               <label className="flex items-center gap-2 font-semibold text-slate-600 cursor-pointer select-none">
                 <input 
                   type="checkbox"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
-                  className="w-4 h-4 rounded border-slate-300 text-[#1d72fe] focus:ring-blue-500 cursor-pointer"
+                  className="w-4 h-4 rounded border-slate-300 text-[#1d72fe] focus:ring-[#1d72fe] cursor-pointer"
                 />
                 <span>Remember Me</span>
               </label>
@@ -282,7 +286,7 @@ export default function Login({ onLogin }: LoginProps) {
 
             {/* Error Message */}
             {error && (
-              <div className="bg-rose-50 text-rose-600 p-2.5 rounded-xl text-xs font-bold border border-rose-200 flex items-center gap-2 animate-in fade-in duration-150">
+              <div className="bg-rose-50 text-rose-600 p-3 rounded-xl text-xs font-bold border border-rose-200 flex items-center gap-2 animate-in fade-in duration-150">
                 <X className="w-4 h-4 shrink-0 text-rose-500" />
                 <span>{error}</span>
               </div>
@@ -293,112 +297,120 @@ export default function Login({ onLogin }: LoginProps) {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-[#1d72fe] hover:bg-blue-600 active:bg-blue-700 disabled:bg-slate-300 text-white font-bold py-3 px-8 rounded-xl text-xs uppercase tracking-wider transition-all shadow-md shadow-blue-500/20 hover:shadow-lg active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full bg-[#1d72fe] hover:bg-[#155bd5] active:scale-[0.99] disabled:bg-slate-300 text-white font-black py-3.5 px-8 rounded-xl text-xs uppercase tracking-wider transition-all shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/30 flex items-center justify-center gap-2 cursor-pointer"
               >
                 {loading ? (
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 ) : (
-                  <span>LOGIN</span>
+                  <>
+                    <span>LOGIN TO DASHBOARD</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </>
                 )}
               </button>
             </div>
           </form>
         </div>
 
+        {/* Footer Note */}
+        <div className="pt-4 text-center border-t border-slate-100 text-[11px] font-semibold text-slate-400">
+          TowerTech Society Management Portal • Powered by Green Park Residency
+        </div>
+
       </div>
 
-      {/* RIGHT COLUMN: SHORT, BOLD FEATURE PRESENTATION WITH SYMBOLS */}
-      <div className="hidden md:flex flex-1 h-full relative overflow-hidden flex-col justify-between p-8 lg:p-12 text-white bg-slate-950 shrink-0 z-10">
+      {/* RIGHT COLUMN: BRANDING & FEATURE CARDS */}
+      <div className="hidden md:flex flex-1 h-full relative overflow-hidden flex-col justify-between p-8 lg:p-12 text-white bg-[#0b1739] shrink-0 z-10">
         
         {/* Building Background Image */}
         <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
           <img 
             src="/src/assets/images/building_bg_1791112941582.jpg" 
             alt="TowerTech Platform" 
-            className="w-full h-full object-cover object-center opacity-35 mix-blend-luminosity filter contrast-125 brightness-110"
+            className="w-full h-full object-cover object-center opacity-30 mix-blend-luminosity filter contrast-125 brightness-110"
             referrerPolicy="no-referrer"
           />
-          <div className="absolute inset-0 bg-gradient-to-tr from-slate-950 via-slate-950/85 to-[#0b1739]/85" />
-          <div className="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-transparent to-[#0b1739]/60" />
+          <div className="absolute inset-0 bg-gradient-to-tr from-[#0b1739] via-[#0b1739]/90 to-slate-950/85" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0b1739] via-transparent to-[#0b1739]/70" />
         </div>
 
         {/* Ambient Glows */}
         <div className="absolute top-10 right-10 w-96 h-96 bg-[#1d72fe]/20 rounded-full blur-3xl pointer-events-none z-0" />
-        <div className="absolute bottom-10 left-10 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl pointer-events-none z-0" />
+        <div className="absolute bottom-10 left-10 w-96 h-96 bg-blue-600/15 rounded-full blur-3xl pointer-events-none z-0" />
 
         {/* Top Brand Badge */}
         <div className="relative z-10 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/20 shadow-lg">
+            <div className="w-10 h-10 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-lg">
               <Building2 className="w-5 h-5 text-white" />
             </div>
             <div>
-              <span className="text-lg font-black text-white tracking-tight block">TowerTech</span>
+              <span className="text-xl font-black text-white tracking-tight block">TowerTech</span>
               <span className="text-[10px] font-extrabold text-blue-200/90 uppercase tracking-widest block">Society System</span>
             </div>
           </div>
         </div>
 
         {/* Center Short Bold Features Grid */}
-        <div className="relative z-10 max-w-xl my-auto py-4 space-y-4">
+        <div className="relative z-10 max-w-xl my-auto py-6 space-y-5">
           <div>
             <h2 className="text-2xl lg:text-3xl font-black text-white tracking-tight leading-tight drop-shadow-sm">
               All-in-One Residential Platform
             </h2>
-            <p className="text-xs text-slate-300 font-bold mt-1">
+            <p className="text-xs text-slate-300 font-semibold mt-1.5">
               Streamline maintenance, security, notices, and helpdesk in one place.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 gap-2.5 pt-1 font-sans">
+          <div className="grid grid-cols-1 gap-3 pt-1 font-sans">
             {/* Feature 1 */}
-            <div className="flex items-center gap-3.5 bg-white/10 backdrop-blur-md p-3.5 rounded-2xl border border-white/15 hover:bg-white/15 transition-all group">
-              <div className="w-9 h-9 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center shrink-0 border border-orange-400/30 group-hover:scale-105 transition-transform">
+            <div className="flex items-center gap-3.5 bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/15 hover:bg-white/15 hover:border-white/25 transition-all group shadow-sm">
+              <div className="w-10 h-10 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center shrink-0 border border-orange-400/30 group-hover:scale-105 transition-transform">
                 <CreditCard className="w-5 h-5 text-orange-400" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-xs sm:text-sm font-extrabold text-white tracking-tight">Maintenance & Online Bills</p>
-                <p className="text-[11px] font-bold text-blue-200/90 truncate mt-0.5">Automated billing, instant receipts & payment history</p>
+                <p className="text-xs sm:text-sm font-black text-white tracking-tight">Maintenance & Online Bills</p>
+                <p className="text-[11px] font-semibold text-blue-200/90 truncate mt-0.5">Automated billing, instant receipts & payment history</p>
               </div>
             </div>
 
             {/* Feature 2 */}
-            <div className="flex items-center gap-3.5 bg-white/10 backdrop-blur-md p-3.5 rounded-2xl border border-white/15 hover:bg-white/15 transition-all group">
-              <div className="w-9 h-9 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0 border border-blue-400/30 group-hover:scale-105 transition-transform">
+            <div className="flex items-center gap-3.5 bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/15 hover:bg-white/15 hover:border-white/25 transition-all group shadow-sm">
+              <div className="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0 border border-blue-400/30 group-hover:scale-105 transition-transform">
                 <Shield className="w-5 h-5 text-blue-400" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-xs sm:text-sm font-extrabold text-white tracking-tight">Real-Time Visitor Gate Pass</p>
-                <p className="text-[11px] font-bold text-blue-200/90 truncate mt-0.5">Pre-approve guests, track deliveries & live gate logs</p>
+                <p className="text-xs sm:text-sm font-black text-white tracking-tight">Real-Time Visitor Gate Pass</p>
+                <p className="text-[11px] font-semibold text-blue-200/90 truncate mt-0.5">Pre-approve guests, track deliveries & live gate logs</p>
               </div>
             </div>
 
             {/* Feature 3 */}
-            <div className="flex items-center gap-3.5 bg-white/10 backdrop-blur-md p-3.5 rounded-2xl border border-white/15 hover:bg-white/15 transition-all group">
-              <div className="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0 border border-amber-400/30 group-hover:scale-105 transition-transform">
+            <div className="flex items-center gap-3.5 bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/15 hover:bg-white/15 hover:border-white/25 transition-all group shadow-sm">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0 border border-amber-400/30 group-hover:scale-105 transition-transform">
                 <Megaphone className="w-5 h-5 text-amber-400" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-xs sm:text-sm font-extrabold text-white tracking-tight">Notice Management</p>
-                <p className="text-[11px] font-bold text-blue-200/90 truncate mt-0.5">Publish circulars, announcements & urgent alerts</p>
+                <p className="text-xs sm:text-sm font-black text-white tracking-tight">Notice Management</p>
+                <p className="text-[11px] font-semibold text-blue-200/90 truncate mt-0.5">Publish circulars, announcements & urgent alerts</p>
               </div>
             </div>
 
             {/* Feature 4 */}
-            <div className="flex items-center gap-3.5 bg-white/10 backdrop-blur-md p-3.5 rounded-2xl border border-white/15 hover:bg-white/15 transition-all group">
-              <div className="w-9 h-9 rounded-xl bg-[#1d72fe]/20 text-blue-300 flex items-center justify-center shrink-0 border border-blue-400/30 group-hover:scale-105 transition-transform">
+            <div className="flex items-center gap-3.5 bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/15 hover:bg-white/15 hover:border-white/25 transition-all group shadow-sm">
+              <div className="w-10 h-10 rounded-xl bg-[#1d72fe]/20 text-blue-300 flex items-center justify-center shrink-0 border border-blue-400/30 group-hover:scale-105 transition-transform">
                 <MessageSquare className="w-5 h-5 text-blue-300" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-xs sm:text-sm font-extrabold text-white tracking-tight">Communication & Helpdesk</p>
-                <p className="text-[11px] font-bold text-blue-200/90 truncate mt-0.5">Log complaints, chat in channels & book amenities</p>
+                <p className="text-xs sm:text-sm font-black text-white tracking-tight">Communication & Helpdesk</p>
+                <p className="text-[11px] font-semibold text-blue-200/90 truncate mt-0.5">Log complaints, chat in channels & resident support</p>
               </div>
             </div>
           </div>
         </div>
 
         {/* Bottom Footer Badge */}
-        <div className="relative z-10 pt-4 border-t border-white/15 flex items-center justify-between text-xs font-black text-slate-300">
+        <div className="relative z-10 pt-4 border-t border-white/15 flex items-center justify-between text-xs font-bold text-slate-300">
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
             <span>Secure Society Access</span>

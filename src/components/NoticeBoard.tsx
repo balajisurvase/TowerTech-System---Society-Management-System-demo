@@ -61,6 +61,8 @@ const AUDIENCES = ['All Residents', 'Tower A', 'Tower B', 'Tower C', 'Tower D', 
 
 export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoardProps) {
   const isAdmin = user.role === 'admin' || Boolean('admin_id' in user && user.admin_id);
+  const isSecurity = user.role === 'security';
+  const canManageNotices = isAdmin && !isSecurity;
   const currentUserId = ('resident_id' in user && user.resident_id) || ('admin_id' in user && user.admin_id) || ('id' in user && user.id) || '';
 
   // Data state
@@ -263,7 +265,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
       // 4. Status filter & exclude expired from default 'All'
       const isExpired = n.status === 'Expired' || (n.expiry_date && new Date(n.expiry_date).getTime() < new Date().setHours(0,0,0,0));
       if (selectedStatus === 'All' && isExpired) return false;
-      const matchesStatus = selectedStatus === 'All' ? (isAdmin ? n.status !== 'Expired' : n.status === 'Active') : (n.status === selectedStatus);
+      const matchesStatus = selectedStatus === 'All' ? (canManageNotices ? n.status !== 'Expired' : n.status === 'Active') : (n.status === selectedStatus);
 
       // 5. Calendar date filter
       let matchesDate = true;
@@ -545,7 +547,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
 
         {/* Right Action: + Create Notice */}
         <div className="flex items-center gap-3 shrink-0 self-end md:self-center">
-          {isAdmin && (
+          {canManageNotices && (
             <button
               type="button"
               onClick={handleOpenCreate}
@@ -682,7 +684,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
             >
               <option value="All">All Statuses</option>
               <option value="Active">Active Published</option>
-              {isAdmin && <option value="Draft">Drafts</option>}
+              {canManageNotices && <option value="Draft">Drafts</option>}
             </select>
 
             {/* CREATIVE SMALL CALENDAR FILTER BUTTON & ANCHORED POPOVER */}
@@ -1126,7 +1128,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                   {/* Right Group: Read Notice Action & Admin Tools */}
                   <div className="flex items-center gap-2 ml-auto">
                     {/* Admin Actions */}
-                    {isAdmin && (
+                    {canManageNotices && (
                       <div className="flex items-center gap-1 border-r border-slate-200 pr-2 mr-1">
                         <button
                           type="button"
@@ -1369,7 +1371,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                 </button>
 
                 <div className="flex items-center gap-2 ml-auto">
-                  {isAdmin && (
+                  {canManageNotices && (
                     <>
                       <button
                         type="button"

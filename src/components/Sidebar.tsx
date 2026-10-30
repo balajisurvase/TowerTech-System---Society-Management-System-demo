@@ -120,16 +120,11 @@ export default function Sidebar({
       ]
     },
     {
-      category: 'SOCIETY MANAGEMENT',
+      category: 'RESIDENT SERVICES',
       items: [
-        { id: 'bookings', label: 'Amenities', icon: Calendar },
-        { id: 'documents', label: 'Documents', icon: FileText },
-      ]
-    },
-    {
-      category: 'FINANCIAL MANAGEMENT',
-      items: [
-        { id: 'maintenance', label: 'Maintenance', icon: CreditCard },
+        { id: 'maintenance', label: 'My Bills & Maintenance', icon: CreditCard },
+        { id: 'complaints', label: 'My Complaints', icon: MessageSquare },
+        { id: 'bookings', label: 'Amenity Booking', icon: Calendar },
       ]
     },
     {
@@ -143,7 +138,6 @@ export default function Sidebar({
       items: [
         { id: 'notices', label: 'Notice Management', icon: Megaphone },
         { id: 'communication', label: 'Communication', icon: MessagesSquare },
-        { id: 'complaints', label: 'Complaints', icon: MessageSquare, badge: '1' },
       ]
     },
     {
