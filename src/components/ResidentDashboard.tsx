@@ -681,83 +681,55 @@ export default function ResidentDashboard({
     const isOwner = (profileData.occupancy_type || resident.occupancy_type || 'Owner') === 'Owner';
 
     return (
-      <header className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-gradient-to-r from-blue-800 to-indigo-900 p-8 rounded-[2.5rem] shadow-xl shadow-blue-100 text-white relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-blue-500/10 rounded-full -ml-24 -mb-24 blur-2xl"></div>
+      <header className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-gradient-to-r from-[#0F172A] via-[#1E1B4B] to-[#172554] p-8 rounded-[2.5rem] shadow-xl border border-indigo-900/60 text-white relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-80 h-80 bg-blue-500/10 rounded-full -mr-32 -mt-32 blur-3xl pointer-events-none"></div>
         
-        <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="bg-white/10 backdrop-blur-md p-2 rounded-xl border border-white/10">
-              <Users className="w-5 h-5 text-blue-300" />
-            </div>
-            <h1 className="text-3xl font-black tracking-tight">TowerTech-Society</h1>
+        <div className="relative z-10 text-left">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/30 text-xs font-black uppercase tracking-wider mb-4">
+             <Building2 className="w-3.5 h-3.5 text-blue-400" />
+             <span>Green Park Residency • Resident Portal</span>
           </div>
+
           <div className="space-y-2">
-            <div className="flex flex-wrap items-center gap-3">
-              <h2 className="text-4xl font-black tracking-tight">
-                Hello, <span className="text-white drop-shadow-sm">{resident.name}!</span>
-              </h2>
-              <span className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider border flex items-center gap-1.5 shadow-sm ${
+            <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white leading-tight">
+              Welcome back, {resident.name}
+            </h1>
+            <p className="text-slate-300 text-sm font-medium leading-relaxed max-w-2xl">
+              Official Resident portal for Green Park Residency. Manage your maintenance bills, amenity bookings, and service requests efficiently.
+            </p>
+            
+            <div className="flex flex-wrap items-center gap-3 pt-4">
+              <span className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider border flex items-center gap-1.5 shadow-sm ${
                 isOwner 
-                  ? 'bg-amber-400/20 text-amber-200 border-amber-300/40' 
-                  : 'bg-emerald-400/20 text-emerald-200 border-emerald-300/40'
+                  ? 'bg-amber-500/20 text-amber-200 border-amber-400/30' 
+                  : 'bg-emerald-500/20 text-emerald-200 border-emerald-400/30'
               }`}>
                 {isOwner ? <Home className="w-3.5 h-3.5" /> : <Key className="w-3.5 h-3.5" />}
                 {isOwner ? 'Owner' : 'Tenant'}
               </span>
-            </div>
-            <p className="text-blue-100/80 text-lg font-medium max-w-2xl leading-relaxed">
-              Welcome to your TowerTech Resident Dashboard. Here you can manage your maintenance, bookings, and complaints.
-            </p>
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-blue-200 font-medium pt-2">
-              <div className="flex items-center gap-2 bg-white/5 px-3 py-1 rounded-lg border border-white/5">
-                <span className="text-[10px] font-black uppercase tracking-tighter opacity-40">Flat:</span>
-                <span className="text-xs font-black uppercase tracking-widest">{resident.flat} (T-{resident.tower})</span>
-              </div>
-              <div className="flex items-center gap-2 bg-white/5 px-3 py-1 rounded-lg border border-white/5">
-                <span className="text-[10px] font-black uppercase tracking-tighter opacity-40">Resident Type:</span>
-                <span className="text-xs font-black uppercase tracking-widest">{residentRole}</span>
-              </div>
-              <div className="flex items-center gap-2 bg-white/5 px-3 py-1 rounded-lg border border-white/5">
-                <span className="text-[10px] font-black uppercase tracking-tighter opacity-40">Status:</span>
-                <span className={`text-xs font-black uppercase tracking-widest flex items-center gap-1 ${
-                  residentStatus === 'Active' ? 'text-emerald-300' : 'text-rose-300'
-                }`}>
-                  <span className={`w-2 h-2 rounded-full ${residentStatus === 'Active' ? 'bg-emerald-400' : 'bg-rose-400'}`}></span>
-                  {residentStatus}
-                </span>
-              </div>
-              {!isOwner && linkedOwner && (
-                <div className="flex items-center gap-2 bg-white/10 px-3 py-1 rounded-lg border border-white/10 text-amber-200">
-                  <span className="text-[10px] font-black uppercase tracking-tighter opacity-70">Owner:</span>
-                  <span className="text-xs font-black uppercase tracking-widest">{linkedOwner.name}</span>
-                </div>
-              )}
-              <div className="flex items-center gap-2 bg-white/5 px-3 py-1 rounded-lg border border-white/5">
-                <span className="text-[10px] font-black uppercase tracking-tighter opacity-40">Resident ID:</span>
-                <span className="text-xs font-black uppercase tracking-widest">{resident.resident_id}</span>
+              <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-xl border border-white/10 text-xs font-bold text-white">
+                <span className="opacity-70">Flat:</span>
+                <span>{resident.flat} (T-{resident.tower})</span>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="relative z-10 flex flex-col items-end gap-4">
-          <div className="flex items-center gap-3">
-            <button 
-              onClick={() => setShowEditProfile(true)}
-              className="p-3 bg-white/10 hover:bg-white/20 rounded-2xl border border-white/10 transition-all group"
-              title="Edit Profile"
-            >
-              <Edit className="w-5 h-5 text-white group-hover:scale-110 transition-transform" />
-            </button>
-            <button 
-              onClick={onLogout}
-              className="p-3 bg-rose-500/20 hover:bg-rose-500/30 rounded-2xl border border-rose-500/20 transition-all group"
-              title="Logout"
-            >
-              <LogOut className="w-5 h-5 text-rose-300 group-hover:scale-110 transition-transform" />
-            </button>
-          </div>
+        <div className="relative z-10 flex items-center gap-3">
+          <button 
+            onClick={() => setShowEditProfile(true)}
+            className="p-3 bg-white/10 hover:bg-white/20 rounded-2xl border border-white/10 transition-all group"
+            title="Edit Profile"
+          >
+            <Edit className="w-5 h-5 text-white group-hover:scale-110 transition-transform" />
+          </button>
+          <button 
+            onClick={onLogout}
+            className="p-3 bg-rose-500/20 hover:bg-rose-500/30 rounded-2xl border border-rose-500/20 transition-all group"
+            title="Logout"
+          >
+            <LogOut className="w-5 h-5 text-rose-300 group-hover:scale-110 transition-transform" />
+          </button>
         </div>
       </header>
     );
@@ -2109,123 +2081,122 @@ export default function ResidentDashboard({
             </div>
 
             <div className="space-y-6">
-              {/* 6 Resident-Specific Dashboard Summary Cards */}
+              {/* 6 Resident-Specific Dashboard Summary Cards - Updated Visual System */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                
+              {/* 6 Resident-Specific Dashboard Summary Cards - Updated Visual System */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                
                 {/* Card 1: Maintenance Overview */}
                 <button 
                   onClick={() => setActiveTab('maintenance')}
-                  className="bg-[#2563EB] p-5 rounded-2xl shadow-lg shadow-blue-500/20 text-white text-left transition-transform hover:-translate-y-0.5 cursor-pointer group"
+                  className="bg-[#2563EB] p-6 rounded-2xl shadow-lg shadow-blue-500/20 text-white flex flex-col justify-between transition-transform hover:-translate-y-0.5"
                 >
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="w-10 h-10 bg-white/20 text-white rounded-xl flex items-center justify-center font-black backdrop-blur-xs">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-xs">
                       <CreditCard className="w-5 h-5 text-white" />
                     </div>
                     <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg uppercase tracking-wider ${
-                      residentMaintenance.some(m => m.status === 'Unpaid') ? 'bg-red-500 text-white' : 'bg-emerald-500 text-white'
+                      residentMaintenance.some(m => m.status === 'Unpaid') ? 'bg-rose-500 text-white' : 'bg-emerald-500 text-white'
                     }`}>
-                      {residentMaintenance.some(m => m.status === 'Unpaid') ? 'DUE' : 'CLEARED'}
+                      {residentMaintenance.some(m => m.status === 'Unpaid') ? 'ACTION REQUIRED' : 'CLEARED'}
                     </span>
                   </div>
-                  <p className="text-[10px] font-black uppercase tracking-wider text-white/90 mb-0.5">Maintenance Overview</p>
-                  <h3 className="text-2xl font-black text-white font-mono tracking-tight">
-                    {residentMaintenance.some(m => m.status === 'Unpaid') ? 'Payment Due' : 'All Settled'}
-                  </h3>
-                  <p className="text-xs text-white/80 font-bold mt-1">
-                    {residentMaintenance.filter(m => m.status === 'Unpaid').length} pending bill(s)
-                  </p>
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-wider text-white/90 mb-1">Maintenance</p>
+                    <h3 className="text-xl font-black text-white tracking-tight">
+                      {residentMaintenance.some(m => m.status === 'Unpaid') ? 'Payment Due' : 'All Settled'}
+                    </h3>
+                  </div>
                 </button>
 
                 {/* Card 2: My Complaints */}
                 <button 
                   onClick={() => setActiveTab('complaints')}
-                  className="bg-[#EA580C] p-5 rounded-2xl shadow-lg shadow-orange-500/20 text-white text-left transition-transform hover:-translate-y-0.5 cursor-pointer group"
+                  className="bg-[#9333EA] p-6 rounded-2xl shadow-lg shadow-purple-500/20 text-white flex flex-col justify-between transition-transform hover:-translate-y-0.5"
                 >
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="w-10 h-10 bg-white/20 text-white rounded-xl flex items-center justify-center font-black backdrop-blur-xs">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-xs">
                       <MessageSquare className="w-5 h-5 text-white" />
                     </div>
-                    <ChevronRight className="w-4 h-4 text-white/80 group-hover:text-white transition-colors" />
+                    <ChevronRight className="w-5 h-5 text-white/70" />
                   </div>
-                  <p className="text-[10px] font-black uppercase tracking-wider text-white/90 mb-0.5">My Complaints</p>
-                  <h3 className="text-2xl font-black text-white font-mono tracking-tight">{myComplaints.length} Tickets</h3>
-                  <p className="text-xs text-white/80 font-bold mt-1">
-                    {myComplaints.filter(c => c.status === 'Pending' || c.status === 'Process').length} active in progress
-                  </p>
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-wider text-white/90 mb-1">Complaints</p>
+                    <h3 className="text-xl font-black text-white tracking-tight">{myComplaints.length} Tickets</h3>
+                  </div>
                 </button>
 
                 {/* Card 3: My Amenity Bookings */}
                 <button 
                   onClick={() => setActiveTab('bookings')}
-                  className="bg-[#059669] p-5 rounded-2xl shadow-lg shadow-emerald-500/20 text-white text-left transition-transform hover:-translate-y-0.5 cursor-pointer group"
+                  className="bg-[#D97706] p-6 rounded-2xl shadow-lg shadow-amber-500/20 text-white flex flex-col justify-between transition-transform hover:-translate-y-0.5"
                 >
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="w-10 h-10 bg-white/20 text-white rounded-xl flex items-center justify-center font-black backdrop-blur-xs">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-xs">
                       <Calendar className="w-5 h-5 text-white" />
                     </div>
-                    <ChevronRight className="w-4 h-4 text-white/80 group-hover:text-white transition-colors" />
+                    <ChevronRight className="w-5 h-5 text-white/70" />
                   </div>
-                  <p className="text-[10px] font-black uppercase tracking-wider text-white/90 mb-0.5">My Amenity Bookings</p>
-                  <h3 className="text-2xl font-black text-white font-mono tracking-tight">{residentBookings.length} Reservations</h3>
-                  <p className="text-xs text-white/80 font-bold mt-1">
-                    {residentBookings.filter(b => b.status === 'Approved').length} approved booking(s)
-                  </p>
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-wider text-white/90 mb-1">Amenity Bookings</p>
+                    <h3 className="text-xl font-black text-white tracking-tight">{residentBookings.length} Reservations</h3>
+                  </div>
                 </button>
 
                 {/* Card 4: My Visitor Requests */}
                 <button 
                   onClick={() => setActiveTab('security')}
-                  className="bg-[#4F46E5] p-5 rounded-2xl shadow-lg shadow-indigo-500/20 text-white text-left transition-transform hover:-translate-y-0.5 cursor-pointer group"
+                  className="bg-[#4F46E5] p-6 rounded-2xl shadow-lg shadow-indigo-500/20 text-white flex flex-col justify-between transition-transform hover:-translate-y-0.5"
                 >
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="w-10 h-10 bg-white/20 text-white rounded-xl flex items-center justify-center font-black backdrop-blur-xs">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-xs">
                       <Users className="w-5 h-5 text-white" />
                     </div>
-                    <span className="text-[10px] font-black px-2 py-0.5 rounded bg-white/20 text-white uppercase">
-                      Gate Control
+                    <span className="text-[10px] font-black px-2 py-1 rounded-lg bg-white/20 text-white uppercase tracking-wider">
+                      GATE
                     </span>
                   </div>
-                  <p className="text-[10px] font-black uppercase tracking-wider text-white/90 mb-0.5">My Visitor Requests</p>
-                  <h3 className="text-2xl font-black text-white font-mono tracking-tight">{residentVisitors.length} Visitors</h3>
-                  <p className="text-xs text-white/80 font-bold mt-1">
-                    {residentVisitors.filter(v => v.status === 'Pending' || v.approval_status === 'Pending').length} pending approval(s)
-                  </p>
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-wider text-white/90 mb-1">Visitors</p>
+                    <h3 className="text-xl font-black text-white tracking-tight">{residentVisitors.length} Visitors</h3>
+                  </div>
                 </button>
 
                 {/* Card 5: Unread Notices */}
                 <button 
                   onClick={() => setActiveTab('notices')}
-                  className="bg-[#7C3AED] p-5 rounded-2xl shadow-lg shadow-purple-500/20 text-white text-left transition-transform hover:-translate-y-0.5 cursor-pointer group"
+                  className="bg-[#0D9488] p-6 rounded-2xl shadow-lg shadow-teal-500/20 text-white flex flex-col justify-between transition-transform hover:-translate-y-0.5"
                 >
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="w-10 h-10 bg-white/20 text-white rounded-xl flex items-center justify-center font-black backdrop-blur-xs">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-xs">
                       <Megaphone className="w-5 h-5 text-white" />
                     </div>
-                    <ChevronRight className="w-4 h-4 text-white/80 group-hover:text-white transition-colors" />
+                    <ChevronRight className="w-5 h-5 text-white/70" />
                   </div>
-                  <p className="text-[10px] font-black uppercase tracking-wider text-white/90 mb-0.5">Society Notices</p>
-                  <h3 className="text-2xl font-black text-white font-mono tracking-tight">{residentNotices.length} Published</h3>
-                  <p className="text-xs text-white/80 font-bold mt-1">
-                    Active society announcements
-                  </p>
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-wider text-white/90 mb-1">Notices</p>
+                    <h3 className="text-xl font-black text-white tracking-tight">{residentNotices.length} Published</h3>
+                  </div>
                 </button>
 
-                {/* Card 6: My Open Communication Requests */}
+                {/* Card 6: Communication Requests */}
                 <button 
                   onClick={() => setActiveTab('communication')}
-                  className="bg-[#0D9488] p-5 rounded-2xl shadow-lg shadow-teal-500/20 text-white text-left transition-transform hover:-translate-y-0.5 cursor-pointer group"
+                  className="bg-[#0284C7] p-6 rounded-2xl shadow-lg shadow-sky-500/20 text-white flex flex-col justify-between transition-transform hover:-translate-y-0.5"
                 >
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="w-10 h-10 bg-white/20 text-white rounded-xl flex items-center justify-center font-black backdrop-blur-xs">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-xs">
                       <Send className="w-5 h-5 text-white" />
                     </div>
-                    <ChevronRight className="w-4 h-4 text-white/80 group-hover:text-white transition-colors" />
+                    <ChevronRight className="w-5 h-5 text-white/70" />
                   </div>
-                  <p className="text-[10px] font-black uppercase tracking-wider text-white/90 mb-0.5">Communication Requests</p>
-                  <h3 className="text-2xl font-black text-white font-mono tracking-tight">{residentComms.length} Conversations</h3>
-                  <p className="text-xs text-white/80 font-bold mt-1">
-                    {residentComms.filter(c => c.status === 'Open' || c.status === 'In Progress').length} open query ticket(s)
-                  </p>
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-wider text-white/90 mb-1">Communication</p>
+                    <h3 className="text-xl font-black text-white tracking-tight">{residentComms.length} Conversations</h3>
+                  </div>
                 </button>
+              </div>
               </div>
 
               {/* 6 Quick Action Buttons */}
@@ -2977,7 +2948,7 @@ export default function ResidentDashboard({
                 </div>
                 <div className="space-y-6">
                   {(viewAllComplaints ? societyComplaints : myComplaintsSorted).map((c, index) => (
-                    <div key={c.complaint_id || c.id || `complaint-${index}`} className="bg-slate-50/50 rounded-3xl border border-slate-100 p-6 hover:bg-white hover:shadow-xl hover:shadow-slate-100 transition-all group">
+                    <div key={c.complaint_id || c.id || `complaint-${index}`} className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 hover:border-slate-300 transition-all group">
                       <div className="flex flex-col md:flex-row justify-between gap-6">
                         <div className="flex-1 space-y-4">
                           <div className="flex flex-wrap items-center gap-3">
