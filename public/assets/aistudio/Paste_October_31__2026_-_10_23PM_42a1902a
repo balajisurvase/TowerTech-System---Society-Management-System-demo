@@ -1,0 +1,1214 @@
+Here is the complete TowerTech Financial Management Database SQL for Supabase (PostgreSQL).
+
+This database covers maintenance billing, payments, receipts, income, expenses, staff salaries, vendors, society funds, bank accounts, financial reports, and audit logs.
+
+
+
+Supabase PostgreSQL
+
+Financial Module
+
+Additive migration
+
+
+
+Important database instructions:
+
+- Existing TowerTech tables must not be deleted or modified.
+- Do not recreate existing `users`, `societies`, or `flats` tables.
+- Use the existing society and flat IDs.
+- Financial records must be isolated by `society_id`.
+- Use Indian Rupees (INR).
+- Maintain transaction history and audit records.
+- The SQL below creates additional financial tables only.
+
+I have kept the society and flat references compatible with the existing TowerTech visitor-module approach, where `society_id` and `flat_id` are stored as text identifiers.&#x20;
+
+## 1. Complete SQL migration
+
+Open Supabase → SQL Editor → New Query, then paste and execute the following SQL.
+
+```
+
+-- ============================================================
+-- TOWERTECH FINANCIAL MANAGEMENT MODULE
+-- PostgreSQL / Supabase
+-- Additive database migration
+-- Currency: INR
+-- ============================================================
+
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- ============================================================
+-- 1. FINANCIAL SETTINGS
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS public.financial_settings (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    society_id TEXT NOT NULL UNIQUE,
+    currency TEXT NOT NULL DEFAULT 'INR',
+    financial_year_start DATE,
+    billing_day INTEGER DEFAULT 1 CHECK (billing_day BETWEEN 1 AND 28),
+    due_day INTEGER DEFAULT 10 CHECK (due_day BETWEEN 1 AND 28),
+    grace_period_days INTEGER DEFAULT 5,
+    late_fee_type TEXT DEFAULT 'fixed'
+        CHECK (late_fee_type IN ('fixed','percentage')),
+    late_fee_amount NUMERIC(14,2) DEFAULT 0,
+    billing_frequency TEXT DEFAULT 'monthly'
+        CHECK (billing_frequency IN ('monthly','quarterly','yearly')),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ============================================================
+-- 2. MAINTENANCE RATE CONFIGURATION
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS public.maintenance_rates (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    society_id TEXT NOT NULL,
+    rate_name TEXT NOT NULL,
+    calculation_method TEXT NOT NULL
+        CHECK (calculation_method IN
+        ('per_bhk','per_sqft','hybrid','fixed')),
+
+    bhk_type TEXT,
+    rate_per_sqft NUMERIC(14,2) DEFAULT 0,
+    base_amount NUMERIC(14,2) DEFAULT 0,
+    fixed_amount NUMERIC(14,2) DEFAULT 0,
+
+    effective_from DATE NOT NULL,
+    effective_to DATE,
+
+    is_active BOOLEAN DEFAULT TRUE,
+    created_by UUID REFERENCES auth.users(id),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+
+    CHECK (effective_to IS NULL OR effective_to >= effective_from)
+);
+
+CREATE INDEX IF NOT EXISTS idx_maintenance_rates_society
+ON public.maintenance_rates(society_id);
+
+-- ============================================================
+-- 3. MAINTENANCE BILLS
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS public.maintenance_bills (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    society_id TEXT NOT NULL,
+    flat_id TEXT NOT NULL,
+    flat_number TEXT NOT NULL,
+
+    resident_name TEXT,
+    resident_user_id UUID REFERENCES auth.users(id),
+
+    bill_number TEXT NOT NULL,
+    billing_month DATE NOT NULL,
+
+    calculation_method TEXT,
+    bhk_type TEXT,
+    flat_area NUMERIC(12,2) DEFAULT 0,
+    rate_per_unit NUMERIC(14,2) DEFAULT 0,
+
+    maintenance_amount NUMERIC(14,2) DEFAULT 0,
+    additional_charges NUMERIC(14,2) DEFAULT 0,
+    previous_balance NUMERIC(14,2) DEFAULT 0,
+    late_fee NUMERIC(14,2) DEFAULT 0,
+    discount NUMERIC(14,2) DEFAULT 0,
+
+    total_amount NUMERIC(14,2) NOT NULL DEFAULT 0,
+    paid_amount NUMERIC(14,2) NOT NULL DEFAULT 0,
+    outstanding_amount NUMERIC(14,2) NOT NULL DEFAULT 0,
+
+    due_date DATE NOT NULL,
+
+    status TEXT NOT NULL DEFAULT 'generated'
+        CHECK (status IN
+        ('draft','generated','unpaid','partially_paid',
+         'paid','overdue','cancelled')),
+
+    notes TEXT,
+    generated_by UUID REFERENCES auth.users(id),
+
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+
+    UNIQUE(society_id, bill_number),
+    UNIQUE(society_id, flat_id, billing_month),
+
+    CHECK (total_amount >= 0),
+    CHECK (paid_amount >= 0),
+    CHECK (outstanding_amount >= 0),
+    CHECK (discount >= 0)
+);
+
+CREATE INDEX IF NOT EXISTS idx_bills_society
+ON public.maintenance_bills(society_id);
+
+CREATE INDEX IF NOT EXISTS idx_bills_flat
+ON public.maintenance_bills(flat_id);
+
+CREATE INDEX IF NOT EXISTS idx_bills_status
+ON public.maintenance_bills(society_id,status);
+
+CREATE INDEX IF NOT EXISTS idx_bills_due_date
+ON public.maintenance_bills(due_date);
+
+-- ============================================================
+-- 4. MAINTENANCE BILL ITEMS
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS public.maintenance_bill_items (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    society_id TEXT NOT NULL,
+    bill_id UUID NOT NULL REFERENCES
+        public.maintenance_bills(id) ON DELETE RESTRICT,
+
+    item_name TEXT NOT NULL,
+    description TEXT,
+    quantity NUMERIC(12,2) DEFAULT 1,
+    rate NUMERIC(14,2) DEFAULT 0,
+    amount NUMERIC(14,2) NOT NULL DEFAULT 0,
+
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ============================================================
+-- 5. FINANCIAL PAYMENTS
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS public.financial_payments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    society_id TEXT NOT NULL,
+
+    payment_number TEXT NOT NULL,
+    transaction_reference TEXT,
+
+    payer_name TEXT,
+    payer_user_id UUID REFERENCES auth.users(id),
+    flat_id TEXT,
+    flat_number TEXT,
+
+    payment_category TEXT NOT NULL
+        CHECK (payment_category IN
+        ('maintenance','parking','booking','penalty',
+         'donation','other_income','vendor','salary',
+         'expense','refund')),
+
+    amount NUMERIC(14,2) NOT NULL CHECK (amount > 0),
+
+    payment_method TEXT NOT NULL
+        CHECK (payment_method IN
+        ('upi','cash','bank_transfer','cheque','online','other')),
+
+    payment_date TIMESTAMPTZ DEFAULT NOW(),
+
+    status TEXT DEFAULT 'pending'
+        CHECK (status IN
+        ('pending','successful','failed','refunded','cancelled')),
+
+    gateway_name TEXT,
+    gateway_transaction_id TEXT,
+
+    recorded_by UUID REFERENCES auth.users(id),
+    remarks TEXT,
+
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+
+    UNIQUE(society_id,payment_number)
+);
+
+CREATE INDEX IF NOT EXISTS idx_payments_society
+ON public.financial_payments(society_id);
+
+CREATE INDEX IF NOT EXISTS idx_payments_date
+ON public.financial_payments(payment_date);
+
+CREATE INDEX IF NOT EXISTS idx_payments_status
+ON public.financial_payments(society_id,status);
+
+-- ============================================================
+-- 6. PAYMENT ALLOCATIONS
+-- Supports partial and multiple bill payments.
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS public.payment_allocations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    society_id TEXT NOT NULL,
+
+    payment_id UUID NOT NULL REFERENCES
+        public.financial_payments(id) ON DELETE RESTRICT,
+
+    bill_id UUID NOT NULL REFERENCES
+        public.maintenance_bills(id) ON DELETE RESTRICT,
+
+    allocated_amount NUMERIC(14,2) NOT NULL
+        CHECK (allocated_amount > 0),
+
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_payment_allocations_bill
+ON public.payment_allocations(bill_id);
+
+CREATE INDEX IF NOT EXISTS idx_payment_allocations_payment
+ON public.payment_allocations(payment_id);
+
+-- ============================================================
+-- 7. PAYMENT RECEIPTS
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS public.payment_receipts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    society_id TEXT NOT NULL,
+
+    receipt_number TEXT NOT NULL,
+    payment_id UUID NOT NULL REFERENCES
+        public.financial_payments(id) ON DELETE RESTRICT,
+
+    payer_name TEXT,
+    flat_number TEXT,
+    amount NUMERIC(14,2) NOT NULL,
+
+    payment_date TIMESTAMPTZ DEFAULT NOW(),
+    payment_method TEXT,
+
+    receipt_file_url TEXT,
+    generated_by UUID REFERENCES auth.users(id),
+
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+
+    UNIQUE(society_id,receipt_number),
+    UNIQUE(payment_id)
+);
+
+-- ============================================================
+-- 8. INCOME ENTRIES
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS public.income_entries (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    society_id TEXT NOT NULL,
+
+    income_number TEXT NOT NULL,
+
+    category TEXT NOT NULL
+        CHECK (category IN
+        ('maintenance','parking','clubhouse_booking',
+         'hall_booking','penalty','interest','donation',
+         'festival_contribution','other')),
+
+    description TEXT,
+    received_from TEXT,
+
+    flat_id TEXT,
+    flat_number TEXT,
+
+    amount NUMERIC(14,2) NOT NULL CHECK (amount > 0),
+
+    payment_id UUID REFERENCES
+        public.financial_payments(id) ON DELETE RESTRICT,
+
+    payment_method TEXT,
+    transaction_reference TEXT,
+
+    income_date DATE DEFAULT CURRENT_DATE,
+
+    attachment_url TEXT,
+    recorded_by UUID REFERENCES auth.users(id),
+
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+
+    UNIQUE(society_id,income_number)
+);
+
+-- ============================================================
+-- 9. EXPENSE CATEGORIES
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS public.expense_categories (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    society_id TEXT NOT NULL,
+
+    category_name TEXT NOT NULL,
+    description TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
+
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+
+    UNIQUE(society_id,category_name)
+);
+
+-- ============================================================
+-- 10. EXPENSE MANAGEMENT
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS public.expenses (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    society_id TEXT NOT NULL,
+
+    expense_number TEXT NOT NULL,
+
+    category_id UUID REFERENCES
+        public.expense_categories(id) ON DELETE RESTRICT,
+
+    expense_title TEXT NOT NULL,
+    description TEXT,
+
+    vendor_name TEXT,
+    invoice_number TEXT,
+
+    amount NUMERIC(14,2) NOT NULL CHECK (amount > 0),
+    paid_amount NUMERIC(14,2) DEFAULT 0,
+
+    expense_date DATE DEFAULT CURRENT_DATE,
+    due_date DATE,
+
+    payment_method TEXT,
+    transaction_reference TEXT,
+
+    approval_status TEXT DEFAULT 'pending'
+        CHECK (approval_status IN
+        ('draft','pending','approved','rejected')),
+
+    payment_status TEXT DEFAULT 'unpaid'
+        CHECK (payment_status IN
+        ('unpaid','partially_paid','paid')),
+
+    invoice_url TEXT,
+
+    created_by UUID REFERENCES auth.users(id),
+    approved_by UUID REFERENCES auth.users(id),
+    approved_at TIMESTAMPTZ,
+
+    remarks TEXT,
+
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+
+    UNIQUE(society_id,expense_number),
+
+    CHECK (paid_amount >= 0),
+    CHECK (paid_amount <= amount)
+);
+
+CREATE INDEX IF NOT EXISTS idx_expenses_society
+ON public.expenses(society_id);
+
+CREATE INDEX IF NOT EXISTS idx_expenses_approval
+ON public.expenses(society_id,approval_status);
+
+-- ============================================================
+-- 11. EXPENSE APPROVAL HISTORY
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS public.expense_approvals (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    society_id TEXT NOT NULL,
+
+    expense_id UUID NOT NULL REFERENCES
+        public.expenses(id) ON DELETE RESTRICT,
+
+    action TEXT NOT NULL
+        CHECK (action IN ('approved','rejected','reopened')),
+
+    action_by UUID REFERENCES auth.users(id),
+    remarks TEXT,
+
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ============================================================
+-- 12. STAFF MEMBERS
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS public.staff_members (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    society_id TEXT NOT NULL,
+
+    employee_number TEXT NOT NULL,
+    full_name TEXT NOT NULL,
+    designation TEXT NOT NULL,
+
+    mobile TEXT,
+    email TEXT,
+
+    basic_salary NUMERIC(14,2) DEFAULT 0,
+    joining_date DATE,
+
+    is_active BOOLEAN DEFAULT TRUE,
+
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+
+    UNIQUE(society_id,employee_number)
+);
+
+-- ============================================================
+-- 13. STAFF SALARY PAYMENTS
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS public.staff_salary_payments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    society_id TEXT NOT NULL,
+
+    staff_id UUID NOT NULL REFERENCES
+        public.staff_members(id) ON DELETE RESTRICT,
+
+    salary_month DATE NOT NULL,
+
+    basic_salary NUMERIC(14,2) DEFAULT 0,
+    bonus NUMERIC(14,2) DEFAULT 0,
+    deductions NUMERIC(14,2) DEFAULT 0,
+    advance_amount NUMERIC(14,2) DEFAULT 0,
+
+    net_salary NUMERIC(14,2) NOT NULL,
+
+    payment_date DATE,
+    payment_method TEXT,
+    transaction_reference TEXT,
+
+    payment_status TEXT DEFAULT 'pending'
+        CHECK (payment_status IN
+        ('pending','paid','cancelled')),
+
+    payment_id UUID REFERENCES
+        public.financial_payments(id) ON DELETE RESTRICT,
+
+    recorded_by UUID REFERENCES auth.users(id),
+
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+
+    UNIQUE(staff_id,salary_month)
+);
+
+-- ============================================================
+-- 14. VENDORS
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS public.financial_vendors (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    society_id TEXT NOT NULL,
+
+    vendor_name TEXT NOT NULL,
+    service_category TEXT,
+
+    contact_person TEXT,
+    mobile TEXT,
+    email TEXT,
+
+    address TEXT,
+    gst_number TEXT,
+
+    contract_start DATE,
+    contract_end DATE,
+    contract_amount NUMERIC(14,2) DEFAULT 0,
+
+    is_active BOOLEAN DEFAULT TRUE,
+
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ============================================================
+-- 15. VENDOR INVOICES AND PAYMENTS
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS public.vendor_invoices (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    society_id TEXT NOT NULL,
+
+    vendor_id UUID NOT NULL REFERENCES
+        public.financial_vendors(id) ON DELETE RESTRICT,
+
+    invoice_number TEXT NOT NULL,
+    invoice_date DATE,
+    due_date DATE,
+
+    invoice_amount NUMERIC(14,2) NOT NULL,
+    paid_amount NUMERIC(14,2) DEFAULT 0,
+
+    invoice_url TEXT,
+
+    status TEXT DEFAULT 'unpaid'
+        CHECK (status IN
+        ('unpaid','partially_paid','paid','cancelled')),
+
+    expense_id UUID REFERENCES
+        public.expenses(id) ON DELETE RESTRICT,
+
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+
+    UNIQUE(society_id,invoice_number),
+
+    CHECK (invoice_amount >= 0),
+    CHECK (paid_amount >= 0),
+    CHECK (paid_amount <= invoice_amount)
+);
+
+-- ============================================================
+-- 16. SOCIETY FUNDS
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS public.society_funds (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    society_id TEXT NOT NULL,
+
+    fund_name TEXT NOT NULL,
+
+    fund_type TEXT NOT NULL
+        CHECK (fund_type IN
+        ('general','sinking','repair','reserve',
+         'emergency','other')),
+
+    opening_balance NUMERIC(14,2) DEFAULT 0,
+
+    is_active BOOLEAN DEFAULT TRUE,
+
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+
+    UNIQUE(society_id,fund_name)
+);
+
+-- ============================================================
+-- 17. FUND TRANSACTIONS
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS public.fund_transactions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    society_id TEXT NOT NULL,
+
+    fund_id UUID NOT NULL REFERENCES
+        public.society_funds(id) ON DELETE RESTRICT,
+
+    transaction_type TEXT NOT NULL
+        CHECK (transaction_type IN
+        ('contribution','interest','utilization',
+         'transfer_in','transfer_out','adjustment')),
+
+    amount NUMERIC(14,2) NOT NULL CHECK (amount > 0),
+
+    transaction_date DATE DEFAULT CURRENT_DATE,
+    description TEXT,
+
+    reference_number TEXT,
+    related_fund_id UUID REFERENCES
+        public.society_funds(id) ON DELETE RESTRICT,
+
+    recorded_by UUID REFERENCES auth.users(id),
+
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ============================================================
+-- 18. CASH AND BANK ACCOUNTS
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS public.financial_accounts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    society_id TEXT NOT NULL,
+
+    account_name TEXT NOT NULL,
+
+    account_type TEXT NOT NULL
+        CHECK (account_type IN
+        ('bank','cash','petty_cash','other')),
+
+    bank_name TEXT,
+    account_number_masked TEXT,
+    ifsc_code TEXT,
+
+    opening_balance NUMERIC(14,2) DEFAULT 0,
+
+    is_active BOOLEAN DEFAULT TRUE,
+
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+
+    UNIQUE(society_id,account_name)
+);
+
+-- ============================================================
+-- 19. DOUBLE-ENTRY ACCOUNTING JOURNAL
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS public.journal_entries (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    society_id TEXT NOT NULL,
+
+    entry_number TEXT NOT NULL,
+    entry_date DATE DEFAULT CURRENT_DATE,
+
+    description TEXT,
+
+    reference_type TEXT,
+    reference_id UUID,
+
+    status TEXT DEFAULT 'draft'
+        CHECK (status IN ('draft','posted','reversed')),
+
+    created_by UUID REFERENCES auth.users(id),
+    posted_by UUID REFERENCES auth.users(id),
+    posted_at TIMESTAMPTZ,
+
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+
+    UNIQUE(society_id,entry_number)
+);
+
+CREATE TABLE IF NOT EXISTS public.journal_lines (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    society_id TEXT NOT NULL,
+
+    journal_entry_id UUID NOT NULL REFERENCES
+        public.journal_entries(id) ON DELETE RESTRICT,
+
+    account_id UUID REFERENCES
+        public.financial_accounts(id) ON DELETE RESTRICT,
+
+    account_code TEXT,
+    account_name TEXT NOT NULL,
+
+    debit NUMERIC(14,2) DEFAULT 0,
+    credit NUMERIC(14,2) DEFAULT 0,
+
+    description TEXT,
+
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+
+    CHECK (debit >= 0),
+    CHECK (credit >= 0),
+    CHECK (NOT (debit > 0 AND credit > 0)),
+    CHECK (debit > 0 OR credit > 0)
+);
+
+CREATE INDEX IF NOT EXISTS idx_journal_society
+ON public.journal_entries(society_id,entry_date);
+
+CREATE INDEX IF NOT EXISTS idx_journal_lines_entry
+ON public.journal_lines(journal_entry_id);
+
+-- ============================================================
+-- 20. BANK RECONCILIATION
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS public.bank_reconciliations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    society_id TEXT NOT NULL,
+
+    account_id UUID NOT NULL REFERENCES
+        public.financial_accounts(id) ON DELETE RESTRICT,
+
+    statement_date DATE NOT NULL,
+
+    statement_balance NUMERIC(14,2) NOT NULL,
+    system_balance NUMERIC(14,2) NOT NULL,
+
+    difference NUMERIC(14,2)
+        GENERATED ALWAYS AS
+        (statement_balance - system_balance) STORED,
+
+    status TEXT DEFAULT 'pending'
+        CHECK (status IN
+        ('pending','reconciled','discrepancy')),
+
+    remarks TEXT,
+
+    reconciled_by UUID REFERENCES auth.users(id),
+    reconciled_at TIMESTAMPTZ,
+
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ============================================================
+-- 21. FINANCIAL AUDIT LOGS
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS public.financial_audit_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    society_id TEXT NOT NULL,
+
+    user_id UUID REFERENCES auth.users(id),
+
+    action TEXT NOT NULL,
+    module_name TEXT NOT NULL,
+
+    record_id UUID,
+
+    old_values JSONB,
+    new_values JSONB,
+
+    reason TEXT,
+    ip_address TEXT,
+
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_financial_audit_society
+ON public.financial_audit_logs(society_id,created_at);
+
+-- ============================================================
+-- 22. UPDATED_AT TRIGGER FUNCTION
+-- ============================================================
+
+CREATE OR REPLACE FUNCTION public.towertech_set_updated_at()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$;
+
+DO $$
+DECLARE
+    tbl TEXT;
+BEGIN
+    FOREACH tbl IN ARRAY ARRAY[
+        'financial_settings',
+        'maintenance_bills',
+        'financial_payments',
+        'expenses'
+    ]
+    LOOP
+        EXECUTE format(
+            'DROP TRIGGER IF EXISTS set_updated_at ON public.%I',
+            tbl
+        );
+
+        EXECUTE format(
+            'CREATE TRIGGER set_updated_at
+             BEFORE UPDATE ON public.%I
+             FOR EACH ROW
+             EXECUTE FUNCTION public.towertech_set_updated_at()',
+            tbl
+        );
+    END LOOP;
+END;
+$$;
+
+-- ============================================================
+-- 23. FINANCIAL DASHBOARD VIEW
+-- Uses recorded payments and expenses.
+-- ============================================================
+
+CREATE OR REPLACE VIEW public.towertech_financial_summary
+WITH (security_invoker = true)
+AS
+SELECT
+    s.society_id,
+
+    COALESCE(b.total_billed,0) AS maintenance_generated,
+    COALESCE(b.total_outstanding,0) AS maintenance_pending,
+
+    COALESCE(p.total_collected,0) AS total_collected,
+
+    COALESCE(i.total_income,0) AS other_income,
+
+    COALESCE(e.total_expenses,0) AS total_expenses
+
+FROM
+    (SELECT DISTINCT society_id
+     FROM public.financial_settings) s
+
+LEFT JOIN (
+    SELECT society_id,
+           SUM(total_amount) AS total_billed,
+           SUM(outstanding_amount) AS total_outstanding
+    FROM public.maintenance_bills
+    WHERE status <> 'cancelled'
+    GROUP BY society_id
+) b ON b.society_id = s.society_id
+
+LEFT JOIN (
+    SELECT society_id,
+           SUM(amount) AS total_collected
+    FROM public.financial_payments
+    WHERE status = 'successful'
+    GROUP BY society_id
+) p ON p.society_id = s.society_id
+
+LEFT JOIN (
+    SELECT society_id,
+           SUM(amount) AS total_income
+    FROM public.income_entries
+    GROUP BY society_id
+) i ON i.society_id = s.society_id
+
+LEFT JOIN (
+    SELECT society_id,
+           SUM(paid_amount) AS total_expenses
+    FROM public.expenses
+    WHERE approval_status = 'approved'
+    GROUP BY society_id
+) e ON e.society_id = s.society_id;
+
+-- ============================================================
+-- 24. SOCIETY-LEVEL ACCESS HELPER
+-- Reads the existing users table without recreating it.
+-- Supports either id or user_id as the user identifier.
+-- ============================================================
+
+CREATE OR REPLACE FUNCTION public.towertech_current_society_id()
+RETURNS TEXT
+LANGUAGE plpgsql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+    result TEXT;
+BEGIN
+    IF auth.uid() IS NULL THEN
+        RETURN NULL;
+    END IF;
+
+    EXECUTE
+        'SELECT to_jsonb(u)->>''society_id''
+         FROM public.users u
+         WHERE COALESCE(
+             to_jsonb(u)->>''id'',
+             to_jsonb(u)->>''user_id''
+         ) = $1
+         LIMIT 1'
+    INTO result
+    USING auth.uid()::TEXT;
+
+    RETURN result;
+EXCEPTION
+    WHEN undefined_table THEN
+        RETURN NULL;
+END;
+$$;
+
+-- ============================================================
+-- 25. ENABLE ROW LEVEL SECURITY
+-- ============================================================
+
+DO $$
+DECLARE
+    tbl TEXT;
+BEGIN
+    FOREACH tbl IN ARRAY ARRAY[
+        'financial_settings',
+        'maintenance_rates',
+        'maintenance_bills',
+        'maintenance_bill_items',
+        'financial_payments',
+        'payment_allocations',
+        'payment_receipts',
+        'income_entries',
+        'expense_categories',
+        'expenses',
+        'expense_approvals',
+        'staff_members',
+        'staff_salary_payments',
+        'financial_vendors',
+        'vendor_invoices',
+        'society_funds',
+        'fund_transactions',
+        'financial_accounts',
+        'journal_entries',
+        'journal_lines',
+        'bank_reconciliations',
+        'financial_audit_logs'
+    ]
+    LOOP
+        EXECUTE format(
+            'ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY',
+            tbl
+        );
+
+        EXECUTE format(
+            'DROP POLICY IF EXISTS society_financial_access ON public.%I',
+            tbl
+        );
+
+        EXECUTE format(
+            'CREATE POLICY society_financial_access
+             ON public.%I
+             FOR ALL
+             TO authenticated
+             USING (
+                 society_id = (
+                     SELECT public.towertech_current_society_id()
+                 )
+             )
+             WITH CHECK (
+                 society_id = (
+                     SELECT public.towertech_current_society_id()
+                 )
+             )',
+            tbl
+        );
+    END LOOP;
+END;
+$$;
+
+-- ============================================================
+-- 26. GRANT ACCESS
+-- ============================================================
+
+GRANT SELECT, INSERT, UPDATE, DELETE
+ON ALL TABLES IN SCHEMA public
+TO authenticated;
+
+GRANT USAGE, SELECT
+ON ALL SEQUENCES IN SCHEMA public
+TO authenticated;
+
+-- ============================================================
+-- END OF TOWERTECH FINANCIAL DATABASE MIGRATION
+-- ============================================================
+
+```
+
+## 2. Add automatic maintenance payment calculation
+
+Run this additional SQL after the main migration. It ensures that successful payments allocated to maintenance bills automatically update the bill's paid and outstanding amounts.
+
+```
+
+-- Automatically recalculate maintenance bill balances
+
+CREATE OR REPLACE FUNCTION public.towertech_recalculate_bill()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    target_bill UUID;
+BEGIN
+    IF TG_OP = 'DELETE' THEN
+        target_bill := OLD.bill_id;
+    ELSE
+        target_bill := NEW.bill_id;
+    END IF;
+
+    UPDATE public.maintenance_bills b
+    SET
+        paid_amount = COALESCE((
+            SELECT SUM(pa.allocated_amount)
+            FROM public.payment_allocations pa
+            JOIN public.financial_payments p
+              ON p.id = pa.payment_id
+            WHERE pa.bill_id = target_bill
+              AND p.status = 'successful'
+        ), 0),
+
+        outstanding_amount = GREATEST(
+            b.total_amount - COALESCE((
+                SELECT SUM(pa.allocated_amount)
+                FROM public.payment_allocations pa
+                JOIN public.financial_payments p
+                  ON p.id = pa.payment_id
+                WHERE pa.bill_id = target_bill
+                  AND p.status = 'successful'
+            ), 0),
+            0
+        ),
+
+        status = CASE
+            WHEN b.status = 'cancelled' THEN 'cancelled'
+            WHEN COALESCE((
+                SELECT SUM(pa.allocated_amount)
+                FROM public.payment_allocations pa
+                JOIN public.financial_payments p
+                  ON p.id = pa.payment_id
+                WHERE pa.bill_id = target_bill
+                  AND p.status = 'successful'
+            ), 0) >= b.total_amount THEN 'paid'
+            WHEN COALESCE((
+                SELECT SUM(pa.allocated_amount)
+                FROM public.payment_allocations pa
+                JOIN public.financial_payments p
+                  ON p.id = pa.payment_id
+                WHERE pa.bill_id = target_bill
+                  AND p.status = 'successful'
+            ), 0) > 0 THEN 'partially_paid'
+            WHEN b.due_date < CURRENT_DATE THEN 'overdue'
+            ELSE 'unpaid'
+        END
+
+    WHERE b.id = target_bill;
+
+    RETURN NULL;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS recalculate_bill_after_allocation
+ON public.payment_allocations;
+
+CREATE TRIGGER recalculate_bill_after_allocation
+AFTER INSERT OR UPDATE OR DELETE
+ON public.payment_allocations
+FOR EACH ROW
+EXECUTE FUNCTION public.towertech_recalculate_bill();
+
+CREATE OR REPLACE FUNCTION public.towertech_payment_status_changed()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    r RECORD;
+BEGIN
+    IF NEW.status IS DISTINCT FROM OLD.status THEN
+        FOR r IN
+            SELECT DISTINCT bill_id
+            FROM public.payment_allocations
+            WHERE payment_id = NEW.id
+        LOOP
+            UPDATE public.maintenance_bills b
+            SET
+                paid_amount = COALESCE((
+                    SELECT SUM(pa.allocated_amount)
+                    FROM public.payment_allocations pa
+                    JOIN public.financial_payments p
+                      ON p.id = pa.payment_id
+                    WHERE pa.bill_id = r.bill_id
+                      AND p.status = 'successful'
+                ), 0),
+
+                outstanding_amount = GREATEST(
+                    b.total_amount - COALESCE((
+                        SELECT SUM(pa.allocated_amount)
+                        FROM public.payment_allocations pa
+                        JOIN public.financial_payments p
+                          ON p.id = pa.payment_id
+                        WHERE pa.bill_id = r.bill_id
+                          AND p.status = 'successful'
+                    ), 0),
+                    0
+                ),
+
+                status = CASE
+                    WHEN b.status = 'cancelled' THEN 'cancelled'
+                    WHEN COALESCE((
+                        SELECT SUM(pa.allocated_amount)
+                        FROM public.payment_allocations pa
+                        JOIN public.financial_payments p
+                          ON p.id = pa.payment_id
+                        WHERE pa.bill_id = r.bill_id
+                          AND p.status = 'successful'
+                    ), 0) >= b.total_amount THEN 'paid'
+                    WHEN COALESCE((
+                        SELECT SUM(pa.allocated_amount)
+                        FROM public.payment_allocations pa
+                        JOIN public.financial_payments p
+                          ON p.id = pa.payment_id
+                        WHERE pa.bill_id = r.bill_id
+                          AND p.status = 'successful'
+                    ), 0) > 0 THEN 'partially_paid'
+                    WHEN b.due_date < CURRENT_DATE THEN 'overdue'
+                    ELSE 'unpaid'
+                END
+            WHERE b.id = r.bill_id;
+        END LOOP;
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS recalculate_bill_after_payment_status
+ON public.financial_payments;
+
+CREATE TRIGGER recalculate_bill_after_payment_status
+AFTER UPDATE OF status
+ON public.financial_payments
+FOR EACH ROW
+EXECUTE FUNCTION public.towertech_payment_status_changed();
+
+```
+
+## 3. Important correction before executing
+
+In the main SQL, replace section 26 (the broad `GRANT ALL ON ALL TABLES` commands) with grants restricted to the financial tables. Do not grant blanket access to your existing application tables.
+
+Also, the RLS policy supplied is society-level isolation, not the complete Treasurer/Secretary role-based permission system. Add role-specific policies before production deployment.
+
+## 4. Verify database creation
+
+After running the SQL, execute:
+
+```
+
+-- Check all financial tables
+
+SELECT table_name
+FROM information_schema.tables
+WHERE table_schema = 'public'
+AND table_name IN (
+    'financial_settings',
+    'maintenance_rates',
+    'maintenance_bills',
+    'maintenance_bill_items',
+    'financial_payments',
+    'payment_allocations',
+    'payment_receipts',
+    'income_entries',
+    'expense_categories',
+    'expenses',
+    'expense_approvals',
+    'staff_members',
+    'staff_salary_payments',
+    'financial_vendors',
+    'vendor_invoices',
+    'society_funds',
+    'fund_transactions',
+    'financial_accounts',
+    'journal_entries',
+    'journal_lines',
+    'bank_reconciliations',
+    'financial_audit_logs'
+)
+ORDER BY table_name;
+
+-- Check RLS status
+
+SELECT tablename, rowsecurity
+FROM pg_tables
+WHERE schemaname = 'public'
+AND tablename LIKE '%financial%'
+ORDER BY tablename;
+
+```
+
+## 5. Database structure
+
+## TowerTech Financial Database
+
+Maintenance
+
+4 tables
+
+Payments
+
+3 tables
+
+Income & Expenses
+
+3 tables
+
+Staff & Vendors
+
+4 tables
+
+Society Funds
+
+2 tables
+
+Accounting & Bank
+
+4 tables
+
+Audit & Settings
+
+2 tables
+
+Total database tables
+
+# 22
+
+One important point: The SQL creates the database structure, but the Google AI Studio application must still implement bill generation, payment gateway verification, journal posting, expense approvals, and PDF receipts. The triggers above handle maintenance balance recalculation, not the entire accounting workflow.
+
+Next step: After executing the SQL, share your Supabase SQL execution result or any error screenshot. I can then give you the sample society financial data and test transactions to verify the complete TowerTech workflow.

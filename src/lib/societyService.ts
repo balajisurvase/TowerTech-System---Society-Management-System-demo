@@ -1885,6 +1885,692 @@ export const societyService = {
     return true;
   },
 
+  // -------------------------------------------------------------------------
+  // Extended Financial Settings & Maintenance Rates API
+  // -------------------------------------------------------------------------
+  async getFinancialSettings(society_id: string = 'GV2026') {
+    const storageKey = `towertech_fin_settings_${society_id}`;
+    return cachedQuery(`fin_settings_${society_id}`, async () => {
+      try {
+        const { data, error } = await supabase
+          .from('financial_settings')
+          .select('*')
+          .eq('society_id', society_id)
+          .maybeSingle();
+        if (!error && data) {
+          localStorage.setItem(storageKey, JSON.stringify(data));
+          return data;
+        }
+      } catch (err) {
+        checkRateLimitError(err);
+      }
+      const local = typeof window !== 'undefined' ? localStorage.getItem(storageKey) : null;
+      if (local) {
+        try { return JSON.parse(local); } catch {}
+      }
+      const defaultSettings = {
+        society_id,
+        currency: 'INR',
+        financial_year_start: '2026-04-01',
+        billing_day: 1,
+        due_day: 10,
+        grace_period_days: 5,
+        late_fee_type: 'fixed' as const,
+        late_fee_amount: 100,
+        billing_frequency: 'monthly' as const
+      };
+      if (typeof window !== 'undefined') localStorage.setItem(storageKey, JSON.stringify(defaultSettings));
+      return defaultSettings;
+    }, {
+      society_id,
+      currency: 'INR',
+      billing_day: 1,
+      due_day: 10,
+      grace_period_days: 5,
+      late_fee_type: 'fixed' as const,
+      late_fee_amount: 100,
+      billing_frequency: 'monthly' as const
+    }, 30000);
+  },
+
+  async updateFinancialSettings(society_id: string, settings: any) {
+    invalidateCache('fin_settings');
+    const storageKey = `towertech_fin_settings_${society_id}`;
+    try {
+      const { data, error } = await supabase
+        .from('financial_settings')
+        .upsert([{ society_id, ...settings }], { onConflict: 'society_id' })
+        .select();
+      if (!error && data && data.length > 0) {
+        localStorage.setItem(storageKey, JSON.stringify(data[0]));
+        return data[0];
+      }
+    } catch (e) {
+      console.warn('Supabase settings update warning:', e);
+    }
+    const updated = { society_id, ...settings, updated_at: new Date().toISOString() };
+    if (typeof window !== 'undefined') localStorage.setItem(storageKey, JSON.stringify(updated));
+    return updated;
+  },
+
+  async getMaintenanceRates(society_id: string = 'GV2026') {
+    const storageKey = `towertech_maint_rates_${society_id}`;
+    return cachedQuery(`maint_rates_${society_id}`, async () => {
+      try {
+        const { data, error } = await supabase
+          .from('maintenance_rates')
+          .select('*')
+          .eq('society_id', society_id)
+          .eq('is_active', true);
+        if (!error && data && data.length > 0) {
+          localStorage.setItem(storageKey, JSON.stringify(data));
+          return data;
+        }
+      } catch (err) {
+        checkRateLimitError(err);
+      }
+      const local = typeof window !== 'undefined' ? localStorage.getItem(storageKey) : null;
+      if (local) {
+        try { return JSON.parse(local); } catch {}
+      }
+      const defaultRates = [
+        {
+          id: 'RATE-001',
+          society_id,
+          rate_name: 'Per BHK Maintenance Strategy',
+          calculation_method: 'per_bhk',
+          bhk_rates: { '1 BHK': 2000, '2 BHK': 3000, '3 BHK': 4000, '4 BHK': 5000 },
+          effective_from: '2026-01-01',
+          is_active: true
+        },
+        {
+          id: 'RATE-002',
+          society_id,
+          rate_name: 'Square Foot Formula',
+          calculation_method: 'per_sqft',
+          rate_per_sqft: 4.5,
+          effective_from: '2026-01-01',
+          is_active: false
+        },
+        {
+          id: 'RATE-003',
+          society_id,
+          rate_name: 'Hybrid Maintenance Plan',
+          calculation_method: 'hybrid',
+          base_amount: 1500,
+          rate_per_sqft: 2.0,
+          effective_from: '2026-01-01',
+          is_active: false
+        }
+      ];
+      if (typeof window !== 'undefined') localStorage.setItem(storageKey, JSON.stringify(defaultRates));
+      return defaultRates;
+    }, [], 30000);
+  },
+
+  async saveMaintenanceRate(rateRule: any) {
+    invalidateCache('maint_rates');
+    const socId = rateRule.society_id || 'GV2026';
+    const storageKey = `towertech_maint_rates_${socId}`;
+    try {
+      const { data, error } = await supabase
+        .from('maintenance_rates')
+        .insert([rateRule])
+        .select();
+      if (!error && data && data.length > 0) {
+        return data[0];
+      }
+    } catch (e) {
+      console.warn('Supabase maintenance_rates insert warning:', e);
+    }
+    const local = typeof window !== 'undefined' ? localStorage.getItem(storageKey) : null;
+    const existing = local ? JSON.parse(local) : [];
+    const updated = [rateRule, ...existing];
+    if (typeof window !== 'undefined') localStorage.setItem(storageKey, JSON.stringify(updated));
+    return rateRule;
+  },
+
+  // -------------------------------------------------------------------------
+  // Financial Payments & Receipts API
+  // -------------------------------------------------------------------------
+  async getFinancialPayments(society_id: string = 'GV2026') {
+    const storageKey = `towertech_fin_payments_${society_id}`;
+    return cachedQuery(`fin_payments_${society_id}`, async () => {
+      try {
+        const { data, error } = await supabase
+          .from('financial_payments')
+          .select('*')
+          .eq('society_id', society_id)
+          .order('payment_date', { ascending: false });
+        if (!error && data && data.length > 0) {
+          localStorage.setItem(storageKey, JSON.stringify(data));
+          return data;
+        }
+      } catch (err) {
+        checkRateLimitError(err);
+      }
+      const local = typeof window !== 'undefined' ? localStorage.getItem(storageKey) : null;
+      if (local) {
+        try { return JSON.parse(local); } catch {}
+      }
+      return [];
+    }, [], 20000);
+  },
+
+  async recordFinancialPayment(payment: any) {
+    invalidateCache('fin_payments');
+    const socId = payment.society_id || 'GV2026';
+    const storageKey = `towertech_fin_payments_${socId}`;
+    const pNo = payment.payment_number || `PAY-${Date.now().toString().slice(-6)}`;
+    const fullPayload = {
+      ...payment,
+      payment_number: pNo,
+      society_id: socId,
+      status: payment.status || 'successful',
+      payment_date: payment.payment_date || new Date().toISOString()
+    };
+
+    try {
+      const { data, error } = await supabase
+        .from('financial_payments')
+        .insert([fullPayload])
+        .select();
+      if (!error && data && data.length > 0) {
+        // Automatically issue payment receipt
+        await this.generatePaymentReceipt(data[0]);
+        return data[0];
+      }
+    } catch (e) {
+      console.warn('Supabase payment insert warning:', e);
+    }
+
+    const local = typeof window !== 'undefined' ? localStorage.getItem(storageKey) : null;
+    const existing = local ? JSON.parse(local) : [];
+    const updated = [fullPayload, ...existing];
+    if (typeof window !== 'undefined') localStorage.setItem(storageKey, JSON.stringify(updated));
+
+    // Auto issue receipt locally
+    await this.generatePaymentReceipt(fullPayload);
+    return fullPayload;
+  },
+
+  async generatePaymentReceipt(payment: any) {
+    const socId = payment.society_id || 'GV2026';
+    const storageKey = `towertech_receipts_${socId}`;
+    const rNo = `RCT-2026-${Math.floor(10000 + Math.random() * 90000)}`;
+    const receiptData = {
+      society_id: socId,
+      receipt_number: rNo,
+      payment_id: payment.id || payment.payment_number,
+      payer_name: payment.payer_name || 'Resident',
+      flat_number: payment.flat_number || 'N/A',
+      amount: payment.amount || 0,
+      payment_date: payment.payment_date || new Date().toISOString(),
+      payment_method: payment.payment_method || 'UPI',
+      payment_category: payment.payment_category || 'Maintenance',
+      created_at: new Date().toISOString()
+    };
+
+    try {
+      await supabase.from('payment_receipts').insert([receiptData]);
+    } catch {}
+
+    if (typeof window !== 'undefined') {
+      const local = localStorage.getItem(storageKey);
+      const list = local ? JSON.parse(local) : [];
+      localStorage.setItem(storageKey, JSON.stringify([receiptData, ...list]));
+    }
+    return receiptData;
+  },
+
+  async getPaymentReceipts(society_id: string = 'GV2026') {
+    const storageKey = `towertech_receipts_${society_id}`;
+    return cachedQuery(`receipts_${society_id}`, async () => {
+      try {
+        const { data, error } = await supabase
+          .from('payment_receipts')
+          .select('*')
+          .eq('society_id', society_id)
+          .order('created_at', { ascending: false });
+        if (!error && data && data.length > 0) {
+          localStorage.setItem(storageKey, JSON.stringify(data));
+          return data;
+        }
+      } catch (err) {
+        checkRateLimitError(err);
+      }
+      const local = typeof window !== 'undefined' ? localStorage.getItem(storageKey) : null;
+      if (local) {
+        try { return JSON.parse(local); } catch {}
+      }
+      return [];
+    }, [], 20000);
+  },
+
+  // -------------------------------------------------------------------------
+  // Income & Expenses API
+  // -------------------------------------------------------------------------
+  async getIncomeEntries(society_id: string = 'GV2026') {
+    const storageKey = `towertech_income_${society_id}`;
+    return cachedQuery(`income_${society_id}`, async () => {
+      try {
+        const { data, error } = await supabase
+          .from('income_entries')
+          .select('*')
+          .eq('society_id', society_id)
+          .order('income_date', { ascending: false });
+        if (!error && data && data.length > 0) {
+          localStorage.setItem(storageKey, JSON.stringify(data));
+          return data;
+        }
+      } catch (err) {
+        checkRateLimitError(err);
+      }
+      const local = typeof window !== 'undefined' ? localStorage.getItem(storageKey) : null;
+      if (local) {
+        try { return JSON.parse(local); } catch {}
+      }
+      return [];
+    }, [], 20000);
+  },
+
+  async addIncomeEntry(income: any) {
+    invalidateCache('income');
+    const socId = income.society_id || 'GV2026';
+    const storageKey = `towertech_income_${socId}`;
+    const iNo = `INC-${Date.now().toString().slice(-6)}`;
+    const fullPayload = {
+      income_number: iNo,
+      society_id: socId,
+      income_date: income.income_date || new Date().toISOString().split('T')[0],
+      ...income
+    };
+
+    try {
+      const { data, error } = await supabase
+        .from('income_entries')
+        .insert([fullPayload])
+        .select();
+      if (!error && data && data.length > 0) {
+        return data[0];
+      }
+    } catch (e) {
+      console.warn('Supabase income insert warning:', e);
+    }
+
+    const local = typeof window !== 'undefined' ? localStorage.getItem(storageKey) : null;
+    const existing = local ? JSON.parse(local) : [];
+    const updated = [fullPayload, ...existing];
+    if (typeof window !== 'undefined') localStorage.setItem(storageKey, JSON.stringify(updated));
+
+    // Mirror to general finance table for dashboard metrics
+    await this.addFinance({
+      finance_type: 'Income',
+      category: income.category === 'clubhouse_booking' ? 'Clubhouse Charges' : income.category === 'parking' ? 'Parking Charges' : 'Other Income',
+      description: income.description || 'Income received',
+      amount: Number(income.amount) || 0,
+      payment_mode: income.payment_method || 'UPI',
+      payment_status: 'Paid',
+      transaction_date: income.income_date,
+      party_name: income.received_from,
+      society_id: socId
+    });
+
+    return fullPayload;
+  },
+
+  async getExpenses(society_id: string = 'GV2026') {
+    const storageKey = `towertech_expenses_${society_id}`;
+    return cachedQuery(`expenses_${society_id}`, async () => {
+      try {
+        const { data, error } = await supabase
+          .from('expenses')
+          .select('*')
+          .eq('society_id', society_id)
+          .order('expense_date', { ascending: false });
+        if (!error && data && data.length > 0) {
+          localStorage.setItem(storageKey, JSON.stringify(data));
+          return data;
+        }
+      } catch (err) {
+        checkRateLimitError(err);
+      }
+      const local = typeof window !== 'undefined' ? localStorage.getItem(storageKey) : null;
+      if (local) {
+        try { return JSON.parse(local); } catch {}
+      }
+      return [];
+    }, [], 20000);
+  },
+
+  async addExpense(expense: any) {
+    invalidateCache('expenses');
+    const socId = expense.society_id || 'GV2026';
+    const storageKey = `towertech_expenses_${socId}`;
+    const eNo = `EXP-${Date.now().toString().slice(-6)}`;
+    const fullPayload = {
+      expense_number: eNo,
+      society_id: socId,
+      approval_status: expense.approval_status || 'pending',
+      payment_status: expense.payment_status || 'unpaid',
+      expense_date: expense.expense_date || new Date().toISOString().split('T')[0],
+      ...expense
+    };
+
+    try {
+      const { data, error } = await supabase
+        .from('expenses')
+        .insert([fullPayload])
+        .select();
+      if (!error && data && data.length > 0) {
+        return data[0];
+      }
+    } catch (e) {
+      console.warn('Supabase expense insert warning:', e);
+    }
+
+    const local = typeof window !== 'undefined' ? localStorage.getItem(storageKey) : null;
+    const existing = local ? JSON.parse(local) : [];
+    const updated = [fullPayload, ...existing];
+    if (typeof window !== 'undefined') localStorage.setItem(storageKey, JSON.stringify(updated));
+
+    // Mirror to general finance table for dashboard metrics
+    await this.addFinance({
+      finance_type: 'Expense',
+      category: expense.category_name || 'Other Expenses',
+      description: `${expense.expense_title} - ${expense.description || ''}`,
+      amount: Number(expense.amount) || 0,
+      payment_mode: expense.payment_method || 'Bank Transfer',
+      payment_status: expense.payment_status === 'paid' ? 'Paid' : 'Pending',
+      transaction_date: expense.expense_date,
+      party_name: expense.vendor_name || 'Vendor',
+      society_id: socId
+    });
+
+    return fullPayload;
+  },
+
+  async updateExpenseApproval(expenseId: string, status: 'approved' | 'rejected', approverId: string = 'A001', remarks: string = '') {
+    invalidateCache('expenses');
+    const socId = 'GV2026';
+    const storageKey = `towertech_expenses_${socId}`;
+    const updates = {
+      approval_status: status,
+      approved_by: approverId,
+      approved_at: new Date().toISOString(),
+      remarks
+    };
+
+    try {
+      await supabase.from('expenses').update(updates).eq('id', expenseId);
+      await supabase.from('expense_approvals').insert([{
+        society_id: socId,
+        expense_id: expenseId,
+        action: status,
+        action_by: approverId,
+        remarks,
+        created_at: new Date().toISOString()
+      }]);
+    } catch (e) {
+      console.warn('Supabase expense approval update warning:', e);
+    }
+
+    if (typeof window !== 'undefined') {
+      const local = localStorage.getItem(storageKey);
+      if (local) {
+        const list = JSON.parse(local);
+        const idx = list.findIndex((e: any) => e.id === expenseId || e.expense_number === expenseId);
+        if (idx !== -1) {
+          list[idx] = { ...list[idx], ...updates };
+          localStorage.setItem(storageKey, JSON.stringify(list));
+        }
+      }
+    }
+    return updates;
+  },
+
+  // -------------------------------------------------------------------------
+  // Staff Salaries & Vendor Contracts API
+  // -------------------------------------------------------------------------
+  async getStaffMembers(society_id: string = 'GV2026') {
+    const storageKey = `towertech_staff_${society_id}`;
+    return cachedQuery(`staff_${society_id}`, async () => {
+      try {
+        const { data, error } = await supabase
+          .from('staff_members')
+          .select('*')
+          .eq('society_id', society_id)
+          .eq('is_active', true);
+        if (!error && data && data.length > 0) {
+          localStorage.setItem(storageKey, JSON.stringify(data));
+          return data;
+        }
+      } catch (err) {
+        checkRateLimitError(err);
+      }
+      const local = typeof window !== 'undefined' ? localStorage.getItem(storageKey) : null;
+      if (local) {
+        try { return JSON.parse(local); } catch {}
+      }
+      const initialStaff = [
+        { id: 'STF-01', employee_number: 'EMP-101', full_name: 'Rajesh Kumar', designation: 'Head Security Guard', basic_salary: 18000, mobile: '9876501001', society_id },
+        { id: 'STF-02', employee_number: 'EMP-102', full_name: 'Sunita Maid', designation: 'Housekeeping Lead', basic_salary: 15000, mobile: '9876501002', society_id },
+        { id: 'STF-03', employee_number: 'EMP-103', full_name: 'Ramesh Mali', designation: 'Head Gardener', basic_salary: 14000, mobile: '9876501003', society_id },
+        { id: 'STF-04', employee_number: 'EMP-104', full_name: 'Electrician Anil', designation: 'Electrician & Pump Operator', basic_salary: 22000, mobile: '9876501004', society_id }
+      ];
+      if (typeof window !== 'undefined') localStorage.setItem(storageKey, JSON.stringify(initialStaff));
+      return initialStaff;
+    }, [], 30000);
+  },
+
+  async recordStaffSalaryPayment(salary: any) {
+    invalidateCache('salaries');
+    const socId = salary.society_id || 'GV2026';
+    const storageKey = `towertech_salaries_${socId}`;
+    const basic = Number(salary.basic_salary || salary.salary || salary.monthly_salary || 0);
+    const bonus = Number(salary.bonus || 0);
+    const ded = Number(salary.deductions || 0);
+    const net = basic + bonus - ded;
+
+    const fullPayload = {
+      society_id: socId,
+      basic_salary: basic,
+      bonus,
+      deductions: ded,
+      net_salary: net,
+      payment_status: salary.payment_status || 'paid',
+      payment_date: salary.payment_date || new Date().toISOString().split('T')[0],
+      month: salary.month || 'March 2026',
+      salary_month: new Date().toISOString().split('T')[0],
+      ...salary
+    };
+
+    try {
+      await supabase.from('staff_salary_payments').insert([fullPayload]);
+    } catch (e) {
+      console.warn('Supabase salary insert warning:', e);
+    }
+
+    const local = typeof window !== 'undefined' ? localStorage.getItem(storageKey) : null;
+    const existing = local ? JSON.parse(local) : [];
+    const updated = [fullPayload, ...existing];
+    if (typeof window !== 'undefined') localStorage.setItem(storageKey, JSON.stringify(updated));
+
+    // Mirror as expense in finance table
+    await this.addFinance({
+      finance_type: 'Expense',
+      category: 'Staff Salary',
+      description: `Salary Payment for ${salary.staff_name || salary.name || 'Staff'} (${salary.month || 'March 2026'})`,
+      amount: net,
+      payment_mode: salary.payment_mode || 'Bank Transfer',
+      payment_status: 'Paid',
+      transaction_date: fullPayload.payment_date,
+      party_name: salary.staff_name || salary.name || 'Staff Payroll',
+      society_id: socId
+    });
+
+    return fullPayload;
+  },
+
+  // -------------------------------------------------------------------------
+  // Society Funds & Cash/Bank Accounts API
+  // -------------------------------------------------------------------------
+  async getSocietyFunds(society_id: string = 'GV2026') {
+    const storageKey = `towertech_funds_${society_id}`;
+    return cachedQuery(`funds_${society_id}`, async () => {
+      try {
+        const { data, error } = await supabase
+          .from('society_funds')
+          .select('*')
+          .eq('society_id', society_id);
+        if (!error && data && data.length > 0) {
+          localStorage.setItem(storageKey, JSON.stringify(data));
+          return data;
+        }
+      } catch (err) {
+        checkRateLimitError(err);
+      }
+      const local = typeof window !== 'undefined' ? localStorage.getItem(storageKey) : null;
+      if (local) {
+        try { return JSON.parse(local); } catch {}
+      }
+      const defaultFunds = [
+        { fund_id: 'FND-101', society_id, fund_name: 'General Welfare Fund', fund_type: 'general', opening_balance: 450000, total_contributions: 120000, interest_earned: 8500, fund_transfers: 0, total_utilization: 45000, closing_balance: 533500 },
+        { fund_id: 'FND-102', society_id, fund_name: 'Sinking Fund', fund_type: 'sinking', opening_balance: 1200000, total_contributions: 300000, interest_earned: 42000, fund_transfers: 0, total_utilization: 0, closing_balance: 1542000 },
+        { fund_id: 'FND-103', society_id, fund_name: 'Major Repair & Infrastructure Fund', fund_type: 'repair', opening_balance: 350000, total_contributions: 90000, interest_earned: 5000, fund_transfers: 0, total_utilization: 80000, closing_balance: 365000 },
+        { fund_id: 'FND-104', society_id, fund_name: 'Emergency & Disaster Reserve', fund_type: 'emergency', opening_balance: 200000, total_contributions: 50000, interest_earned: 3000, fund_transfers: 0, total_utilization: 0, closing_balance: 253000 }
+      ];
+      if (typeof window !== 'undefined') localStorage.setItem(storageKey, JSON.stringify(defaultFunds));
+      return defaultFunds;
+    }, [], 30000);
+  },
+
+  async recordFundTransaction(fundTx: any) {
+    invalidateCache('funds');
+    const socId = fundTx.society_id || 'GV2026';
+    const storageKey = `towertech_funds_${socId}`;
+    try {
+      await supabase.from('fund_transactions').insert([{
+        society_id: socId,
+        transaction_date: new Date().toISOString().split('T')[0],
+        ...fundTx
+      }]);
+    } catch (e) {
+      console.warn('Supabase fund tx insert warning:', e);
+    }
+
+    const localFunds = await this.getSocietyFunds(socId);
+    const target = localFunds.find((f: any) => f.fund_id === fundTx.fund_id || f.id === fundTx.fund_id);
+    if (target) {
+      const amt = Number(fundTx.amount) || 0;
+      if (fundTx.transaction_type === 'contribution') target.total_contributions = (target.total_contributions || 0) + amt;
+      else if (fundTx.transaction_type === 'interest') target.interest_earned = (target.interest_earned || 0) + amt;
+      else if (fundTx.transaction_type === 'utilization') target.total_utilization = (target.total_utilization || 0) + amt;
+
+      target.closing_balance = (target.opening_balance || 0) + (target.total_contributions || 0) + (target.interest_earned || 0) - (target.total_utilization || 0);
+      if (typeof window !== 'undefined') localStorage.setItem(storageKey, JSON.stringify(localFunds));
+    }
+    return fundTx;
+  },
+
+  async getFinancialAccounts(society_id: string = 'GV2026') {
+    const storageKey = `towertech_accounts_${society_id}`;
+    return cachedQuery(`accounts_${society_id}`, async () => {
+      try {
+        const { data, error } = await supabase
+          .from('financial_accounts')
+          .select('*')
+          .eq('society_id', society_id);
+        if (!error && data && data.length > 0) {
+          localStorage.setItem(storageKey, JSON.stringify(data));
+          return data;
+        }
+      } catch (err) {
+        checkRateLimitError(err);
+      }
+      const local = typeof window !== 'undefined' ? localStorage.getItem(storageKey) : null;
+      if (local) {
+        try { return JSON.parse(local); } catch {}
+      }
+      const defaultAccounts = [
+        { id: 'ACC-001', society_id, account_name: 'HDFC Main Society Account', account_type: 'bank', bank_name: 'HDFC Bank', account_number_masked: '••••••••4819', ifsc_code: 'HDFC0000214', opening_balance: 850000, current_balance: 1225000, total_credits: 850000, total_debits: 475000, is_active: true },
+        { id: 'ACC-002', society_id, account_name: 'SBI Sinking Reserve Account', account_type: 'bank', bank_name: 'State Bank of India', account_number_masked: '••••••••9901', ifsc_code: 'SBIN0001004', opening_balance: 1542000, current_balance: 1542000, total_credits: 1542000, total_debits: 0, is_active: true },
+        { id: 'ACC-003', society_id, account_name: 'Petty Cash Office Ledger', account_type: 'petty_cash', bank_name: 'Cash Box', account_number_masked: 'CASH-OFFICE', ifsc_code: 'N/A', opening_balance: 25000, current_balance: 18500, total_credits: 25000, total_debits: 6500, is_active: true }
+      ];
+      if (typeof window !== 'undefined') localStorage.setItem(storageKey, JSON.stringify(defaultAccounts));
+      return defaultAccounts;
+    }, [], 30000);
+  },
+
+  async reconcileBankAccount(reconciliationData: any) {
+    const socId = reconciliationData.society_id || 'GV2026';
+    try {
+      await supabase.from('bank_reconciliations').insert([{
+        society_id: socId,
+        reconciled_at: new Date().toISOString(),
+        ...reconciliationData
+      }]);
+    } catch (e) {
+      console.warn('Supabase reconciliation insert warning:', e);
+    }
+    return reconciliationData;
+  },
+
+  // -------------------------------------------------------------------------
+  // Financial Audit Log API
+  // -------------------------------------------------------------------------
+  async getFinancialAuditLogs(society_id: string = 'GV2026') {
+    const storageKey = `towertech_audit_logs_${society_id}`;
+    return cachedQuery(`audit_logs_${society_id}`, async () => {
+      try {
+        const { data, error } = await supabase
+          .from('financial_audit_logs')
+          .select('*')
+          .eq('society_id', society_id)
+          .order('created_at', { ascending: false });
+        if (!error && data && data.length > 0) {
+          localStorage.setItem(storageKey, JSON.stringify(data));
+          return data;
+        }
+      } catch (err) {
+        checkRateLimitError(err);
+      }
+      const local = typeof window !== 'undefined' ? localStorage.getItem(storageKey) : null;
+      if (local) {
+        try { return JSON.parse(local); } catch {}
+      }
+      return [
+        { id: 'AUD-101', society_id, user_name: 'Balaji Survase', user_role: 'Secretary / Admin', action: 'CREATE_MAINTENANCE_BILL', module_name: 'Maintenance Billing', record_id: 'M001', reason: 'Monthly maintenance billing run for March 2026', created_at: new Date(Date.now() - 3600000 * 2).toISOString() },
+        { id: 'AUD-102', society_id, user_name: 'Arya Sonawane', user_role: 'Treasurer', action: 'APPROVE_EXPENSE', module_name: 'Expense Management', record_id: 'EXP-1008', reason: 'Housekeeping staff wages verified and cleared', created_at: new Date(Date.now() - 3600000 * 5).toISOString() },
+        { id: 'AUD-103', society_id, user_name: 'Karan Bodake', user_role: 'Resident (A101)', action: 'PAYMENT_RECORDED', module_name: 'Payments', record_id: 'PAY-88192', reason: 'Online UPI maintenance payment verified', created_at: new Date(Date.now() - 3600000 * 12).toISOString() }
+      ];
+    }, [], 15000);
+  },
+
+  async logFinancialAction(actionLog: any) {
+    invalidateCache('audit_logs');
+    const socId = actionLog.society_id || 'GV2026';
+    const storageKey = `towertech_audit_logs_${socId}`;
+    const logEntry = {
+      society_id: socId,
+      created_at: new Date().toISOString(),
+      ...actionLog
+    };
+    try {
+      await supabase.from('financial_audit_logs').insert([logEntry]);
+    } catch (e) {
+      console.warn('Supabase audit log insert warning:', e);
+    }
+    if (typeof window !== 'undefined') {
+      const local = localStorage.getItem(storageKey);
+      const list = local ? JSON.parse(local) : [];
+      localStorage.setItem(storageKey, JSON.stringify([logEntry, ...list]));
+    }
+    return logEntry;
+  },
+
+
+
   // ==========================================
   // NOTICES MODULE
   // ==========================================
@@ -2781,25 +3467,52 @@ export const societyService = {
   async getServiceContracts(societyId?: string): Promise<ServiceContract[]> {
     const socId = societyId || 'GV2026';
     const storageKey = `towertech_contracts_${socId}`;
-    const defaultContracts: ServiceContract[] = [
-      { id: 'CTR-001', contract_id: 'CTR-2026-01', vendor_name: 'Schindler Elevators India Pvt Ltd', service_type: 'Elevator AMC (Comprehensive)', contact_person: 'Vikram Joshi', phone: '9820011223', annual_cost: 320000, start_date: '2026-01-01', end_date: '2026-12-31', status: 'Active', society_id: socId },
-      { id: 'CTR-002', contract_id: 'CTR-2026-02', vendor_name: 'Kirloskar Integrated DG Power Solutions', service_type: 'Diesel Generator AMC & Overhauls', contact_person: 'Nitin Kulkarni', phone: '9820044556', annual_cost: 180000, start_date: '2026-04-01', end_date: '2027-03-31', status: 'Active', society_id: socId },
-      { id: 'CTR-003', contract_id: 'CTR-2026-03', vendor_name: 'AquaPure Commercial Water Treatment Systems', service_type: 'RO & Hydro-Pneumatic Water Filtration AMC', contact_person: 'Prashant More', phone: '9820077889', annual_cost: 145000, start_date: '2026-03-15', end_date: '2027-03-14', status: 'Active', society_id: socId },
-      { id: 'CTR-004', contract_id: 'CTR-2026-04', vendor_name: 'SecurePro CCTV & Access Control Systems', service_type: 'Perimeter CCTV & Boom Barrier Maintenance', contact_person: 'Deepak Sawant', phone: '9820099112', annual_cost: 95000, start_date: '2026-02-01', end_date: '2027-01-31', status: 'Active', society_id: socId }
-    ];
-
-    if (typeof window !== 'undefined' && window.localStorage) {
-      const stored = window.localStorage.getItem(storageKey);
-      if (stored) {
-        try {
-          return JSON.parse(stored);
-        } catch {
-          // ignore
+    return cachedQuery(`contracts_${socId}`, async () => {
+      try {
+        const { data: vData, error: vErr } = await supabase
+          .from('financial_vendors')
+          .select('*')
+          .eq('society_id', socId);
+        if (!vErr && vData && vData.length > 0) {
+          const mapped = vData.map((v: any) => ({
+            id: v.id,
+            contract_id: `CTR-${v.id?.slice(-4) || '001'}`,
+            vendor_name: v.vendor_name,
+            service_type: v.service_category || 'General Service',
+            contact_person: v.contact_person || 'Contact',
+            phone: v.mobile || 'N/A',
+            annual_cost: v.contract_amount || 0,
+            contract_amount: v.contract_amount || 0,
+            start_date: v.contract_start || '2026-04-01',
+            end_date: v.contract_end || '2027-03-31',
+            status: v.is_active !== false ? 'Active' : 'Expired',
+            society_id: socId
+          })) as ServiceContract[];
+          localStorage.setItem(storageKey, JSON.stringify(mapped));
+          return mapped;
         }
+      } catch (err) {
+        checkRateLimitError(err);
       }
-      window.localStorage.setItem(storageKey, JSON.stringify(defaultContracts));
-    }
-    return defaultContracts;
+
+      const defaultContracts: ServiceContract[] = [
+        { id: 'f1000000-0000-4000-8000-000000000001', contract_id: 'CTR-2026-01', vendor_name: 'Secure Services', service_type: 'Security Patrol & Gate Guards', contact_person: 'Vijay Kumar', phone: '9876500001', annual_cost: 144000, start_date: '2026-04-01', end_date: '2027-03-31', status: 'Active', society_id: socId },
+        { id: 'f1000000-0000-4000-8000-000000000002', contract_id: 'CTR-2026-02', vendor_name: 'Clean Society Services', service_type: 'Housekeeping & Sanitation', contact_person: 'Rohit Sharma', phone: '9876500002', annual_cost: 96000, start_date: '2026-04-01', end_date: '2027-03-31', status: 'Active', society_id: socId },
+        { id: 'f1000000-0000-4000-8000-000000000003', contract_id: 'CTR-2026-03', vendor_name: 'Lift Care', service_type: 'Elevator Lift AMC', contact_person: 'Amit Verma', phone: '9876500003', annual_cost: 42000, start_date: '2026-04-01', end_date: '2027-03-31', status: 'Active', society_id: socId }
+      ];
+
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const stored = window.localStorage.getItem(storageKey);
+        if (stored) {
+          try {
+            return JSON.parse(stored);
+          } catch {}
+        }
+        window.localStorage.setItem(storageKey, JSON.stringify(defaultContracts));
+      }
+      return defaultContracts;
+    }, [], 20000);
   }
 };
+
 
