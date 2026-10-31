@@ -20,6 +20,7 @@ import {
 import { User, Resident, MaintenanceRecord, Complaint, Notice, Booking, Visitor } from '../types';
 import { societyService } from '../lib/societyService';
 import { toast } from 'sonner';
+import TowerTechLogo from './TowerTechLogo';
 
 interface DashboardModulesGridProps {
   user: User;
@@ -219,29 +220,34 @@ export default function DashboardModulesGrid({
   });
 
   return (
-    <div className="w-full h-full overflow-y-auto custom-scrollbar pr-2 space-y-6 font-sans text-[#321F5C] animate-in fade-in duration-150">
+    <div className="w-full h-full overflow-y-auto custom-scrollbar pr-2 space-y-6 font-sans text-[#6339CA] animate-in fade-in duration-150">
       
-      {/* 1. DASHBOARD HEADER BANNER: JOYVILLE SENSORIUM */}
-      <div className="bg-gradient-to-r from-[#321F5C] via-[#5D31C7] to-[#6339CA] text-white rounded-2xl p-5 sm:p-6 shadow-md border border-purple-900/60 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {/* 1. DASHBOARD HEADER BANNER */}
+      <div className="bg-gradient-to-r from-[#6e44d8] via-[#7c3aed] to-[#8b5cf6] text-white rounded-2xl p-6 sm:p-8 shadow-2xl border border-white/20 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <span className="bg-[#44D080] text-slate-950 text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full shadow-xs">
-                Official Portal
-              </span>
-              <span className="text-xs text-slate-300 font-bold">
-                {todayFormatted}
-              </span>
+          <div className="flex items-center gap-6">
+            <div className="w-20 h-20 rounded-3xl bg-white flex items-center justify-center shadow-2xl p-3 shrink-0">
+              <TowerTechLogo className="w-full h-full" type="icon" />
             </div>
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="bg-[#FAA928] text-white text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full shadow-lg">
+                  Official Portal
+                </span>
+                <span className="text-xs text-white font-extrabold">
+                  {todayFormatted}
+                </span>
+              </div>
 
-            <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-              Green Park Residency
-            </h1>
-            <p className="text-xs sm:text-sm text-slate-300 font-medium">
-              Welcome back, <span className="font-bold text-white">{user.admin_role || 'Chairman'}</span> ({user.role === 'admin' ? (user as any).admin_role || 'Chairman' : user.role === 'security' ? 'Security Staff' : (user.occupancy_type === 'Tenant' ? 'Tenant' : 'Owner')})
-            </p>
+              <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
+                TowerTech <span className="text-[#FAA928]">System</span>
+              </h1>
+              <p className="text-sm text-purple-50 font-bold opacity-90 uppercase tracking-widest">
+                {user.role === 'admin' ? 'Management' : user.role === 'security' ? 'Security' : 'Resident'} Dashboard • {user.name}
+              </p>
+            </div>
           </div>
 
         </div>
@@ -309,14 +315,14 @@ export default function DashboardModulesGrid({
           className="bg-purple-50/90 border border-purple-200/90 p-4 rounded-2xl shadow-xs hover:border-purple-400 hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
         >
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black text-slate-800 uppercase tracking-wider">Collections</span>
-            <div className="w-8 h-8 rounded-xl bg-[#321F5C] text-white flex items-center justify-center shadow-xs group-hover:scale-110 transition-transform">
+            <span className="text-[10px] font-black text-purple-900 uppercase tracking-wider">Collections</span>
+            <div className="w-8 h-8 rounded-xl bg-[#6339CA] text-white flex items-center justify-center shadow-xs group-hover:scale-110 transition-transform">
               <TrendingUp className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-lg sm:text-xl font-black text-[#321F5C] tracking-tight block">₹ {displayPaid.toLocaleString('en-IN')}</span>
-            <span className="text-[10px] font-extrabold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md inline-block mt-1">FY 2026-27 YTD</span>
+            <span className="text-lg sm:text-xl font-black text-[#6339CA] tracking-tight block">₹ {displayPaid.toLocaleString('en-IN')}</span>
+            <span className="text-[10px] font-extrabold text-purple-800 bg-slate-100 px-2 py-0.5 rounded-md inline-block mt-1">FY 2026-27 YTD</span>
           </div>
         </div>
 
@@ -363,7 +369,7 @@ export default function DashboardModulesGrid({
         <div className="lg:col-span-2 bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-xs flex flex-col justify-between">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
             <div>
-              <h3 className="text-base font-extrabold text-[#321F5C] flex items-center gap-2">
+              <h3 className="text-base font-extrabold text-[#6339CA] flex items-center gap-2">
                 <TrendingUp className="w-4 h-4 text-teal-500" />
                 <span>Financial Collections Overview</span>
               </h3>
@@ -377,7 +383,7 @@ export default function DashboardModulesGrid({
               <button
                 onClick={() => setFinancialPeriod('month')}
                 className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  financialPeriod === 'month' ? 'bg-slate-800 text-white shadow-xs' : 'text-slate-600 hover:text-[#321F5C]'
+                  financialPeriod === 'month' ? 'bg-purple-900 text-white shadow-xs' : 'text-slate-600 hover:text-[#6339CA]'
                 }`}
               >
                 Monthly
@@ -385,7 +391,7 @@ export default function DashboardModulesGrid({
               <button
                 onClick={() => setFinancialPeriod('quarter')}
                 className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  financialPeriod === 'quarter' ? 'bg-slate-800 text-white shadow-xs' : 'text-slate-600 hover:text-[#321F5C]'
+                  financialPeriod === 'quarter' ? 'bg-purple-900 text-white shadow-xs' : 'text-slate-600 hover:text-[#6339CA]'
                 }`}
               >
                 Quarterly
@@ -393,7 +399,7 @@ export default function DashboardModulesGrid({
               <button
                 onClick={() => setFinancialPeriod('year')}
                 className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  financialPeriod === 'year' ? 'bg-slate-800 text-white shadow-xs' : 'text-slate-600 hover:text-[#321F5C]'
+                  financialPeriod === 'year' ? 'bg-purple-900 text-white shadow-xs' : 'text-slate-600 hover:text-[#6339CA]'
                 }`}
               >
                 Yearly
@@ -409,15 +415,15 @@ export default function DashboardModulesGrid({
                 return (
                   <div key={idx} className="flex-1 flex flex-col items-center h-full justify-end group relative cursor-pointer">
                     
-                    <div className="absolute -top-10 opacity-0 group-hover:opacity-100 transition-opacity bg-[#321F5C] text-white text-[10px] font-black px-2 py-1 rounded shadow-lg whitespace-nowrap z-20 pointer-events-none">
+                    <div className="absolute -top-10 opacity-0 group-hover:opacity-100 transition-opacity bg-[#6339CA] text-white text-[10px] font-black px-2 py-1 rounded shadow-lg whitespace-nowrap z-20 pointer-events-none">
                       ₹ {item.amount.toLocaleString('en-IN')}
                     </div>
 
                     <div 
                       style={{ height: `${heightPercent}%` }}
-                      className="w-full max-w-[40px] bg-gradient-to-t from-[#6339CA] to-[#5D31C7] group-hover:from-[#FAA928] group-hover:to-[#FBAE17] rounded-t-lg transition-all duration-200 shadow-xs relative"
+                      className="w-full max-w-[40px] bg-gradient-to-t from-[#7c3aed] to-[#a855f7] group-hover:from-[#FAA928] group-hover:to-[#FBAE17] rounded-t-lg transition-all duration-200 shadow-md relative"
                     >
-                      <div className="absolute top-0 inset-x-0 h-1 bg-white/30 rounded-t-lg" />
+                      <div className="absolute top-0 inset-x-0 h-1 bg-white/40 rounded-t-lg" />
                     </div>
 
                     <span className="text-[10px] font-bold text-slate-500 mt-2 truncate w-full text-center">
@@ -432,11 +438,11 @@ export default function DashboardModulesGrid({
           <div className="flex items-center justify-between pt-2 text-xs font-bold text-slate-600">
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 rounded-sm bg-[#6339CA]" />
-              <span>Collected Funds: <span className="text-[#321F5C] font-black">₹ {displayPaid.toLocaleString('en-IN')}</span></span>
+              <span>Collected Funds: <span className="text-[#6339CA] font-black">₹ {displayPaid.toLocaleString('en-IN')}</span></span>
             </div>
             <button 
               onClick={() => setActiveTab('financial')}
-              className="text-slate-800 hover:underline flex items-center gap-1 cursor-pointer"
+              className="text-purple-900 hover:underline flex items-center gap-1 cursor-pointer"
             >
               <span>Full Financial Ledger</span>
               <ChevronRight className="w-3.5 h-3.5" />
@@ -458,17 +464,17 @@ export default function DashboardModulesGrid({
 
             <div className="space-y-2.5">
               <div className="flex items-center justify-between p-3 rounded-xl bg-white border border-emerald-100 shadow-2xs">
-                <span className="text-xs font-bold text-slate-700">Total Notices</span>
+                <span className="text-xs font-bold text-purple-800">Total Notices</span>
                 <span className="text-sm font-black text-#44D080">{totalNoticesCount} Published</span>
               </div>
 
               <div className="flex items-center justify-between p-3 rounded-xl bg-white border border-emerald-100 shadow-2xs">
-                <span className="text-xs font-bold text-slate-700">Active Residents</span>
-                <span className="text-sm font-black text-[#321F5C]">{residents.filter(r => (r.status || 'Active').toLowerCase() === 'active').length} Active</span>
+                <span className="text-xs font-bold text-purple-800">Active Residents</span>
+                <span className="text-sm font-black text-[#6339CA]">{residents.filter(r => (r.status || 'Active').toLowerCase() === 'active').length} Active</span>
               </div>
 
               <div className="flex items-center justify-between p-3 rounded-xl bg-white border border-emerald-100 shadow-2xs">
-                <span className="text-xs font-bold text-slate-700">Open Complaints</span>
+                <span className="text-xs font-bold text-purple-800">Open Complaints</span>
                 <span className="text-sm font-black text-amber-600">{displayOpenComplaints} Pending</span>
               </div>
 
@@ -524,11 +530,11 @@ export default function DashboardModulesGrid({
                 visitors.slice(0, 3).map((v) => (
                   <div key={v.visitor_id || v.id} className="p-2.5 bg-white rounded-xl border border-sky-100 flex items-center justify-between text-xs shadow-2xs">
                     <div>
-                      <p className="font-bold text-slate-800">{v.name}</p>
+                      <p className="font-bold text-purple-900">{v.name}</p>
                       <p className="text-[10px] text-slate-400 font-medium">Flat {v.tower || 'A'}-{v.flat} · {v.purpose || 'Guest'}</p>
                     </div>
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
-                      v.status === 'In' || v.status === 'Checked In' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-700'
+                      v.status === 'In' || v.status === 'Checked In' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-purple-800'
                     }`}>
                       {v.status || 'In'}
                     </span>
@@ -578,7 +584,7 @@ export default function DashboardModulesGrid({
                         {c.status || 'Pending'}
                       </span>
                     </div>
-                    <p className="text-xs font-bold text-slate-800 group-hover:text-rose-700 line-clamp-1 mt-1">
+                    <p className="text-xs font-bold text-purple-900 group-hover:text-rose-700 line-clamp-1 mt-1">
                       {c.description}
                     </p>
                     <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Flat {c.tower || 'A'}-{c.flat_no || '102'} · {c.complaint_date || 'Recent'}</p>
@@ -624,7 +630,7 @@ export default function DashboardModulesGrid({
                     onClick={() => setActiveTab('notices')}
                     className="p-2.5 bg-white hover:bg-purple-50/80 rounded-xl border border-purple-100 transition-colors cursor-pointer group shadow-2xs"
                   >
-                    <p className="text-xs font-bold text-slate-800 group-hover:text-[#542d87] leading-snug">
+                    <p className="text-xs font-bold text-purple-900 group-hover:text-[#542d87] leading-snug">
                       {n.title}
                     </p>
                     <p className="text-[11px] text-slate-400 font-medium line-clamp-1 mt-0.5">
@@ -641,7 +647,7 @@ export default function DashboardModulesGrid({
 
           <button
             onClick={() => setActiveTab('notices')}
-            className="w-full mt-4 py-2.5 bg-[#321F5C] hover:bg-[#2e1065] text-white font-bold text-xs rounded-xl transition-all text-center uppercase tracking-wider cursor-pointer shadow-xs"
+            className="w-full mt-4 py-2.5 bg-[#6339CA] hover:bg-[#2e1065] text-white font-bold text-xs rounded-xl transition-all text-center uppercase tracking-wider cursor-pointer shadow-xs"
           >
             Open Notice Management
           </button>
@@ -654,10 +660,10 @@ export default function DashboardModulesGrid({
       {/* PAY NOW MODAL */}
       {/* ======================================================== */}
       {showPayNowModal && (
-        <div className="fixed inset-0 bg-[#321F5C]/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
+        <div className="fixed inset-0 bg-[#6339CA]/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
           <div className="bg-white rounded-xl shadow-2xl border border-slate-200 max-w-md w-full overflow-hidden flex flex-col animate-in zoom-in-95 duration-150">
             
-            <div className="bg-[#321F5C] text-white p-4 flex items-center justify-between shrink-0">
+            <div className="bg-[#6339CA] text-white p-4 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => setShowPayNowModal(false)}
@@ -679,7 +685,7 @@ export default function DashboardModulesGrid({
 
             <div className="p-5 space-y-6">
               <div className="space-y-3">
-                <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                <h4 className="text-xs font-bold text-purple-800 uppercase tracking-wider">
                   Select Payment Method
                 </h4>
 
@@ -693,7 +699,7 @@ export default function DashboardModulesGrid({
                         : 'border-slate-200 hover:border-slate-300 bg-white'
                     }`}
                   >
-                    <span className="text-[11px] font-bold text-slate-800 leading-tight">
+                    <span className="text-[11px] font-bold text-purple-900 leading-tight">
                       Credit Card
                     </span>
                     <div className="my-2.5 w-8 h-6 rounded border border-orange-300 bg-orange-100 flex items-center justify-center text-#FAA928">
@@ -717,7 +723,7 @@ export default function DashboardModulesGrid({
                         : 'border-slate-200 hover:border-slate-300 bg-white'
                     }`}
                   >
-                    <span className="text-[11px] font-bold text-slate-800 leading-tight">
+                    <span className="text-[11px] font-bold text-purple-900 leading-tight">
                       Debit Card
                     </span>
                     <div className="my-2.5 w-8 h-6 rounded border border-slate-300 bg-slate-100 flex items-center justify-center text-slate-600">
@@ -741,7 +747,7 @@ export default function DashboardModulesGrid({
                         : 'border-slate-200 hover:border-slate-300 bg-white'
                     }`}
                   >
-                    <span className="text-[11px] font-bold text-slate-800 leading-tight">
+                    <span className="text-[11px] font-bold text-purple-900 leading-tight">
                       Net Banking
                     </span>
                     <div className="my-2.5 w-8 h-6 rounded border border-slate-300 bg-slate-100 flex items-center justify-center text-slate-600">
@@ -795,7 +801,7 @@ export default function DashboardModulesGrid({
 
       {/* ADD COMPLAINT MODAL */}
       {showAddComplaintModal && (
-        <div className="fixed inset-0 bg-[#321F5C]/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
+        <div className="fixed inset-0 bg-[#6339CA]/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
           <div className="bg-white rounded-xl shadow-2xl border border-slate-200 max-w-md w-full overflow-hidden flex flex-col">
             <div className="bg-[#542d87] text-white p-4 flex items-center justify-between">
               <h3 className="text-base font-bold text-white tracking-tight">
@@ -811,7 +817,7 @@ export default function DashboardModulesGrid({
 
             <form onSubmit={handleAddComplaint} className="p-5 space-y-4">
               <div>
-                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-1">
+                <label className="text-xs font-bold text-purple-800 uppercase tracking-wider block mb-1">
                   Category
                 </label>
                 <select
@@ -829,7 +835,7 @@ export default function DashboardModulesGrid({
               </div>
 
               <div>
-                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-1">
+                <label className="text-xs font-bold text-purple-800 uppercase tracking-wider block mb-1">
                   Description
                 </label>
                 <textarea
@@ -863,7 +869,7 @@ export default function DashboardModulesGrid({
 
       {/* COMPLAINT DETAIL MODAL */}
       {selectedComplaint && (
-        <div className="fixed inset-0 bg-[#321F5C]/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
+        <div className="fixed inset-0 bg-[#6339CA]/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
           <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-md w-full overflow-hidden flex flex-col">
             <div className="bg-[#542d87] text-white p-4 flex items-center justify-between">
               <h3 className="text-sm font-bold text-white tracking-tight">
@@ -889,17 +895,17 @@ export default function DashboardModulesGrid({
 
               <div>
                 <p className="font-black text-slate-400 uppercase text-[10px] tracking-wider">Issue Description</p>
-                <p className="text-slate-800 font-bold text-sm mt-1 leading-relaxed">{selectedComplaint.description}</p>
+                <p className="text-purple-900 font-bold text-sm mt-1 leading-relaxed">{selectedComplaint.description}</p>
               </div>
 
               <div className="grid grid-cols-2 gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
                 <div>
                   <span className="text-[10px] font-bold text-slate-400 uppercase">Flat / Location</span>
-                  <p className="font-bold text-slate-800 mt-0.5">Tower {selectedComplaint.tower || 'A'} · Flat {selectedComplaint.flat_no || '102'}</p>
+                  <p className="font-bold text-purple-900 mt-0.5">Tower {selectedComplaint.tower || 'A'} · Flat {selectedComplaint.flat_no || '102'}</p>
                 </div>
                 <div>
                   <span className="text-[10px] font-bold text-slate-400 uppercase">Reported Date</span>
-                  <p className="font-bold text-slate-800 mt-0.5">{selectedComplaint.complaint_date || 'Recent'}</p>
+                  <p className="font-bold text-purple-900 mt-0.5">{selectedComplaint.complaint_date || 'Recent'}</p>
                 </div>
               </div>
 

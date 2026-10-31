@@ -127,7 +127,7 @@ export default function RegisterSociety({ onBack, onSuccess }: RegisterSocietyPr
             <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center mb-6 shadow-xl shadow-emerald-200">
               <Building2 className="w-10 h-10 text-white" />
             </div>
-            <h2 className="text-4xl font-black text-[#321F5C] tracking-tight mb-2">Create Society Account</h2>
+            <h2 className="text-4xl font-black text-[#6339CA] tracking-tight mb-2">Create Society Account</h2>
             <p className="text-slate-500 font-bold">Register your society and start managing your community.</p>
           </div>
 
@@ -159,7 +159,7 @@ export default function RegisterSociety({ onBack, onSuccess }: RegisterSocietyPr
                         value={formData.name}
                         onChange={handleChange}
                         placeholder="e.g. Green Valley Society"
-                        className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-[#6339CA]/10 focus:border-[#6339CA] outline-none transition-all font-bold text-slate-700 placeholder:text-slate-300"
+                        className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-[#6339CA]/10 focus:border-[#6339CA] outline-none transition-all font-bold text-purple-800 placeholder:text-slate-300"
                         required
                       />
                     </div>
@@ -175,7 +175,7 @@ export default function RegisterSociety({ onBack, onSuccess }: RegisterSocietyPr
                         value={formData.admin_email}
                         onChange={handleChange}
                         placeholder="admin@example.com"
-                        className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-[#6339CA]/10 focus:border-[#6339CA] outline-none transition-all font-bold text-slate-700 placeholder:text-slate-300"
+                        className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-[#6339CA]/10 focus:border-[#6339CA] outline-none transition-all font-bold text-purple-800 placeholder:text-slate-300"
                         required
                       />
                     </div>
@@ -189,7 +189,7 @@ export default function RegisterSociety({ onBack, onSuccess }: RegisterSocietyPr
                       value={formData.admin_first_name}
                       onChange={handleChange}
                       placeholder="First Name"
-                      className="w-full px-6 py-4 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-[#6339CA]/10 focus:border-[#6339CA] outline-none transition-all font-bold text-slate-700 placeholder:text-slate-300"
+                      className="w-full px-6 py-4 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-[#6339CA]/10 focus:border-[#6339CA] outline-none transition-all font-bold text-purple-800 placeholder:text-slate-300"
                       required
                     />
                   </div>
@@ -202,7 +202,7 @@ export default function RegisterSociety({ onBack, onSuccess }: RegisterSocietyPr
                       value={formData.admin_last_name}
                       onChange={handleChange}
                       placeholder="Last Name"
-                      className="w-full px-6 py-4 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-[#6339CA]/10 focus:border-[#6339CA] outline-none transition-all font-bold text-slate-700 placeholder:text-slate-300"
+                      className="w-full px-6 py-4 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-[#6339CA]/10 focus:border-[#6339CA] outline-none transition-all font-bold text-purple-800 placeholder:text-slate-300"
                       required
                     />
                   </div>
@@ -217,7 +217,7 @@ export default function RegisterSociety({ onBack, onSuccess }: RegisterSocietyPr
                         value={formData.phone}
                         onChange={handleChange}
                         placeholder="+91 9876543210"
-                        className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-[#6339CA]/10 focus:border-[#6339CA] outline-none transition-all font-bold text-slate-700 placeholder:text-slate-300"
+                        className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-[#6339CA]/10 focus:border-[#6339CA] outline-none transition-all font-bold text-purple-800 placeholder:text-slate-300"
                         required
                       />
                     </div>
@@ -233,7 +233,7 @@ export default function RegisterSociety({ onBack, onSuccess }: RegisterSocietyPr
                         value={formData.password}
                         onChange={handleChange}
                         placeholder="••••••••"
-                        className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-[#6339CA]/10 focus:border-[#6339CA] outline-none transition-all font-bold text-slate-700 placeholder:text-slate-300"
+                        className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-[#6339CA]/10 focus:border-[#6339CA] outline-none transition-all font-bold text-purple-800 placeholder:text-slate-300"
                         required
                       />
                     </div>
@@ -249,7 +249,7 @@ export default function RegisterSociety({ onBack, onSuccess }: RegisterSocietyPr
                         value={formData.confirm_password}
                         onChange={handleChange}
                         placeholder="••••••••"
-                        className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-[#6339CA]/10 focus:border-[#6339CA] outline-none transition-all font-bold text-slate-700 placeholder:text-slate-300"
+                        className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-[#6339CA]/10 focus:border-[#6339CA] outline-none transition-all font-bold text-purple-800 placeholder:text-slate-300"
                         required
                       />
                     </div>
@@ -267,7 +267,7 @@ export default function RegisterSociety({ onBack, onSuccess }: RegisterSocietyPr
                         min="1"
                         value={formData.towers || ''}
                         onChange={handleChange}
-                        className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-[#6339CA]/10 focus:border-[#6339CA] outline-none transition-all font-bold text-slate-700"
+                        className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-[#6339CA]/10 focus:border-[#6339CA] outline-none transition-all font-bold text-purple-800"
                         required
                       />
                     </div>
@@ -281,7 +281,7 @@ export default function RegisterSociety({ onBack, onSuccess }: RegisterSocietyPr
                       min="1"
                       value={formData.floors_per_tower || ''}
                       onChange={handleChange}
-                      className="w-full px-6 py-4 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-[#6339CA]/10 focus:border-[#6339CA] outline-none transition-all font-bold text-slate-700"
+                      className="w-full px-6 py-4 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-[#6339CA]/10 focus:border-[#6339CA] outline-none transition-all font-bold text-purple-800"
                       required
                     />
                   </div>
@@ -294,7 +294,7 @@ export default function RegisterSociety({ onBack, onSuccess }: RegisterSocietyPr
                       min="1"
                       value={formData.flats_per_floor || ''}
                       onChange={handleChange}
-                      className="w-full px-6 py-4 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-[#6339CA]/10 focus:border-[#6339CA] outline-none transition-all font-bold text-slate-700"
+                      className="w-full px-6 py-4 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-[#6339CA]/10 focus:border-[#6339CA] outline-none transition-all font-bold text-purple-800"
                       required
                     />
                   </div>
@@ -314,7 +314,7 @@ export default function RegisterSociety({ onBack, onSuccess }: RegisterSocietyPr
                   <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6">
                     <Phone className="w-10 h-10 text-emerald-600 animate-bounce" />
                   </div>
-                  <p className="text-slate-600 font-medium">We've sent a 6-digit OTP to your phone number <br /><b className="text-[#321F5C] text-lg">{formData.phone}</b></p>
+                  <p className="text-slate-600 font-medium">We've sent a 6-digit OTP to your phone number <br /><b className="text-[#6339CA] text-lg">{formData.phone}</b></p>
                   <div className="flex justify-center pt-4">
                     <input
                       type="text"
@@ -322,7 +322,7 @@ export default function RegisterSociety({ onBack, onSuccess }: RegisterSocietyPr
                       value={otp}
                       onChange={(e) => setOtp(e.target.value)}
                       placeholder="000000"
-                      className="w-full max-w-[240px] text-center text-4xl tracking-[0.4em] font-black py-5 rounded-3xl border-2 border-slate-200 focus:border-emerald-500 focus:ring-8 focus:ring-emerald-500/10 outline-none transition-all text-slate-800 placeholder:text-slate-200"
+                      className="w-full max-w-[240px] text-center text-4xl tracking-[0.4em] font-black py-5 rounded-3xl border-2 border-slate-200 focus:border-emerald-500 focus:ring-8 focus:ring-emerald-500/10 outline-none transition-all text-purple-900 placeholder:text-slate-200"
                       required
                     />
                   </div>
@@ -339,7 +339,7 @@ export default function RegisterSociety({ onBack, onSuccess }: RegisterSocietyPr
                   <button
                     type="submit"
                     disabled={loading}
-                    className="flex-[2] bg-gradient-to-r from-[#6339CA] to-[#321F5C] hover:from-#5D31C7 hover:to-[#321F5C] disabled:from-slate-400 disabled:to-slate-500 text-white font-black py-4.5 rounded-2xl transition-all flex items-center justify-center gap-3 shadow-xl shadow-[#6339CA]/20 uppercase tracking-widest text-xs"
+                    className="flex-[2] bg-gradient-to-r from-[#6339CA] to-[#6339CA] hover:from-#5D31C7 hover:to-[#6339CA] disabled:from-slate-400 disabled:to-slate-500 text-white font-black py-4.5 rounded-2xl transition-all flex items-center justify-center gap-3 shadow-xl shadow-[#6339CA]/20 uppercase tracking-widest text-xs"
                   >
                     {loading ? (
                       <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />

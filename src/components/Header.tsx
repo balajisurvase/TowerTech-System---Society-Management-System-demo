@@ -43,7 +43,7 @@ export default function Header({ user, activeTab = 'dashboard' }: HeaderProps) {
           <span>/</span>
           <span>{breadcrumb.category}</span>
         </div>
-        <h1 className="text-sm font-bold text-[#321F5C] tracking-tight leading-tight">
+        <h1 className="text-sm font-bold text-[#6339CA] tracking-tight leading-tight">
           {breadcrumb.title}
         </h1>
       </div>
@@ -56,7 +56,7 @@ export default function Header({ user, activeTab = 'dashboard' }: HeaderProps) {
           <input 
             type="text" 
             placeholder="Search residents, flats..." 
-            className="bg-transparent border-none outline-none w-full text-slate-800 placeholder-slate-400 text-xs font-medium"
+            className="bg-transparent border-none outline-none w-full text-purple-900 placeholder-slate-400 text-xs font-medium"
           />
           <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-mono font-semibold text-slate-400 bg-white border border-slate-200 rounded">
             ⌘K
@@ -66,7 +66,7 @@ export default function Header({ user, activeTab = 'dashboard' }: HeaderProps) {
         {/* Notification Bell */}
         <button 
           aria-label="Notifications"
-          className="relative p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100/80 rounded-lg transition-colors border border-slate-200/60"
+          className="relative p-2 text-slate-500 hover:text-purple-900 hover:bg-slate-100/80 rounded-lg transition-colors border border-slate-200/60"
         >
           <Bell className="w-4 h-4" />
           <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#6339CA] rounded-full ring-2 ring-white"></span>
@@ -76,7 +76,7 @@ export default function Header({ user, activeTab = 'dashboard' }: HeaderProps) {
 
         {/* Date Display */}
         <div className="hidden xl:block text-right">
-          <p className="text-xs font-semibold text-slate-700 leading-tight font-mono">{dateFormatted}</p>
+          <p className="text-xs font-semibold text-purple-800 leading-tight font-mono">{dateFormatted}</p>
           <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-wider flex items-center justify-end gap-1 mt-0.5">
             <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
             Live System
@@ -88,7 +88,7 @@ export default function Header({ user, activeTab = 'dashboard' }: HeaderProps) {
         {/* User Info Lockup */}
         <div className="flex items-center gap-3 pl-1">
           <div className="text-right hidden sm:block">
-            <p className="text-xs font-bold text-[#321F5C] leading-tight">{user.name}</p>
+            <p className="text-xs font-bold text-[#6339CA] leading-tight">{user.name}</p>
             <p className="text-[10px] font-bold text-[#6339CA] tracking-wide uppercase mt-0.5">
               {user.role === 'security' ? 'Security Guard' : (user.admin_id || user.role === 'admin') ? 'Administrator' : (user.occupancy_type || 'Resident')}
             </p>

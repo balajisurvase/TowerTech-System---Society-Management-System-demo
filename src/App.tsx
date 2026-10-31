@@ -14,6 +14,7 @@ import SecurityDashboard from './components/SecurityDashboard';
 import NoticeBoard from './components/NoticeBoard';
 import CommunicationCenter from './components/CommunicationCenter';
 import { Toaster } from 'sonner';
+import VisitorAlertPopup from './modules/visitors/components/VisitorAlertPopup';
 import { Users, ShieldAlert, ArrowLeft } from 'lucide-react';
 
 export default function App() {
@@ -219,9 +220,19 @@ export default function App() {
   const isAdmin = user.role === 'admin' || !!user.admin_id;
 
   return (
-    <div className="min-h-screen bg-[#f4f5f8] font-sans text-slate-900 flex flex-col w-full min-w-0">
+    <div className="min-h-screen bg-[#f8f5fd] font-sans text-slate-900 flex flex-col w-full min-w-0">
       <Toaster position="top-center" richColors />
       
+      {/* Realtime Instant Pop-up Alerts for Incoming Visitors */}
+      {(user.role === 'resident' || (!isAdmin && user.role !== 'security')) && (
+        <VisitorAlertPopup
+          currentResidentId={currentResident?.resident_id || user.resident_id || user.id}
+          currentResidentFlat={currentResident?.flat || user.flat}
+          currentResidentTower={currentResident?.tower || user.tower}
+          currentResidentName={currentResident?.name || user.name}
+        />
+      )}
+
       {/* TowerTech Deep Purple Top Header Bar */}
       <TopHeader 
         user={user}
@@ -307,13 +318,13 @@ export default function App() {
                 <div className="flex items-center justify-between bg-white p-3.5 px-5 rounded-xl border border-slate-200/90 shadow-xs">
                   <button
                     onClick={() => setActiveTab('dashboard')}
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#542d87] hover:bg-[#462372] text-white font-bold text-xs transition-all shadow-xs active:scale-95 cursor-pointer"
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#6e44d8] hover:bg-[#5b32c6] text-white font-black text-xs transition-all shadow-xs active:scale-95 cursor-pointer"
                   >
                     <ArrowLeft className="w-4 h-4 text-white" />
                     <span>Back to Dashboard</span>
                   </button>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-[#542d87] bg-purple-50 border border-purple-100 px-3 py-1 rounded-full uppercase tracking-wider">
+                    <span className="text-xs font-black text-[#6e44d8] bg-purple-50 border border-purple-100 px-3 py-1 rounded-full uppercase tracking-wider">
                       {activeTab === 'security' ? 'VISITOR MANAGEMENT' : activeTab === 'communication' ? 'COMMUNICATION' : activeTab === 'financial' ? 'FINANCIAL MANAGEMENT' : activeTab.toUpperCase()} MODULE
                     </span>
                   </div>

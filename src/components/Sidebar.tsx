@@ -19,6 +19,7 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { Role } from '../types';
+import TowerTechLogo from './TowerTechLogo';
 
 interface SidebarProps {
   isAdmin?: boolean;
@@ -158,20 +159,20 @@ export default function Sidebar({
         />
       )}
 
-      {/* SIDEBAR THEME (Sunset Violet: #321F5C) */}
-      <aside className={`fixed md:sticky top-0 left-0 h-screen w-[240px] sm:w-[260px] bg-[#321F5C] text-white flex flex-col shrink-0 z-50 font-sans select-none transition-transform duration-200 ease-in-out p-4 shadow-2xl border-r border-purple-800/80 ${
+      {/* SIDEBAR THEME (Light Purple Shaded Theme with Bright White Text) */}
+      <aside className={`fixed md:sticky top-0 left-0 h-screen w-[240px] sm:w-[260px] bg-gradient-to-b from-[#6e44d8] to-[#5b32c6] text-white flex flex-col shrink-0 z-50 font-sans select-none transition-transform duration-200 ease-in-out p-4 shadow-2xl border-r border-purple-400/30 ${
         isMobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
       }`}>
         
         {/* BRAND LOGO */}
-        <div className="flex items-center justify-between pb-5 px-1 relative">
+        <div className="flex items-center justify-between pb-6 px-1 relative">
           <div 
             className="flex items-center gap-3 cursor-pointer group" 
             onClick={() => setActiveTab('dashboard')}
           >
-            {/* Vivid Gold Rounded App Icon */}
-            <div className="w-10 h-10 rounded-2xl bg-[#FAA928] flex items-center justify-center text-slate-950 shadow-lg shadow-amber-500/30 group-hover:scale-105 transition-transform">
-              <ArrowDownCircle className="w-5 h-5" />
+            {/* Logo Image */}
+            <div className="w-11 h-11 rounded-2xl bg-white flex items-center justify-center shadow-lg shadow-purple-900/20 group-hover:scale-105 transition-transform overflow-hidden p-1">
+              <TowerTechLogo className="w-full h-full" />
             </div>
 
             <div>
@@ -180,21 +181,21 @@ export default function Sidebar({
                   TowerTech<span className="text-[#FAA928]">.</span>
                 </span>
               </div>
-              <p className="text-[10px] font-bold text-purple-200 uppercase tracking-widest mt-1">
-                Green Park Residency
+              <p className="text-[10px] font-black text-white uppercase tracking-widest mt-1 opacity-100">
+                Society Management
               </p>
             </div>
           </div>
 
           {/* Figma Style Collapse Indicator Button */}
-          <div className="hidden md:flex absolute -right-7 top-2.5 w-6 h-6 rounded-full bg-white border border-slate-200 shadow-md text-slate-600 items-center justify-center cursor-pointer hover:bg-slate-50 transition-colors z-20">
-            <ChevronLeft className="w-3.5 h-3.5 text-slate-700" />
+          <div className="hidden md:flex absolute -right-7 top-4 w-6 h-6 rounded-full bg-white border border-purple-200 shadow-md text-purple-600 items-center justify-center cursor-pointer hover:bg-purple-50 transition-colors z-20">
+            <ChevronLeft className="w-3.5 h-3.5 text-purple-700" />
           </div>
 
           {onCloseMobile && (
             <button
               onClick={onCloseMobile}
-              className="md:hidden p-1.5 rounded-lg text-purple-200 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+              className="md:hidden p-1.5 rounded-lg text-white hover:bg-white/10 transition-colors cursor-pointer"
               aria-label="Close menu"
             >
               <X className="w-5 h-5" />
@@ -203,10 +204,10 @@ export default function Sidebar({
         </div>
 
         {/* CATEGORIZED NAVIGATION LINKS */}
-        <nav className="flex-1 overflow-y-auto custom-scrollbar pr-1 py-3 space-y-4">
+        <nav className="flex-1 overflow-y-auto custom-scrollbar pr-1 py-3 space-y-5">
           {navCategories.map((group) => (
-            <div key={group.category} className="space-y-1">
-              <p className="text-[9px] font-black text-purple-200/60 uppercase tracking-wider px-3 mb-1.5">
+            <div key={group.category} className="space-y-1.5">
+              <p className="text-[11px] font-black text-white uppercase tracking-wider px-3 mb-2 opacity-100">
                 {group.category}
               </p>
               {group.items.map((item) => {
@@ -219,23 +220,25 @@ export default function Sidebar({
                       setActiveTab(item.id);
                       if (onCloseMobile) onCloseMobile();
                     }}
-                    className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all duration-150 text-xs font-semibold cursor-pointer ${
+                    className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all duration-150 text-[13px] font-extrabold cursor-pointer border ${
                       isActive 
-                        ? 'bg-[#6339CA] text-white font-black shadow-xs border border-purple-500/30' 
-                        : 'text-purple-100/70 hover:text-white hover:bg-white/5'
+                        ? 'bg-white text-[#6e44d8] font-black shadow-lg border-white' 
+                        : 'text-white font-extrabold border-transparent hover:bg-white/20 hover:border-white/10'
                     }`}
                   >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <Icon className={`w-4 h-4 shrink-0 transition-colors ${isActive ? 'text-[#FAA928]' : 'text-purple-200'}`} />
+                    <div className="flex items-center gap-3.5 min-w-0">
+                      <Icon className={`w-[18px] h-[18px] shrink-0 transition-colors ${isActive ? 'text-[#6e44d8]' : 'text-white'}`} />
                       <span className="truncate">{item.label}</span>
                     </div>
 
                     {item.badge ? (
-                      <span className="px-1.5 py-0.5 rounded-md bg-[#FAA928] text-slate-950 text-[9px] font-black shrink-0 shadow-xs">
+                      <span className={`px-2 py-0.5 rounded-md text-[9px] font-black shrink-0 shadow-xs ${
+                        isActive ? 'bg-[#6e44d8] text-white' : 'bg-[#FAA928] text-white'
+                      }`}>
                         {item.badge}
                       </span>
                     ) : isActive ? (
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#FAA928] shrink-0"></span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#6e44d8] shrink-0"></span>
                     ) : null}
                   </button>
                 );

@@ -55,7 +55,7 @@ const CHANNELS: ChannelDef[] = [
     name: 'Official Announcements',
     description: 'Direct alerts & broadcasts from Society Management',
     icon: Megaphone,
-    color: 'from-[#321F5C] to-[#5D31C7]',
+    color: 'from-[#6339CA] to-[#5D31C7]',
     badge: 'Broadcast'
   },
   {
@@ -71,7 +71,7 @@ const CHANNELS: ChannelDef[] = [
     name: 'Maintenance & Facility Desk',
     description: 'Discussions on repairs, water, lifts, and utilities',
     icon: Wrench,
-    color: 'from-[#321F5C] to-[#6339CA]',
+    color: 'from-[#6339CA] to-[#6339CA]',
     badge: 'Facility'
   },
   {
@@ -79,7 +79,7 @@ const CHANNELS: ChannelDef[] = [
     name: 'Managing Committee & RWA',
     description: 'Society decisions, AGM topics, and resident queries',
     icon: ShieldCheck,
-    color: 'from-[#321F5C] to-[#5D31C7]',
+    color: 'from-[#6339CA] to-[#5D31C7]',
     badge: 'RWA'
   },
   {
@@ -87,7 +87,7 @@ const CHANNELS: ChannelDef[] = [
     name: 'Tower Resident Group',
     description: 'Localized tower discussions & neighborhood updates',
     icon: Building2,
-    color: 'from-[#6339CA] to-[#321F5C]',
+    color: 'from-[#6339CA] to-[#6339CA]',
     badge: 'Tower'
   }
 ];
@@ -349,7 +349,7 @@ export default function CommunicationCenter({ user, onSwitchTab, onRefresh }: Co
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-1 mb-0.5">
-                        <h4 className={`text-xs font-black truncate ${isActive ? 'text-[#6339CA]' : 'text-slate-800'}`}>
+                        <h4 className={`text-xs font-black truncate ${isActive ? 'text-[#6339CA]' : 'text-purple-900'}`}>
                           {ch.name}
                         </h4>
                         <div className="flex items-center gap-1">
@@ -376,11 +376,11 @@ export default function CommunicationCenter({ user, onSwitchTab, onRefresh }: Co
           {/* Active Channel Header */}
           <div className="p-4 sm:p-5 border-b border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/60">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl text-white bg-[#321F5C]">
+              <div className="p-2.5 rounded-xl text-white bg-[#6339CA]">
                 <ChannelIcon className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-sm font-black text-[#321F5C] flex items-center gap-2">
+                <h3 className="text-sm font-black text-[#6339CA] flex items-center gap-2">
                   {currentChannelDef.name}
                   {pinnedChannels.includes(activeChannel) && <Pin className="w-3.5 h-3.5 text-[#6339CA] fill-[#6339CA]" />}
                 </h3>
@@ -399,7 +399,7 @@ export default function CommunicationCenter({ user, onSwitchTab, onRefresh }: Co
                   placeholder="Search in chat..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-700 outline-none focus:ring-1 focus:ring-[#226192] placeholder:text-slate-400"
+                  className="w-full pl-9 pr-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-bold text-purple-800 outline-none focus:ring-1 focus:ring-[#226192] placeholder:text-slate-400"
                 />
                 {searchQuery && (
                   <button
@@ -428,7 +428,7 @@ export default function CommunicationCenter({ user, onSwitchTab, onRefresh }: Co
                     <button
                       type="button"
                       onClick={() => togglePinChannel(activeChannel)}
-                      className="w-full text-left px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2 cursor-pointer"
+                      className="w-full text-left px-4 py-2 text-xs font-bold text-purple-800 hover:bg-slate-50 flex items-center gap-2 cursor-pointer"
                     >
                       <Pin className="w-3.5 h-3.5 text-[#6339CA]" />
                       <span>{pinnedChannels.includes(activeChannel) ? 'Unpin Chat' : 'Pin Chat'}</span>
@@ -440,7 +440,7 @@ export default function CommunicationCenter({ user, onSwitchTab, onRefresh }: Co
                         setShowChatInfoModal(true);
                         setShowOptionsMenu(false);
                       }}
-                      className="w-full text-left px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2 cursor-pointer"
+                      className="w-full text-left px-4 py-2 text-xs font-bold text-purple-800 hover:bg-slate-50 flex items-center gap-2 cursor-pointer"
                     >
                       <Info className="w-3.5 h-3.5 text-slate-500" />
                       <span>Chat Info</span>
@@ -449,7 +449,7 @@ export default function CommunicationCenter({ user, onSwitchTab, onRefresh }: Co
                     <button
                       type="button"
                       onClick={() => toggleMuteChannel(activeChannel)}
-                      className="w-full text-left px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2 cursor-pointer"
+                      className="w-full text-left px-4 py-2 text-xs font-bold text-purple-800 hover:bg-slate-50 flex items-center gap-2 cursor-pointer"
                     >
                       {mutedChannels.includes(activeChannel) ? <Volume2 className="w-3.5 h-3.5 text-slate-500" /> : <VolumeX className="w-3.5 h-3.5 text-slate-500" />}
                       <span>{mutedChannels.includes(activeChannel) ? 'Unmute Chat' : 'Mute Chat'}</span>
@@ -461,7 +461,7 @@ export default function CommunicationCenter({ user, onSwitchTab, onRefresh }: Co
                         toast.success('All messages marked as read');
                         setShowOptionsMenu(false);
                       }}
-                      className="w-full text-left px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2 cursor-pointer"
+                      className="w-full text-left px-4 py-2 text-xs font-bold text-purple-800 hover:bg-slate-50 flex items-center gap-2 cursor-pointer"
                     >
                       <Check className="w-3.5 h-3.5 text-emerald-600" />
                       <span>Mark as Read</span>
@@ -498,7 +498,7 @@ export default function CommunicationCenter({ user, onSwitchTab, onRefresh }: Co
                 <div className="w-12 h-12 rounded-2xl bg-slate-200/70 flex items-center justify-center mb-3 text-slate-500">
                   <ChannelIcon className="w-6 h-6" />
                 </div>
-                <h4 className="text-sm font-black text-slate-700">No messages in this chat yet</h4>
+                <h4 className="text-sm font-black text-purple-800">No messages in this chat yet</h4>
                 <p className="text-xs font-medium text-slate-400 max-w-xs mt-1">
                   Start the conversation or share updates with fellow residents below!
                 </p>
@@ -515,7 +515,7 @@ export default function CommunicationCenter({ user, onSwitchTab, onRefresh }: Co
                   >
                     {/* Sender Identity & Role Pill */}
                     <div className="flex items-center gap-2 mb-1 px-1">
-                      <span className="text-[11px] font-black text-slate-800">
+                      <span className="text-[11px] font-black text-purple-900">
                         {msg.sender_name}
                       </span>
                       {isMsgAdmin && (
@@ -548,7 +548,7 @@ export default function CommunicationCenter({ user, onSwitchTab, onRefresh }: Co
                       className={`max-w-[85%] sm:max-w-[70%] rounded-2xl p-4 text-xs font-medium leading-relaxed shadow-xs ${
                         isMe
                           ? 'bg-[#6339CA] text-white rounded-br-xs shadow-xs'
-                          : 'bg-white text-slate-800 rounded-bl-xs border border-slate-200/90 shadow-xs'
+                          : 'bg-white text-purple-900 rounded-bl-xs border border-slate-200/90 shadow-xs'
                       }`}
                     >
                       <p className="whitespace-pre-wrap">{msg.content}</p>
@@ -557,7 +557,7 @@ export default function CommunicationCenter({ user, onSwitchTab, onRefresh }: Co
                         <div className={`mt-3 pt-2.5 border-t ${isMe ? 'border-white/20' : 'border-slate-200/80'} flex items-center justify-between gap-3`}>
                           <div className="flex items-center gap-2 truncate">
                             <Paperclip className={`w-3.5 h-3.5 ${isMe ? 'text-white' : 'text-[#6339CA]'} shrink-0`} />
-                            <span className={`font-bold underline truncate text-[11px] ${isMe ? 'text-white' : 'text-slate-800'}`}>
+                            <span className={`font-bold underline truncate text-[11px] ${isMe ? 'text-white' : 'text-purple-900'}`}>
                               {msg.attachment_name || 'Attached File'}
                             </span>
                           </div>
@@ -593,7 +593,7 @@ export default function CommunicationCenter({ user, onSwitchTab, onRefresh }: Co
                   <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between gap-3 text-xs">
                     <div className="flex items-center gap-2 truncate">
                       <FileText className="w-4 h-4 text-[#6339CA] shrink-0" />
-                      <span className="font-bold text-slate-800 truncate">{attachmentName}</span>
+                      <span className="font-bold text-purple-900 truncate">{attachmentName}</span>
                       {attachmentSize && (
                         <span className="text-[10px] text-slate-400">({(attachmentSize / 1024).toFixed(0)} KB)</span>
                       )}
@@ -643,7 +643,7 @@ export default function CommunicationCenter({ user, onSwitchTab, onRefresh }: Co
                       value={messageText}
                       onChange={(e) => setMessageText(e.target.value)}
                       onKeyDown={handleKeyDown}
-                      className="w-full p-3 rounded-2xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-800 outline-none focus:ring-1 focus:ring-[#6339CA] resize-none custom-scrollbar"
+                      className="w-full p-3 rounded-2xl bg-slate-50 border border-slate-200 text-xs font-medium text-purple-900 outline-none focus:ring-1 focus:ring-[#6339CA] resize-none custom-scrollbar"
                     />
                   </div>
 
@@ -664,15 +664,15 @@ export default function CommunicationCenter({ user, onSwitchTab, onRefresh }: Co
 
       {/* Chat Info Modal */}
       {showChatInfoModal && (
-        <div className="fixed inset-0 bg-[#321F5C]/60 backdrop-blur-xs z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-[#6339CA]/60 backdrop-blur-xs z-[100] flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-md p-6 space-y-4 animate-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between border-b pb-3">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl text-white bg-slate-800">
+                <div className="p-2.5 rounded-xl text-white bg-purple-900">
                   <ChannelIcon className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-black text-[#321F5C]">{currentChannelDef.name}</h3>
+                  <h3 className="text-base font-black text-[#6339CA]">{currentChannelDef.name}</h3>
                   <p className="text-[11px] text-slate-500">Green Park Residency Chat</p>
                 </div>
               </div>
@@ -684,20 +684,20 @@ export default function CommunicationCenter({ user, onSwitchTab, onRefresh }: Co
               </button>
             </div>
 
-            <div className="space-y-3 text-xs text-slate-700">
+            <div className="space-y-3 text-xs text-purple-800">
               <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
-                <p className="font-bold text-[#321F5C]">Description</p>
+                <p className="font-bold text-[#6339CA]">Description</p>
                 <p className="text-slate-600">{currentChannelDef.description}</p>
               </div>
 
               <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
-                <span className="font-bold text-[#321F5C]">Channel Type</span>
+                <span className="font-bold text-[#6339CA]">Channel Type</span>
                 <span className="px-2 py-0.5 rounded bg-[#6339CA]/10 text-[#6339CA] font-bold">Group Discussion</span>
               </div>
 
               <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
-                <span className="font-bold text-[#321F5C]">Total Participants</span>
-                <span className="font-bold text-slate-800">124 Residents</span>
+                <span className="font-bold text-[#6339CA]">Total Participants</span>
+                <span className="font-bold text-purple-900">124 Residents</span>
               </div>
             </div>
 
@@ -715,16 +715,16 @@ export default function CommunicationCenter({ user, onSwitchTab, onRefresh }: Co
 
       {/* Delete Chat Confirmation Modal */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-[#321F5C]/60 backdrop-blur-xs z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-[#6339CA]/60 backdrop-blur-xs z-[100] flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-md p-6 space-y-4 animate-in zoom-in-95 duration-150">
-            <h3 className="text-base font-bold text-[#321F5C]">Hide / Clear Chat History</h3>
+            <h3 className="text-base font-bold text-[#6339CA]">Hide / Clear Chat History</h3>
             <p className="text-xs text-slate-600 leading-relaxed">
               Are you sure you want to clear the message history for this channel from your view? Other participants' records remain intact.
             </p>
             <div className="flex items-center justify-end gap-3 pt-2">
               <button
                 onClick={() => setShowDeleteConfirm(false)}
-                className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50 cursor-pointer"
+                className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-purple-800 hover:bg-slate-50 cursor-pointer"
               >
                 Cancel
               </button>

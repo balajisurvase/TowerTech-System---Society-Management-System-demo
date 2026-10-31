@@ -360,7 +360,7 @@ export const societyService = {
     const storageKey = `towertech_visitors_${socId}`;
     return cachedQuery(`visitors_${status || 'all'}_${search || ''}`, async () => {
       try {
-        let req = supabase.from('visitor').select('*').order('created_at', { ascending: false });
+        let req = supabase.from('visitors').select('*').order('created_at', { ascending: false });
         if (status && status !== 'All') {
           req = req.eq('status', status);
         }
@@ -392,53 +392,53 @@ export const societyService = {
         localStorage.setItem(storageKey, JSON.stringify(list));
       }
       return list as Visitor[];
-    }, initialVisitors, 10000);
+    }, initialVisitors, 5000);
   },
 
   async addVisitor(visitorData: Partial<Visitor>) {
     invalidateCache('visitors');
     const socId = visitorData.society_id || 'GV2026';
     const storageKey = `towertech_visitors_${socId}`;
-    const timestamp = Date.now();
-    const visitor_id = visitorData.visitor_id || timestamp;
+    const nowIso = new Date().toISOString();
 
-    const payload: Visitor = {
-      visitor_id,
-      id: visitor_id,
+    const dbPayload: any = {
       visitor_name: visitorData.visitor_name || 'Guest',
       visitor_mobile: visitorData.visitor_mobile || '',
       visitor_type: visitorData.visitor_type || 'Guest',
       vehicle_number: visitorData.vehicle_number || '',
       purpose: visitorData.purpose || 'Visit',
       resident_id: visitorData.resident_id || 'R001',
-      resident_name: visitorData.resident_name || 'Resident',
-      tower: visitorData.tower || 'A',
-      floor: visitorData.floor || 1,
-      flat: visitorData.flat || '101',
-      entry_time: visitorData.entry_time || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      exit_time: visitorData.exit_time || '',
-      status: (visitorData.status as any) || 'Inside',
-      approval_status: (visitorData.approval_status as any) || 'Approved',
-      security_id: visitorData.security_id || 'S001',
-      society_id: socId,
-      created_at: new Date().toISOString()
+      status: visitorData.status || 'Inside',
+      approval_status: visitorData.approval_status || 'Approved',
+      entry_time: nowIso,
+      created_at: nowIso,
+      security_user_name: visitorData.security_user_name || 'Duty Guard',
+      security_user_shift: visitorData.security_user_shift || 'Morning'
     };
 
+    let insertedId: number | string = Date.now();
+
     try {
-      const { data, error } = await supabase.from('visitor').insert([payload]).select();
+      const { data, error } = await supabase.from('visitors').insert([dbPayload]).select();
       if (!error && data && data.length > 0) {
-        payload.id = data[0].id;
-        payload.visitor_id = data[0].visitor_id || data[0].id;
+        insertedId = data[0].visitor_id || data[0].id || insertedId;
       }
     } catch (e) {
       console.warn('Supabase visitor insert warning:', e);
     }
 
+    const payload: Visitor = {
+      visitor_id: insertedId,
+      id: insertedId,
+      ...visitorData,
+      ...dbPayload
+    };
+
     // Update local storage
     if (typeof window !== 'undefined') {
       const local = localStorage.getItem(storageKey);
       const list: Visitor[] = local ? JSON.parse(local) : [...initialVisitors];
-      const updatedList = [payload, ...list.filter(v => (v.visitor_id || v.id) !== visitor_id)];
+      const updatedList = [payload, ...list.filter(v => (v.visitor_id || v.id) !== insertedId)];
       localStorage.setItem(storageKey, JSON.stringify(updatedList));
     }
 
@@ -450,11 +450,19 @@ export const societyService = {
     const socId = 'GV2026';
     const storageKey = `towertech_visitors_${socId}`;
 
+    const dbUpdates: any = { ...updates };
+    if (dbUpdates.exit_time && !dbUpdates.exit_time.includes('T')) {
+      dbUpdates.exit_time = new Date().toISOString();
+    }
+    if (dbUpdates.entry_time && !dbUpdates.entry_time.includes('T')) {
+      dbUpdates.entry_time = new Date().toISOString();
+    }
+
     try {
       await supabase
-        .from('visitor')
-        .update(updates)
-        .or(`visitor_id.eq.${visitorId},id.eq.${visitorId}`);
+        .from('visitors')
+        .update(dbUpdates)
+        .eq('visitor_id', visitorId);
     } catch (e) {
       console.warn('Supabase visitor update warning:', e);
     }

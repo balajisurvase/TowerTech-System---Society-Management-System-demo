@@ -175,20 +175,20 @@ export default function AmenityBooking({ resident, onRefresh }: AmenityBookingPr
       {/* Header Bar */}
       <div className="flex justify-between items-center shrink-0">
         <div>
-          <h2 className="text-sm lg:text-base font-black text-[#321F5C] leading-tight">Amenity Bookings</h2>
+          <h2 className="text-sm lg:text-base font-black text-[#6339CA] leading-tight">Amenity Bookings</h2>
           <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Book society facilities in real-time</p>
         </div>
       </div>
 
       {showSuccessModal && (
-        <div className="fixed inset-0 bg-[#321F5C]/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-[#6339CA]/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-2xl border border-slate-100 w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="p-6 text-center space-y-4">
               <div className="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
                 <CheckCircle2 className="w-8 h-8" />
               </div>
               <div>
-                <h3 className="text-lg font-black text-[#321F5C] tracking-tight">Booking Successful!</h3>
+                <h3 className="text-lg font-black text-[#6339CA] tracking-tight">Booking Successful!</h3>
                 <p className="text-xs text-slate-500 font-medium mt-1">Your request for {formData.amenity_name || 'the amenity'} has been submitted and is pending approval.</p>
               </div>
               <button 
@@ -208,7 +208,7 @@ export default function AmenityBooking({ resident, onRefresh }: AmenityBookingPr
         <div className="lg:col-span-6 xl:col-span-5 bg-white rounded-2xl shadow-sm border border-slate-100 flex flex-col overflow-hidden">
           <div className="px-4 py-2.5 border-b border-slate-100 flex justify-between items-center shrink-0 bg-slate-50/50">
             <div>
-              <h3 className="text-xs font-black text-[#321F5C] uppercase tracking-wider">New Reservation</h3>
+              <h3 className="text-xs font-black text-[#6339CA] uppercase tracking-wider">New Reservation</h3>
               <p className="text-[10px] text-slate-500 font-medium">Select amenity & reserve slot</p>
             </div>
             <div className="flex items-center gap-1.5 px-2.5 py-1 bg-purple-50 text-purple-700 rounded-lg text-[10px] font-black border border-purple-100">
@@ -229,7 +229,7 @@ export default function AmenityBooking({ resident, onRefresh }: AmenityBookingPr
                     name="amenity_name"
                     value={formData.amenity_name}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-[#6339CA] focus:ring-1 focus:ring-[#6339CA]/20 outline-none transition-all font-bold text-xs text-slate-800 appearance-none bg-slate-50/80 cursor-pointer"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-[#6339CA] focus:ring-1 focus:ring-[#6339CA]/20 outline-none transition-all font-bold text-xs text-purple-900 appearance-none bg-slate-50/80 cursor-pointer"
                   >
                     {amenitiesList.map(a => (
                       <option key={a.amenity_id} value={a.name}>{a.name} ({a.description || 'Amenity'})</option>
@@ -251,7 +251,7 @@ export default function AmenityBooking({ resident, onRefresh }: AmenityBookingPr
                     value={formData.event_name}
                     onChange={handleInputChange}
                     placeholder="e.g. Birthday Party"
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-[#6339CA] focus:ring-1 focus:ring-[#6339CA]/20 outline-none transition-all font-bold text-xs text-slate-800 bg-slate-50/80"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-[#6339CA] focus:ring-1 focus:ring-[#6339CA]/20 outline-none transition-all font-bold text-xs text-purple-900 bg-slate-50/80"
                   />
                 </div>
                 <div>
@@ -262,7 +262,7 @@ export default function AmenityBooking({ resident, onRefresh }: AmenityBookingPr
                     value={formData.booking_date}
                     onChange={handleInputChange}
                     min={new Date().toISOString().split('T')[0]}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-[#6339CA] focus:ring-1 focus:ring-[#6339CA]/20 outline-none transition-all font-bold text-xs text-slate-800 bg-slate-50/80"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-[#6339CA] focus:ring-1 focus:ring-[#6339CA]/20 outline-none transition-all font-bold text-xs text-purple-900 bg-slate-50/80"
                   />
                 </div>
               </div>
@@ -276,7 +276,7 @@ export default function AmenityBooking({ resident, onRefresh }: AmenityBookingPr
                     name="start_time"
                     value={formData.start_time}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-[#6339CA] focus:ring-1 focus:ring-[#6339CA]/20 outline-none transition-all font-bold text-xs text-slate-800 bg-slate-50/80"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-[#6339CA] focus:ring-1 focus:ring-[#6339CA]/20 outline-none transition-all font-bold text-xs text-purple-900 bg-slate-50/80"
                   />
                 </div>
                 <div>
@@ -286,7 +286,7 @@ export default function AmenityBooking({ resident, onRefresh }: AmenityBookingPr
                     name="end_time"
                     value={formData.end_time}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-[#6339CA] focus:ring-1 focus:ring-[#6339CA]/20 outline-none transition-all font-bold text-xs text-slate-800 bg-slate-50/80"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-[#6339CA] focus:ring-1 focus:ring-[#6339CA]/20 outline-none transition-all font-bold text-xs text-purple-900 bg-slate-50/80"
                   />
                 </div>
               </div>
@@ -297,20 +297,20 @@ export default function AmenityBooking({ resident, onRefresh }: AmenityBookingPr
               <div className="grid grid-cols-3 gap-1 text-[11px]">
                 <div className="bg-white/80 p-1.5 rounded-lg text-center border border-[#6339CA]/20/50">
                   <span className="text-[9px] font-black text-slate-400 uppercase block">Duration</span>
-                  <span className="font-black text-slate-800">{charges.hours}h</span>
+                  <span className="font-black text-purple-900">{charges.hours}h</span>
                 </div>
                 <div className="bg-white/80 p-1.5 rounded-lg text-center border border-[#6339CA]/20/50">
                   <span className="text-[9px] font-black text-slate-400 uppercase block">Base Fee</span>
-                  <span className="font-black text-slate-800">₹{charges.base}</span>
+                  <span className="font-black text-purple-900">₹{charges.base}</span>
                 </div>
                 <div className="bg-white/80 p-1.5 rounded-lg text-center border border-[#6339CA]/20/50">
                   <span className="text-[9px] font-black text-slate-400 uppercase block">Extra Rate</span>
-                  <span className="font-black text-slate-800">₹{charges.extra}/h</span>
+                  <span className="font-black text-purple-900">₹{charges.extra}/h</span>
                 </div>
               </div>
 
               <div className="flex justify-between items-center pt-1 border-t border-[#6339CA]/20/80 px-1">
-                <span className="text-xs font-black text-slate-700 uppercase tracking-wider">Total Charges:</span>
+                <span className="text-xs font-black text-purple-800 uppercase tracking-wider">Total Charges:</span>
                 <span className="text-base font-black text-[#6339CA]">₹{charges.total}</span>
               </div>
             </div>
@@ -339,7 +339,7 @@ export default function AmenityBooking({ resident, onRefresh }: AmenityBookingPr
           <div className="bg-white rounded-2xl shadow-sm border border-slate-100 flex flex-col flex-1 min-h-0 overflow-hidden">
             <div className="px-4 py-2.5 border-b border-slate-100 flex justify-between items-center shrink-0 bg-slate-50/50">
               <div>
-                <h3 className="text-xs font-black text-[#321F5C] uppercase tracking-wider">My Booking History</h3>
+                <h3 className="text-xs font-black text-[#6339CA] uppercase tracking-wider">My Booking History</h3>
                 <p className="text-[10px] text-slate-500 font-medium">Track your reservations</p>
               </div>
               <span className="text-[10px] font-bold text-slate-400">{bookings.length} Total</span>
@@ -378,11 +378,11 @@ export default function AmenityBooking({ resident, onRefresh }: AmenityBookingPr
                           {(b.booking_id || '').slice(0, 7)}
                         </td>
                         <td className="px-3.5 py-2">
-                          <p className="font-bold text-slate-800 text-xs leading-tight">{b.amenity_name}</p>
+                          <p className="font-bold text-purple-900 text-xs leading-tight">{b.amenity_name}</p>
                           <p className="text-[9px] text-slate-400 font-medium truncate max-w-[140px]">{b.event_name || b.amenity_type}</p>
                         </td>
                         <td className="px-3.5 py-2">
-                          <div className="flex items-center gap-1.5 text-slate-800 font-bold text-[11px]">
+                          <div className="flex items-center gap-1.5 text-purple-900 font-bold text-[11px]">
                             <Calendar className="w-3 h-3 text-indigo-500 shrink-0" />
                             <span>{format(new Date(b.booking_date), 'dd MMM yyyy')}</span>
                           </div>
@@ -411,7 +411,7 @@ export default function AmenityBooking({ resident, onRefresh }: AmenityBookingPr
           <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-3 shrink-0">
             <div className="flex items-center gap-1.5 mb-2">
               <span className="w-1.5 h-1.5 rounded-full bg-[#6339CA]"></span>
-              <h4 className="text-[10px] font-black text-slate-800 uppercase tracking-wider">Booking Guidelines</h4>
+              <h4 className="text-[10px] font-black text-purple-900 uppercase tracking-wider">Booking Guidelines</h4>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[10px] text-slate-600 font-medium">
               <div className="bg-slate-50 rounded-xl p-2 border border-slate-100">

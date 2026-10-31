@@ -61,39 +61,39 @@ interface FinanceDashboardProps {
 
 // Color schemes aligned with Navy Blue + White theme
 const EXPENSE_COLORS: Record<string, string> = {
-  'Electricity': '#6339CA',             // Royal Violet
+  'Electricity': '#8b5cf6',             // Vibrant Purple
   'Cleaning': '#44D080',                // Mint Green
-  'Staff Salary': '#5D31C7',            // Secondary Violet
-  'Security': '#321F5C',                // Dark Plum
-  'Water': '#0284C7',                   // Sky Blue (keeping some variety)
+  'Staff Salary': '#7c3aed',            // Light Medium Purple
+  'Security': '#6339CA',                // Brand Purple
+  'Water': '#38bdf8',                   // Lighter Blue
   'Repairs & Maintenance': '#FAA928',   // Vibrant Gold
-  'Lift Maintenance': '#7C3AED',        // Violet
-  'Other Expenses': '#E11D48',          // Rose Red
-  'Housekeeping & Sanitation': '#44D080',
-  'Security Services': '#321F5C',
-  'Elevator / Lift AMC': '#7C3AED',
-  'Electricity / Utility': '#6339CA',
-  'Water Supply & Plumbing': '#0284C7',
+  'Lift Maintenance': '#c084fc',        // Lighter Violet
+  'Other Expenses': '#f43f5e',          // Rose Red
+  'Housekeeping & Sanitation': '#4ED88B',
+  'Security Services': '#6339CA',
+  'Elevator / Lift AMC': '#a855f7',
+  'Electricity / Utility': '#8b5cf6',
+  'Water Supply & Plumbing': '#0ea5e9',
   'Building Repairs & Civil Works': '#FAA928',
-  'DG Generator Fuel': '#EA580C',
-  'Gardening & Landscaping': '#16A34A',
-  'CCTV & Security Tech AMC': '#64748B'
+  'DG Generator Fuel': '#f97316',
+  'Gardening & Landscaping': '#22c55e',
+  'CCTV & Security Tech AMC': '#94a3b8'
 };
 
 const INCOME_COLORS: Record<string, string> = {
-  'Maintenance Collection': '#6339CA',  // Royal Violet
-  'Parking Charges': '#0284C7',         // Sky Blue
+  'Maintenance Collection': '#8b5cf6',  // Vibrant Purple
+  'Parking Charges': '#38bdf8',         // Lighter Blue
   'Clubhouse Charges': '#44D080',       // Mint Green
   'Penalties/Fines': '#FAA928',         // Vibrant Gold
-  'Other Income': '#5D31C7',            // Secondary Violet
-  'Amenity Booking': '#44D080',
+  'Other Income': '#7c3aed',            // Light Medium Purple
+  'Amenity Booking': '#4ED88B',
   'Violation Penalty': '#FAA928',
   'Parking Violation': '#FAA928',
-  'Interest & Investments': '#6339CA',
-  'Move-in / Move-out Charges': '#8B5CF6'
+  'Interest & Investments': '#8b5cf6',
+  'Move-in / Move-out Charges': '#a855f7'
 };
 
-const FALLBACK_PALETTE = ['#6339CA', '#5D31C7', '#321F5C', '#FAA928', '#44D080', '#7C3AED', '#E11D48', '#0284C7'];
+const FALLBACK_PALETTE = ['#8b5cf6', '#7c3aed', '#6339CA', '#FAA928', '#44D080', '#c084fc', '#f43f5e', '#38bdf8'];
 
 const CATEGORY_SUGGESTIONS: Record<FinanceType, string[]> = {
   Income: [
@@ -239,12 +239,12 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
         <div className="w-16 h-16 bg-rose-50 text-#FAA928 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-rose-100">
           <ShieldAlert className="w-8 h-8" />
         </div>
-        <h2 className="text-2xl font-black text-[#321F5C] mb-2">Access Denied / Unauthorized</h2>
+        <h2 className="text-2xl font-black text-[#6339CA] mb-2">Access Denied / Unauthorized</h2>
         <p className="text-sm font-medium text-slate-500 leading-relaxed mb-6">
           The Financial module contains sensitive society balance sheets, revenue streams, and expenditures. Only authorized Administrators have permission to view or manage financial records.
         </p>
         <div className="inline-flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-xl text-xs font-bold text-slate-600 border border-slate-200">
-          <span>Logged in role: <strong className="uppercase text-[#321F5C]">{user.admin_role || user.role}</strong></span>
+          <span>Logged in role: <strong className="uppercase text-[#6339CA]">{user.admin_role || user.role}</strong></span>
         </div>
       </div>
     );
@@ -552,7 +552,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
-        <div className="bg-[#321F5C] text-white p-3 rounded-2xl shadow-xl border border-white/10 text-xs z-50">
+        <div className="bg-[#6339CA] text-white p-3 rounded-2xl shadow-xl border border-white/10 text-xs z-50">
           <p className="font-black text-slate-100 flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ backgroundColor: data.color || payload[0].color }} />
             {data.name}
@@ -657,7 +657,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-2xl font-black text-[#321F5C] tracking-tight">Financial Dashboard</h2>
+              <h2 className="text-2xl font-black text-[#6339CA] tracking-tight">Financial Dashboard</h2>
               <span className="bg-[#6339CA]/10 text-[#6339CA] text-[10px] font-black px-2.5 py-0.5 rounded-full border border-[#6339CA]/20 uppercase tracking-wider">
                 Admin Exclusive
               </span>
@@ -671,7 +671,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
         <div className="flex flex-wrap items-center gap-3">
           <button
             onClick={() => setShowReportModal(true)}
-            className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2"
+            className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-purple-800 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2"
           >
             <FileText className="w-4 h-4" />
             Financial Statement
@@ -770,14 +770,14 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
       <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-sm flex flex-col gap-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-slate-100">
           <div>
-            <h3 className="text-lg font-black text-[#321F5C] tracking-tight uppercase">Expense Breakdown</h3>
+            <h3 className="text-lg font-black text-[#6339CA] tracking-tight uppercase">Expense Breakdown</h3>
             <p className="text-xs font-medium text-slate-500">
               Categorical distribution of operational expenditures and society maintenance costs.
             </p>
           </div>
           <div className="text-right">
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Total Expenses</span>
-            <span className="text-xl font-black text-[#321F5C]">₹{totalExpenses.toLocaleString('en-IN')}</span>
+            <span className="text-xl font-black text-[#6339CA]">₹{totalExpenses.toLocaleString('en-IN')}</span>
           </div>
         </div>
 
@@ -813,7 +813,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
 
             {/* Center Label for Expense Total */}
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span className="text-2xl sm:text-3xl font-black text-[#321F5C] tracking-tight">
+              <span className="text-2xl sm:text-3xl font-black text-[#6339CA] tracking-tight">
                 ₹{totalExpenses.toLocaleString('en-IN')}
               </span>
               <span className="text-[10px] sm:text-xs font-black text-slate-400 uppercase tracking-widest mt-0.5">
@@ -843,11 +843,11 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
                     <div className="flex items-center gap-2.5 min-w-0">
                       <span className="w-3.5 h-3.5 rounded-lg shrink-0" style={{ backgroundColor: item.color }} />
                       <div className="min-w-0">
-                        <p className="text-xs font-bold text-slate-800 truncate" title={item.name}>{item.name}</p>
+                        <p className="text-xs font-bold text-purple-900 truncate" title={item.name}>{item.name}</p>
                         <p className="text-[10px] font-bold text-slate-400">{item.percentage}% of total</p>
                       </div>
                     </div>
-                    <span className="text-xs font-black text-[#321F5C] shrink-0 ml-2">
+                    <span className="text-xs font-black text-[#6339CA] shrink-0 ml-2">
                       ₹{item.value.toLocaleString('en-IN')}
                     </span>
                   </button>
@@ -864,14 +864,14 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
       <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-sm flex flex-col gap-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-slate-100">
           <div>
-            <h3 className="text-lg font-black text-[#321F5C] tracking-tight uppercase">Income Breakdown</h3>
+            <h3 className="text-lg font-black text-[#6339CA] tracking-tight uppercase">Income Breakdown</h3>
             <p className="text-xs font-medium text-slate-500">
               Revenue sources including flat maintenance collections, amenity rents, and penalties.
             </p>
           </div>
           <div className="text-right">
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Total Income</span>
-            <span className="text-xl font-black text-[#321F5C]">₹{totalIncome.toLocaleString('en-IN')}</span>
+            <span className="text-xl font-black text-[#6339CA]">₹{totalIncome.toLocaleString('en-IN')}</span>
           </div>
         </div>
 
@@ -907,7 +907,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
 
             {/* Center Label for Income Total */}
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span className="text-2xl sm:text-3xl font-black text-[#321F5C] tracking-tight">
+              <span className="text-2xl sm:text-3xl font-black text-[#6339CA] tracking-tight">
                 ₹{totalIncome.toLocaleString('en-IN')}
               </span>
               <span className="text-[10px] sm:text-xs font-black text-slate-400 uppercase tracking-widest mt-0.5">
@@ -937,11 +937,11 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
                     <div className="flex items-center gap-2.5 min-w-0">
                       <span className="w-3.5 h-3.5 rounded-lg shrink-0" style={{ backgroundColor: item.color }} />
                       <div className="min-w-0">
-                        <p className="text-xs font-bold text-slate-800 truncate" title={item.name}>{item.name}</p>
+                        <p className="text-xs font-bold text-purple-900 truncate" title={item.name}>{item.name}</p>
                         <p className="text-[10px] font-bold text-slate-400">{item.percentage}% of total</p>
                       </div>
                     </div>
-                    <span className="text-xs font-black text-[#321F5C] shrink-0 ml-2">
+                    <span className="text-xs font-black text-[#6339CA] shrink-0 ml-2">
                       ₹{item.value.toLocaleString('en-IN')}
                     </span>
                   </button>
@@ -960,7 +960,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
         <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between gap-4">
           <div className="flex justify-between items-start pb-2 border-b border-slate-100">
             <div>
-              <h3 className="text-base font-black text-[#321F5C] uppercase tracking-tight">Maintenance Collection</h3>
+              <h3 className="text-base font-black text-[#6339CA] uppercase tracking-tight">Maintenance Collection</h3>
               <p className="text-[11px] font-medium text-slate-500">Collected vs pending society dues ratio.</p>
             </div>
             <span className="text-xs font-black text-[#6339CA] bg-[#6339CA]/10 px-2.5 py-1 rounded-xl border border-[#6339CA]/20">
@@ -998,7 +998,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
 
             {/* Percentage in Center */}
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span className="text-2xl font-black text-[#321F5C] tracking-tight">
+              <span className="text-2xl font-black text-[#6339CA] tracking-tight">
                 {maintenancePercentage}%
               </span>
               <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
@@ -1020,7 +1020,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
                 <span className="w-2.5 h-2.5 rounded-full bg-[#6339CA]" />
                 <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Collected</span>
               </div>
-              <p className="text-sm font-black text-[#321F5C]">₹{maintenanceCollected.toLocaleString('en-IN')}</p>
+              <p className="text-sm font-black text-[#6339CA]">₹{maintenanceCollected.toLocaleString('en-IN')}</p>
             </button>
 
             <button
@@ -1035,7 +1035,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
                 <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
                 <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Pending</span>
               </div>
-              <p className="text-sm font-black text-[#321F5C]">₹{maintenancePending.toLocaleString('en-IN')}</p>
+              <p className="text-sm font-black text-[#6339CA]">₹{maintenancePending.toLocaleString('en-IN')}</p>
             </button>
           </div>
         </div>
@@ -1044,7 +1044,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
         <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between gap-4">
           <div className="flex justify-between items-start pb-2 border-b border-slate-100">
             <div>
-              <h3 className="text-base font-black text-[#321F5C] uppercase tracking-tight">Pending Dues</h3>
+              <h3 className="text-base font-black text-[#6339CA] uppercase tracking-tight">Pending Dues</h3>
               <p className="text-[11px] font-medium text-slate-500">Unpaid and overdue maintenance liabilities.</p>
             </div>
             <span className="text-xs font-black text-amber-700 bg-amber-50 px-2.5 py-1 rounded-xl border border-amber-100">
@@ -1082,7 +1082,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
 
             {/* Total Pending Dues in Center */}
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span className="text-2xl font-black text-[#321F5C] tracking-tight">
+              <span className="text-2xl font-black text-[#6339CA] tracking-tight">
                 ₹{pendingDues.toLocaleString('en-IN')}
               </span>
               <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
@@ -1106,7 +1106,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
                   <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
                   <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider">{item.name}</span>
                 </div>
-                <p className="text-sm font-black text-[#321F5C]">₹{item.value.toLocaleString('en-IN')}</p>
+                <p className="text-sm font-black text-[#6339CA]">₹{item.value.toLocaleString('en-IN')}</p>
               </button>
             ))}
           </div>
@@ -1122,13 +1122,13 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
           <div className="px-6 py-3 bg-[#6339CA]/10 border-b border-[#6339CA]/20 flex items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <PieIcon className="w-4 h-4 text-[#6339CA]" />
-              <span className="text-xs font-bold text-[#321F5C]">
+              <span className="text-xs font-bold text-[#6339CA]">
                 Filtering by Graph Selection: <strong className="font-black underline">{clickedFilter.label}</strong>
               </span>
             </div>
             <button
               onClick={() => setClickedFilter(null)}
-              className="text-xs font-black text-[#6339CA] hover:text-[#321F5C] flex items-center gap-1 uppercase tracking-wider"
+              className="text-xs font-black text-[#6339CA] hover:text-[#6339CA] flex items-center gap-1 uppercase tracking-wider"
             >
               <X className="w-3.5 h-3.5" />
               Clear Selection
@@ -1158,7 +1158,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
                   className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
                     active
                       ? 'bg-[#6339CA] text-white shadow-sm'
-                      : 'text-slate-600 hover:text-[#321F5C] hover:bg-slate-50'
+                      : 'text-slate-600 hover:text-[#6339CA] hover:bg-slate-50'
                   }`}
                 >
                   <span>{tab.label}</span>
@@ -1198,7 +1198,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
             <select
               value={selectedPaymentMode}
               onChange={(e) => setSelectedPaymentMode(e.target.value)}
-              className="bg-transparent outline-none text-xs font-bold text-slate-700 cursor-pointer"
+              className="bg-transparent outline-none text-xs font-bold text-purple-800 cursor-pointer"
             >
               <option value="All">All Modes</option>
               <option value="UPI">UPI</option>
@@ -1216,7 +1216,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
             <select
               value={selectedPaymentStatus}
               onChange={(e) => setSelectedPaymentStatus(e.target.value)}
-              className="bg-transparent outline-none text-xs font-bold text-slate-700 cursor-pointer"
+              className="bg-transparent outline-none text-xs font-bold text-purple-800 cursor-pointer"
             >
               <option value="All">All Statuses</option>
               <option value="Paid">Paid</option>
@@ -1232,7 +1232,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="bg-transparent outline-none text-xs font-bold text-slate-700 cursor-pointer max-w-[150px] truncate"
+              className="bg-transparent outline-none text-xs font-bold text-purple-800 cursor-pointer max-w-[150px] truncate"
             >
               <option value="All">All Categories</option>
               {categoriesList.map(cat => (
@@ -1257,7 +1257,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
           )}
 
           <div className="ml-auto text-xs font-bold text-slate-500">
-            Showing <strong className="text-[#321F5C]">{filteredFinances.length}</strong> records
+            Showing <strong className="text-[#6339CA]">{filteredFinances.length}</strong> records
           </div>
         </div>
 
@@ -1299,17 +1299,17 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
                         }`}>
                           {f.finance_type}
                         </span>
-                        <p className="font-bold text-slate-700 truncate max-w-[140px]" title={f.category}>{f.category}</p>
+                        <p className="font-bold text-purple-800 truncate max-w-[140px]" title={f.category}>{f.category}</p>
                       </div>
                     </td>
                     <td className="px-6 py-3.5">
-                      <p className="font-medium text-slate-700 max-w-xs line-clamp-2" title={f.description}>
+                      <p className="font-medium text-purple-800 max-w-xs line-clamp-2" title={f.description}>
                         {f.description}
                       </p>
                     </td>
                     <td className="px-6 py-3.5">
                       <div className="space-y-0.5">
-                        <p className="font-bold text-[#321F5C]">{f.party_name || 'Society Office'}</p>
+                        <p className="font-bold text-[#6339CA]">{f.party_name || 'Society Office'}</p>
                         {f.resident_id && (
                           <span className="text-[10px] font-medium text-[#6339CA] bg-[#6339CA]/10 px-1.5 py-0.5 rounded">
                             Res ID: {f.resident_id}
@@ -1319,7 +1319,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
                     </td>
                     <td className="px-6 py-3.5">
                       <div className="space-y-0.5">
-                        <span className="font-bold text-slate-700 block">{f.payment_mode}</span>
+                        <span className="font-bold text-purple-800 block">{f.payment_mode}</span>
                         {f.reference_number && (
                           <span className="text-[9px] font-mono text-slate-400 truncate max-w-[120px] block" title={f.reference_number}>
                             {f.reference_number}
@@ -1340,7 +1340,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
                           f.payment_status === 'Paid' ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' :
                           f.payment_status === 'Pending' ? 'bg-amber-100 text-amber-700 hover:bg-amber-200' :
                           f.payment_status === 'Overdue' ? 'bg-rose-100 text-rose-700 hover:bg-rose-200' :
-                          'bg-slate-100 text-slate-700'
+                          'bg-slate-100 text-purple-800'
                         }`}
                       >
                         {f.payment_status === 'Paid' ? <Check className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
@@ -1380,7 +1380,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
                   <td colSpan={8} className="px-6 py-16 text-center text-slate-400">
                     <div className="flex flex-col items-center justify-center">
                       <Wallet className="w-12 h-12 mb-3 opacity-20" />
-                      <p className="text-sm font-bold text-slate-700">No financial records found</p>
+                      <p className="text-sm font-bold text-purple-800">No financial records found</p>
                       <p className="text-xs text-slate-400 mt-1">Try adjusting your filters or click "Add Record" to create a transaction.</p>
                     </div>
                   </td>
@@ -1395,7 +1395,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
       {/* Add / Edit Financial Record Modal                                     */}
       {/* --------------------------------------------------------------------- */}
       {showAddEditModal && (
-        <div className="fixed inset-0 bg-[#321F5C]/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-[#6339CA]/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl shadow-2xl border border-slate-100 w-full max-w-xl overflow-hidden max-h-[90vh] flex flex-col">
             <div className="p-6 bg-[#6339CA] text-white flex justify-between items-center shrink-0">
               <div>
@@ -1609,9 +1609,9 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
       {/* Printable Receipt / Voucher Modal                                     */}
       {/* --------------------------------------------------------------------- */}
       {selectedReceipt && (
-        <div className="fixed inset-0 bg-[#321F5C]/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-[#6339CA]/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl shadow-2xl border border-slate-100 w-full max-w-xl overflow-hidden flex flex-col">
-            <div className="p-6 bg-[#321F5C] text-white flex justify-between items-center shrink-0">
+            <div className="p-6 bg-[#6339CA] text-white flex justify-between items-center shrink-0">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-[#6339CA] flex items-center justify-center text-white">
                   <Building className="w-5 h-5" />
@@ -1631,7 +1631,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
               <div className="bg-white p-6 rounded-2xl border border-slate-200 space-y-4 shadow-sm">
                 <div className="flex justify-between items-start pb-4 border-b border-slate-100">
                   <div>
-                    <h4 className="text-base font-black text-[#321F5C]">Green Valley Co-operative Housing Society</h4>
+                    <h4 className="text-base font-black text-[#6339CA]">Green Valley Co-operative Housing Society</h4>
                     <p className="text-xs text-slate-500">Reg. No: MAH/PUN/2026/GV | Society ID: {selectedReceipt.society_id}</p>
                     <p className="text-xs text-slate-500">Baner Road, Pune - 411045</p>
                   </div>
@@ -1644,34 +1644,34 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
                 <div className="grid grid-cols-2 gap-4 text-xs">
                   <div>
                     <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block">Date</span>
-                    <span className="font-bold text-slate-800">
+                    <span className="font-bold text-purple-900">
                       {selectedReceipt.transaction_date ? new Date(selectedReceipt.transaction_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }) : '-'}
                     </span>
                   </div>
                   <div>
                     <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block">Transaction Type</span>
-                    <span className="font-bold text-slate-800">{selectedReceipt.finance_type} ({selectedReceipt.category})</span>
+                    <span className="font-bold text-purple-900">{selectedReceipt.finance_type} ({selectedReceipt.category})</span>
                   </div>
                   <div>
                     <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block">Party / Payee / Payer</span>
-                    <span className="font-bold text-slate-800">{selectedReceipt.party_name || 'Society Office'}</span>
+                    <span className="font-bold text-purple-900">{selectedReceipt.party_name || 'Society Office'}</span>
                   </div>
                   <div>
                     <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block">Payment Mode</span>
-                    <span className="font-bold text-slate-800">{selectedReceipt.payment_mode} ({selectedReceipt.reference_number || 'N/A'})</span>
+                    <span className="font-bold text-purple-900">{selectedReceipt.payment_mode} ({selectedReceipt.reference_number || 'N/A'})</span>
                   </div>
                 </div>
 
                 <div className="pt-3 border-t border-slate-100">
                   <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">Particulars / Description</span>
-                  <p className="text-xs font-medium text-slate-700 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                  <p className="text-xs font-medium text-purple-800 bg-slate-50 p-3 rounded-xl border border-slate-100">
                     {selectedReceipt.description}
                   </p>
                 </div>
 
                 <div className="flex justify-between items-center pt-4 border-t border-slate-100 bg-[#6339CA]/10/50 p-4 rounded-xl border">
                   <div>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-[#321F5C] block">Payment Status</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-[#6339CA] block">Payment Status</span>
                     <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider ${
                       selectedReceipt.payment_status === 'Paid' ? 'bg-emerald-600 text-white' : 'bg-amber-600 text-white'
                     }`}>
@@ -1680,7 +1680,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
                   </div>
                   <div className="text-right">
                     <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 block">Total Amount</span>
-                    <span className="text-2xl font-black text-[#321F5C]">₹{Number(selectedReceipt.amount).toLocaleString('en-IN')}</span>
+                    <span className="text-2xl font-black text-[#6339CA]">₹{Number(selectedReceipt.amount).toLocaleString('en-IN')}</span>
                   </div>
                 </div>
               </div>
@@ -1695,7 +1695,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
                 </button>
                 <button
                   onClick={() => setSelectedReceipt(null)}
-                  className="px-6 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-black uppercase tracking-widest transition-all"
+                  className="px-6 py-3 bg-slate-200 hover:bg-slate-300 text-purple-800 rounded-xl text-xs font-black uppercase tracking-widest transition-all"
                 >
                   Close
                 </button>
@@ -1709,21 +1709,21 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
       {/* Delete Confirmation Modal                                             */}
       {/* --------------------------------------------------------------------- */}
       {financeToDelete && (
-        <div className="fixed inset-0 bg-[#321F5C]/60 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-[#6339CA]/60 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl shadow-2xl border border-slate-100 w-full max-w-sm overflow-hidden p-6 text-center space-y-4">
             <div className="w-14 h-14 bg-rose-50 text-#FAA928 rounded-2xl flex items-center justify-center mx-auto border border-rose-100">
               <Trash2 className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="text-lg font-black text-[#321F5C]">Delete Financial Record?</h3>
+              <h3 className="text-lg font-black text-[#6339CA]">Delete Financial Record?</h3>
               <p className="text-xs text-slate-500 mt-1">
-                Are you sure you want to permanently delete record <strong className="text-slate-800">{financeToDelete.finance_id}</strong> (₹{financeToDelete.amount.toLocaleString('en-IN')})? This action cannot be undone.
+                Are you sure you want to permanently delete record <strong className="text-purple-900">{financeToDelete.finance_id}</strong> (₹{financeToDelete.amount.toLocaleString('en-IN')})? This action cannot be undone.
               </p>
             </div>
             <div className="flex gap-2 pt-2">
               <button
                 onClick={() => setFinanceToDelete(null)}
-                className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-black uppercase tracking-widest transition-all"
+                className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-purple-800 rounded-xl text-xs font-black uppercase tracking-widest transition-all"
               >
                 Cancel
               </button>
@@ -1744,9 +1744,9 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
       {/* Financial Statement / Summary Report Modal                            */}
       {/* --------------------------------------------------------------------- */}
       {showReportModal && (
-        <div className="fixed inset-0 bg-[#321F5C]/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-[#6339CA]/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl shadow-2xl border border-slate-100 w-full max-w-3xl overflow-hidden max-h-[90vh] flex flex-col">
-            <div className="p-6 bg-[#321F5C] text-white flex justify-between items-center shrink-0">
+            <div className="p-6 bg-[#6339CA] text-white flex justify-between items-center shrink-0">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-[#6339CA] flex items-center justify-center text-white">
                   <FileText className="w-5 h-5" />
@@ -1773,18 +1773,18 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
                   <span className="text-xl font-black text-rose-700">₹{totalExpenses.toLocaleString('en-IN')}</span>
                 </div>
                 <div className="p-4 bg-[#6339CA]/10 border border-[#6339CA]/20 rounded-2xl">
-                  <span className="text-[10px] font-black text-[#321F5C] uppercase tracking-widest block">Net Treasury Balance</span>
+                  <span className="text-[10px] font-black text-[#6339CA] uppercase tracking-widest block">Net Treasury Balance</span>
                   <span className="text-xl font-black text-[#6339CA]">₹{(totalIncome - totalExpenses).toLocaleString('en-IN')}</span>
                 </div>
               </div>
 
               {/* Expense Breakdown by Category */}
               <div className="space-y-3">
-                <h4 className="text-xs font-black uppercase tracking-widest text-slate-800">Top Expenditure Breakdown</h4>
+                <h4 className="text-xs font-black uppercase tracking-widest text-purple-900">Top Expenditure Breakdown</h4>
                 <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
                   {expenseChartData.map((item) => (
                     <div key={item.name} className="space-y-1">
-                      <div className="flex justify-between text-xs font-bold text-slate-700">
+                      <div className="flex justify-between text-xs font-bold text-purple-800">
                         <span className="flex items-center gap-2">
                           <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
                           {item.name}
@@ -1805,7 +1805,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
               {/* Maintenance Status Overview */}
               <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between">
                 <div>
-                  <h4 className="text-xs font-black text-[#321F5C] uppercase tracking-wider">Maintenance Dues Collection Rate</h4>
+                  <h4 className="text-xs font-black text-[#6339CA] uppercase tracking-wider">Maintenance Dues Collection Rate</h4>
                   <p className="text-xs text-slate-500 mt-0.5">
                     Collected: <strong>₹{maintenanceCollected.toLocaleString('en-IN')}</strong> | Pending: <strong>₹{maintenancePending.toLocaleString('en-IN')}</strong>
                   </p>
@@ -1827,7 +1827,7 @@ export default function FinanceDashboard({ user, residents, maintenance, onRefre
                 </button>
                 <button
                   onClick={() => setShowReportModal(false)}
-                  className="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-black uppercase tracking-widest transition-all"
+                  className="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-purple-800 rounded-xl text-xs font-black uppercase tracking-widest transition-all"
                 >
                   Close
                 </button>

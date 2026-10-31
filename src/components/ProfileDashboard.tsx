@@ -117,12 +117,12 @@ export default function ProfileDashboard({ user, onUserUpdate, onBack }: Profile
     : 'U';
 
   return (
-    <div className="w-full space-y-6 font-sans text-[#321F5C] animate-in fade-in duration-150">
+    <div className="w-full space-y-6 font-sans text-[#6339CA] animate-in fade-in duration-150">
       
       {/* Top Banner & Header */}
       <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
         {/* Cover Strip */}
-        <div className="h-28 sm:h-32 bg-gradient-to-r from-[#321F5C] via-[#5D31C7] to-[#321F5C] relative p-4 flex items-end justify-end">
+        <div className="h-28 sm:h-32 bg-gradient-to-r from-[#6339CA] via-[#5D31C7] to-[#6339CA] relative p-4 flex items-end justify-end">
           <span className="px-3 py-1 rounded-full bg-white/10 text-white backdrop-blur-md text-[11px] font-bold border border-white/15">
             Green Park Residency • TowerTech
           </span>
@@ -141,7 +141,7 @@ export default function ProfileDashboard({ user, onUserUpdate, onBack }: Profile
 
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-xl sm:text-2xl font-bold text-[#321F5C] tracking-tight">
+                <h1 className="text-xl sm:text-2xl font-bold text-[#6339CA] tracking-tight">
                   {user.name || 'Society Member'}
                 </h1>
                 <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#6339CA]/10 text-[#6339CA] border border-[#6339CA]/20">
@@ -160,7 +160,7 @@ export default function ProfileDashboard({ user, onUserUpdate, onBack }: Profile
               <button
                 type="button"
                 onClick={() => setIsEditing(true)}
-                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-xl transition-colors cursor-pointer"
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-purple-900 text-xs font-bold rounded-xl transition-colors cursor-pointer"
               >
                 Edit Contact Details
               </button>
@@ -198,7 +198,7 @@ export default function ProfileDashboard({ user, onUserUpdate, onBack }: Profile
         <div className="lg:col-span-8 bg-white rounded-2xl border border-slate-200/90 shadow-xs p-6 space-y-6">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div>
-              <h3 className="text-base font-bold text-[#321F5C]">Personal Information</h3>
+              <h3 className="text-base font-bold text-[#6339CA]">Personal Information</h3>
               <p className="text-xs text-slate-500">View and manage your registered society account details.</p>
             </div>
             {isEditing && (
@@ -213,7 +213,7 @@ export default function ProfileDashboard({ user, onUserUpdate, onBack }: Profile
               
               {/* Full Name */}
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Full Name</label>
+                <label className="text-xs font-bold text-purple-800">Full Name</label>
                 <div className="relative">
                   <UserIcon className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
@@ -221,7 +221,7 @@ export default function ProfileDashboard({ user, onUserUpdate, onBack }: Profile
                     disabled={!isEditing}
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-semibold text-[#321F5C] bg-slate-50/50 disabled:bg-slate-100/60 disabled:text-slate-600 outline-none focus:border-[#6339CA] focus:ring-2 focus:ring-[#6339CA]/10 transition-all"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-semibold text-[#6339CA] bg-slate-50/50 disabled:bg-slate-100/60 disabled:text-slate-600 outline-none focus:border-[#6339CA] focus:ring-2 focus:ring-[#6339CA]/10 transition-all"
                     required
                   />
                 </div>
@@ -230,7 +230,7 @@ export default function ProfileDashboard({ user, onUserUpdate, onBack }: Profile
               {/* User ID (Immutable) */}
               <div className="space-y-1">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-slate-700">System User ID</label>
+                  <label className="text-xs font-bold text-purple-800">System User ID</label>
                   <span className="text-[10px] text-slate-400">Read-Only</span>
                 </div>
                 <div className="relative">
@@ -246,7 +246,7 @@ export default function ProfileDashboard({ user, onUserUpdate, onBack }: Profile
 
               {/* Email Address */}
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Email Address</label>
+                <label className="text-xs font-bold text-purple-800">Email Address</label>
                 <div className="relative">
                   <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
@@ -254,7 +254,7 @@ export default function ProfileDashboard({ user, onUserUpdate, onBack }: Profile
                     disabled={!isEditing}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-semibold text-[#321F5C] bg-slate-50/50 disabled:bg-slate-100/60 disabled:text-slate-600 outline-none focus:border-[#6339CA] focus:ring-2 focus:ring-[#6339CA]/10 transition-all"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-semibold text-[#6339CA] bg-slate-50/50 disabled:bg-slate-100/60 disabled:text-slate-600 outline-none focus:border-[#6339CA] focus:ring-2 focus:ring-[#6339CA]/10 transition-all"
                     required
                   />
                 </div>
@@ -262,7 +262,7 @@ export default function ProfileDashboard({ user, onUserUpdate, onBack }: Profile
 
               {/* Phone Number */}
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Phone Number</label>
+                <label className="text-xs font-bold text-purple-800">Phone Number</label>
                 <div className="relative">
                   <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
@@ -270,7 +270,7 @@ export default function ProfileDashboard({ user, onUserUpdate, onBack }: Profile
                     disabled={!isEditing}
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-semibold text-[#321F5C] bg-slate-50/50 disabled:bg-slate-100/60 disabled:text-slate-600 outline-none focus:border-[#6339CA] focus:ring-2 focus:ring-[#6339CA]/10 transition-all"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-semibold text-[#6339CA] bg-slate-50/50 disabled:bg-slate-100/60 disabled:text-slate-600 outline-none focus:border-[#6339CA] focus:ring-2 focus:ring-[#6339CA]/10 transition-all"
                     required
                   />
                 </div>
@@ -279,7 +279,7 @@ export default function ProfileDashboard({ user, onUserUpdate, onBack }: Profile
               {/* Assigned Role (Immutable) */}
               <div className="space-y-1">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-slate-700">Assigned Role</label>
+                  <label className="text-xs font-bold text-purple-800">Assigned Role</label>
                   <span className="text-[10px] text-slate-400">Locked by Admin</span>
                 </div>
                 <div className="relative">
@@ -296,7 +296,7 @@ export default function ProfileDashboard({ user, onUserUpdate, onBack }: Profile
               {/* Flat / Tower */}
               <div className="space-y-1">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-slate-700">Unit / Flat Allocation</label>
+                  <label className="text-xs font-bold text-purple-800">Unit / Flat Allocation</label>
                   <span className="text-[10px] text-slate-400">Verified Unit</span>
                 </div>
                 <div className="relative">
@@ -315,7 +315,7 @@ export default function ProfileDashboard({ user, onUserUpdate, onBack }: Profile
             {/* Emergency Contact */}
             <div className="pt-2 border-t border-slate-100">
               <div className="space-y-1 max-w-sm">
-                <label className="text-xs font-bold text-slate-700">Emergency Security Contact</label>
+                <label className="text-xs font-bold text-purple-800">Emergency Security Contact</label>
                 <div className="relative">
                   <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
@@ -323,7 +323,7 @@ export default function ProfileDashboard({ user, onUserUpdate, onBack }: Profile
                     disabled={!isEditing}
                     value={emergencyContact}
                     onChange={(e) => setEmergencyContact(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-semibold text-[#321F5C] bg-slate-50/50 disabled:bg-slate-100/60 disabled:text-slate-600 outline-none focus:border-[#6339CA] focus:ring-2 focus:ring-[#6339CA]/10 transition-all"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-semibold text-[#6339CA] bg-slate-50/50 disabled:bg-slate-100/60 disabled:text-slate-600 outline-none focus:border-[#6339CA] focus:ring-2 focus:ring-[#6339CA]/10 transition-all"
                   />
                 </div>
               </div>
@@ -335,7 +335,7 @@ export default function ProfileDashboard({ user, onUserUpdate, onBack }: Profile
                 <button
                   type="button"
                   onClick={() => setIsEditing(false)}
-                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-colors cursor-pointer"
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-purple-800 font-bold text-xs rounded-xl transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -371,7 +371,7 @@ export default function ProfileDashboard({ user, onUserUpdate, onBack }: Profile
                 <Building2 className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="text-sm font-bold text-[#321F5C]">Green Park Residency</h4>
+                <h4 className="text-sm font-bold text-[#6339CA]">Green Park Residency</h4>
                 <p className="text-[11px] text-slate-500">Society ID: GV2026</p>
               </div>
             </div>
@@ -385,18 +385,18 @@ export default function ProfileDashboard({ user, onUserUpdate, onBack }: Profile
               </div>
               <div className="flex items-center justify-between text-slate-600">
                 <span>Member Since</span>
-                <span className="font-bold text-slate-800">January 2026</span>
+                <span className="font-bold text-purple-900">January 2026</span>
               </div>
               <div className="flex items-center justify-between text-slate-600">
                 <span>Tower Wing</span>
-                <span className="font-bold text-slate-800">{user.tower ? `Tower ${user.tower}` : 'Main Facility'}</span>
+                <span className="font-bold text-purple-900">{user.tower ? `Tower ${user.tower}` : 'Main Facility'}</span>
               </div>
             </div>
           </div>
 
           {/* Security & Access Level Card */}
           <div className="bg-slate-50 rounded-2xl border border-slate-200/80 p-5 space-y-3">
-            <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+            <h4 className="text-xs font-bold text-purple-900 uppercase tracking-wider flex items-center gap-1.5">
               <Shield className="w-4 h-4 text-[#6339CA]" />
               <span>Access & Security Credentials</span>
             </h4>
@@ -407,7 +407,7 @@ export default function ProfileDashboard({ user, onUserUpdate, onBack }: Profile
               <button
                 type="button"
                 onClick={() => setShowPasswordModal(true)}
-                className="w-full py-2.5 bg-white hover:bg-slate-100 text-slate-800 font-bold text-xs rounded-xl border border-slate-200 transition-colors shadow-2xs flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-2.5 bg-white hover:bg-slate-100 text-purple-900 font-bold text-xs rounded-xl border border-slate-200 transition-colors shadow-2xs flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Lock className="w-3.5 h-3.5 text-[#6339CA]" />
                 <span>Update Account Password</span>
@@ -421,7 +421,7 @@ export default function ProfileDashboard({ user, onUserUpdate, onBack }: Profile
 
       {/* Password Change Modal */}
       {showPasswordModal && (
-        <div className="fixed inset-0 bg-[#321F5C]/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
+        <div className="fixed inset-0 bg-[#6339CA]/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
           <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-md w-full p-6 animate-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
               <div className="flex items-center gap-2.5">
@@ -429,7 +429,7 @@ export default function ProfileDashboard({ user, onUserUpdate, onBack }: Profile
                   <Key className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-[#321F5C]">Change Account Password</h3>
+                  <h3 className="text-sm font-bold text-[#6339CA]">Change Account Password</h3>
                   <p className="text-[11px] text-slate-500">Ensure password has at least 6 characters</p>
                 </div>
               </div>
@@ -443,7 +443,7 @@ export default function ProfileDashboard({ user, onUserUpdate, onBack }: Profile
 
             <form onSubmit={handlePasswordSubmit} className="space-y-3.5">
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Current Password</label>
+                <label className="text-xs font-bold text-purple-800">Current Password</label>
                 <div className="relative">
                   <input
                     type={showCurrentPass ? 'text' : 'password'}
@@ -464,7 +464,7 @@ export default function ProfileDashboard({ user, onUserUpdate, onBack }: Profile
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">New Password</label>
+                <label className="text-xs font-bold text-purple-800">New Password</label>
                 <div className="relative">
                   <input
                     type={showNewPass ? 'text' : 'password'}
@@ -485,7 +485,7 @@ export default function ProfileDashboard({ user, onUserUpdate, onBack }: Profile
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Confirm New Password</label>
+                <label className="text-xs font-bold text-purple-800">Confirm New Password</label>
                 <input
                   type="password"
                   value={confirmPassword}
@@ -500,7 +500,7 @@ export default function ProfileDashboard({ user, onUserUpdate, onBack }: Profile
                 <button
                   type="button"
                   onClick={() => setShowPasswordModal(false)}
-                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl"
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-purple-800 font-bold text-xs rounded-xl"
                 >
                   Cancel
                 </button>

@@ -14,15 +14,14 @@ from typing import Dict, Any, Tuple
 from society_service import service
 
 PORT = 3000
-env_port = os.environ.get('PORT')
-if env_port:
-    try:
-        PORT = int(env_port)
-    except ValueError:
-        pass
-elif len(sys.argv) > 1:
+if len(sys.argv) > 1:
     try:
         PORT = int(sys.argv[1])
+    except ValueError:
+        pass
+elif os.environ.get('PORT'):
+    try:
+        PORT = int(os.environ.get('PORT'))
     except ValueError:
         pass
 

@@ -2081,31 +2081,29 @@ export default function ResidentDashboard({
             </div>
 
             <div className="space-y-6">
-              {/* 6 Resident-Specific Dashboard Summary Cards - Updated Visual System */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                
-              {/* 6 Resident-Specific Dashboard Summary Cards - Updated Visual System */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* 6 Resident-Specific Dashboard Summary Cards - Professional Equal Height Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                 
                 {/* Card 1: Maintenance Overview */}
                 <button 
                   onClick={() => setActiveTab('maintenance')}
-                  className="bg-[#6339CA] p-6 rounded-2xl shadow-lg shadow-purple-500/20 text-white flex flex-col justify-between transition-transform hover:-translate-y-0.5"
+                  className="bg-[#6339CA] p-6 rounded-2xl shadow-lg shadow-purple-500/10 text-white flex flex-col justify-between h-[155px] transition-all hover:scale-[1.01] text-left cursor-pointer group"
                 >
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center justify-between w-full">
                     <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-xs">
                       <CreditCard className="w-5 h-5 text-white" />
                     </div>
                     <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg uppercase tracking-wider ${
-                      residentMaintenance.some(m => m.status === 'Unpaid') ? 'bg-rose-500 text-white' : 'bg-[#44D080] text-slate-950'
+                      residentMaintenance.some(m => m.status === 'Unpaid') ? 'bg-rose-500 text-white' : 'bg-[#FAA928] text-slate-950'
                     }`}>
                       {residentMaintenance.some(m => m.status === 'Unpaid') ? 'ACTION REQUIRED' : 'CLEARED'}
                     </span>
                   </div>
                   <div>
-                    <p className="text-[10px] font-black uppercase tracking-wider text-white/90 mb-1">Maintenance</p>
-                    <h3 className="text-xl font-black text-white tracking-tight">
-                      {residentMaintenance.some(m => m.status === 'Unpaid') ? 'Payment Due' : 'All Settled'}
+                    <p className="text-[10px] font-black uppercase tracking-wider text-purple-200 mb-1">Maintenance Dues</p>
+                    <h3 className="text-xl font-black text-white tracking-tight flex items-center justify-between">
+                      <span>{residentMaintenance.some(m => m.status === 'Unpaid') ? 'Payment Due' : 'All Settled'}</span>
+                      <ChevronRight className="w-4 h-4 opacity-70 group-hover:translate-x-1 transition-transform" />
                     </h3>
                   </div>
                 </button>
@@ -2113,90 +2111,112 @@ export default function ResidentDashboard({
                 {/* Card 2: My Complaints */}
                 <button 
                   onClick={() => setActiveTab('complaints')}
-                  className="bg-[#9333EA] p-6 rounded-2xl shadow-lg shadow-purple-500/20 text-white flex flex-col justify-between transition-transform hover:-translate-y-0.5"
+                  className="bg-[#321F5C] p-6 rounded-2xl shadow-lg shadow-purple-950/10 text-white flex flex-col justify-between h-[155px] transition-all hover:scale-[1.01] text-left cursor-pointer group border border-purple-800/40"
                 >
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-xs">
-                      <MessageSquare className="w-5 h-5 text-white" />
+                  <div className="flex items-center justify-between w-full">
+                    <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center backdrop-blur-xs">
+                      <MessageSquare className="w-5 h-5 text-purple-300" />
                     </div>
-                    <ChevronRight className="w-5 h-5 text-white/70" />
+                    <span className="text-[10px] font-black px-2.5 py-1 rounded-lg bg-purple-500/20 text-purple-200 uppercase tracking-wider">
+                      TICKETS
+                    </span>
                   </div>
                   <div>
-                    <p className="text-[10px] font-black uppercase tracking-wider text-white/90 mb-1">Complaints</p>
-                    <h3 className="text-xl font-black text-white tracking-tight">{myComplaints.length} Tickets</h3>
+                    <p className="text-[10px] font-black uppercase tracking-wider text-purple-300 mb-1">Complaints & Issues</p>
+                    <h3 className="text-xl font-black text-white tracking-tight flex items-center justify-between">
+                      <span>{myComplaints.length} Tickets Raised</span>
+                      <ChevronRight className="w-4 h-4 opacity-70 group-hover:translate-x-1 transition-transform" />
+                    </h3>
                   </div>
                 </button>
 
                 {/* Card 3: My Amenity Bookings */}
                 <button 
                   onClick={() => setActiveTab('bookings')}
-                  className="bg-[#D97706] p-6 rounded-2xl shadow-lg shadow-amber-500/20 text-white flex flex-col justify-between transition-transform hover:-translate-y-0.5"
+                  className="bg-[#7C3AED] p-6 rounded-2xl shadow-lg shadow-purple-500/10 text-white flex flex-col justify-between h-[155px] transition-all hover:scale-[1.01] text-left cursor-pointer group"
                 >
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center justify-between w-full">
                     <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-xs">
                       <Calendar className="w-5 h-5 text-white" />
                     </div>
-                    <ChevronRight className="w-5 h-5 text-white/70" />
+                    <span className="text-[10px] font-black px-2.5 py-1 rounded-lg bg-white/20 text-white uppercase tracking-wider">
+                      RESERVATIONS
+                    </span>
                   </div>
                   <div>
-                    <p className="text-[10px] font-black uppercase tracking-wider text-white/90 mb-1">Amenity Bookings</p>
-                    <h3 className="text-xl font-black text-white tracking-tight">{residentBookings.length} Reservations</h3>
+                    <p className="text-[10px] font-black uppercase tracking-wider text-purple-200 mb-1">Amenity Bookings</p>
+                    <h3 className="text-xl font-black text-white tracking-tight flex items-center justify-between">
+                      <span>{residentBookings.length} Active Bookings</span>
+                      <ChevronRight className="w-4 h-4 opacity-70 group-hover:translate-x-1 transition-transform" />
+                    </h3>
                   </div>
                 </button>
 
                 {/* Card 4: My Visitor Requests */}
                 <button 
                   onClick={() => setActiveTab('security')}
-                  className="bg-[#5D31C7] p-6 rounded-2xl shadow-lg shadow-purple-500/20 text-white flex flex-col justify-between transition-transform hover:-translate-y-0.5"
+                  className="bg-[#4C1D95] p-6 rounded-2xl shadow-lg shadow-purple-950/10 text-white flex flex-col justify-between h-[155px] transition-all hover:scale-[1.01] text-left cursor-pointer group border border-purple-800/40"
                 >
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-xs">
-                      <Users className="w-5 h-5 text-white" />
+                  <div className="flex items-center justify-between w-full">
+                    <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center backdrop-blur-xs">
+                      <Users className="w-5 h-5 text-amber-300" />
                     </div>
-                    <span className="text-[10px] font-black px-2 py-1 rounded-lg bg-white/20 text-white uppercase tracking-wider">
-                      GATE
+                    <span className="text-[10px] font-black px-2.5 py-1 rounded-lg bg-amber-400/20 text-amber-200 uppercase tracking-wider">
+                      GATE LOG
                     </span>
                   </div>
                   <div>
-                    <p className="text-[10px] font-black uppercase tracking-wider text-white/90 mb-1">Visitors</p>
-                    <h3 className="text-xl font-black text-white tracking-tight">{residentVisitors.length} Visitors</h3>
+                    <p className="text-[10px] font-black uppercase tracking-wider text-purple-300 mb-1">Visitor Records</p>
+                    <h3 className="text-xl font-black text-white tracking-tight flex items-center justify-between">
+                      <span>{residentVisitors.length} Visitors Logged</span>
+                      <ChevronRight className="w-4 h-4 opacity-70 group-hover:translate-x-1 transition-transform" />
+                    </h3>
                   </div>
                 </button>
 
                 {/* Card 5: Unread Notices */}
                 <button 
                   onClick={() => setActiveTab('notices')}
-                  className="bg-[#0D9488] p-6 rounded-2xl shadow-lg shadow-teal-500/20 text-white flex flex-col justify-between transition-transform hover:-translate-y-0.5"
+                  className="bg-[#0F766E] p-6 rounded-2xl shadow-lg shadow-teal-900/10 text-white flex flex-col justify-between h-[155px] transition-all hover:scale-[1.01] text-left cursor-pointer group"
                 >
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center justify-between w-full">
                     <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-xs">
                       <Megaphone className="w-5 h-5 text-white" />
                     </div>
-                    <ChevronRight className="w-5 h-5 text-white/70" />
+                    <span className="text-[10px] font-black px-2.5 py-1 rounded-lg bg-white/20 text-white uppercase tracking-wider">
+                      CIRCULARS
+                    </span>
                   </div>
                   <div>
-                    <p className="text-[10px] font-black uppercase tracking-wider text-white/90 mb-1">Notices</p>
-                    <h3 className="text-xl font-black text-white tracking-tight">{residentNotices.length} Published</h3>
+                    <p className="text-[10px] font-black uppercase tracking-wider text-teal-200 mb-1">Society Notices</p>
+                    <h3 className="text-xl font-black text-white tracking-tight flex items-center justify-between">
+                      <span>{residentNotices.length} Published Notices</span>
+                      <ChevronRight className="w-4 h-4 opacity-70 group-hover:translate-x-1 transition-transform" />
+                    </h3>
                   </div>
                 </button>
 
                 {/* Card 6: Communication Requests */}
                 <button 
                   onClick={() => setActiveTab('communication')}
-                  className="bg-[#0284C7] p-6 rounded-2xl shadow-lg shadow-sky-500/20 text-white flex flex-col justify-between transition-transform hover:-translate-y-0.5"
+                  className="bg-[#0369A1] p-6 rounded-2xl shadow-lg shadow-sky-900/10 text-white flex flex-col justify-between h-[155px] transition-all hover:scale-[1.01] text-left cursor-pointer group"
                 >
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center justify-between w-full">
                     <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-xs">
                       <Send className="w-5 h-5 text-white" />
                     </div>
-                    <ChevronRight className="w-5 h-5 text-white/70" />
+                    <span className="text-[10px] font-black px-2.5 py-1 rounded-lg bg-white/20 text-white uppercase tracking-wider">
+                      DISCUSSIONS
+                    </span>
                   </div>
                   <div>
-                    <p className="text-[10px] font-black uppercase tracking-wider text-white/90 mb-1">Communication</p>
-                    <h3 className="text-xl font-black text-white tracking-tight">{residentComms.length} Conversations</h3>
+                    <p className="text-[10px] font-black uppercase tracking-wider text-sky-200 mb-1">Communication</p>
+                    <h3 className="text-xl font-black text-white tracking-tight flex items-center justify-between">
+                      <span>{residentComms.length} Conversations</span>
+                      <ChevronRight className="w-4 h-4 opacity-70 group-hover:translate-x-1 transition-transform" />
+                    </h3>
                   </div>
                 </button>
-              </div>
               </div>
 
               {/* 6 Quick Action Buttons */}
@@ -2208,17 +2228,17 @@ export default function ResidentDashboard({
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
                   <button
                     onClick={() => setActiveTab('maintenance')}
-                    className="p-3 bg-[#6339CA]/10 hover:bg-[#6339CA]/10 text-purple-900 rounded-xl font-bold text-xs flex flex-col items-center justify-center gap-1.5 transition-all border border-purple-100 text-center cursor-pointer"
+                    className="p-3 bg-purple-50 hover:bg-purple-100 text-purple-900 rounded-xl font-bold text-xs flex flex-col items-center justify-center gap-1.5 transition-all border border-purple-100 text-center cursor-pointer"
                   >
                     <CreditCard className="w-4 h-4 text-[#6339CA]" />
-                    <span>View Maintenance</span>
+                    <span>Pay Maintenance</span>
                   </button>
                   <button
                     onClick={() => setActiveTab('complaints')}
                     className="p-3 bg-orange-50 hover:bg-orange-100 text-orange-900 rounded-xl font-bold text-xs flex flex-col items-center justify-center gap-1.5 transition-all border border-orange-100 text-center cursor-pointer"
                   >
                     <MessageSquare className="w-4 h-4 text-orange-600" />
-                    <span>Raise Complaint</span>
+                    <span>New Complaint</span>
                   </button>
                   <button
                     onClick={() => setActiveTab('bookings')}
@@ -2229,24 +2249,24 @@ export default function ResidentDashboard({
                   </button>
                   <button
                     onClick={() => setActiveTab('security')}
-                    className="p-3 bg-[#6339CA]/10 hover:bg-purple-100 text-[#321F5C] rounded-xl font-bold text-xs flex flex-col items-center justify-center gap-1.5 transition-all border border-[#6339CA]/20 text-center cursor-pointer"
+                    className="p-3 bg-purple-50 hover:bg-purple-100 text-[#321F5C] rounded-xl font-bold text-xs flex flex-col items-center justify-center gap-1.5 transition-all border border-purple-200 text-center cursor-pointer"
                   >
                     <Users className="w-4 h-4 text-[#6339CA]" />
-                    <span>View Visitors</span>
+                    <span>Manage Visitors</span>
                   </button>
                   <button
                     onClick={() => setActiveTab('notices')}
-                    className="p-3 bg-purple-50 hover:bg-purple-100 text-purple-900 rounded-xl font-bold text-xs flex flex-col items-center justify-center gap-1.5 transition-all border border-purple-100 text-center cursor-pointer"
+                    className="p-3 bg-teal-50 hover:bg-teal-100 text-teal-900 rounded-xl font-bold text-xs flex flex-col items-center justify-center gap-1.5 transition-all border border-teal-100 text-center cursor-pointer"
                   >
-                    <Megaphone className="w-4 h-4 text-purple-600" />
+                    <Megaphone className="w-4 h-4 text-teal-600" />
                     <span>View Notices</span>
                   </button>
                   <button
                     onClick={() => setActiveTab('communication')}
-                    className="p-3 bg-teal-50 hover:bg-teal-100 text-teal-900 rounded-xl font-bold text-xs flex flex-col items-center justify-center gap-1.5 transition-all border border-teal-100 text-center cursor-pointer"
+                    className="p-3 bg-sky-50 hover:bg-sky-100 text-sky-900 rounded-xl font-bold text-xs flex flex-col items-center justify-center gap-1.5 transition-all border border-sky-100 text-center cursor-pointer"
                   >
-                    <Send className="w-4 h-4 text-teal-600" />
-                    <span>Open Communication</span>
+                    <Send className="w-4 h-4 text-sky-600" />
+                    <span>Communication</span>
                   </button>
                 </div>
               </div>

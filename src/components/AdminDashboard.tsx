@@ -81,6 +81,7 @@ import {
   ResponsiveContainer,
   Cell
 } from 'recharts';
+import TowerTechLogo from './TowerTechLogo';
 
 interface AdminDashboardProps {
   user: User;
@@ -1029,38 +1030,40 @@ export default function AdminDashboard({
 
         return (
           <div className="flex flex-col gap-6 w-full">
-            {/* 1. SOCIETY OVERVIEW HERO BANNER (Requirement 7 & 8) */}
-            <div className="bg-gradient-to-r from-[#321F5C] via-[#5D31C7] to-[#6339CA] p-6 sm:p-8 rounded-3xl text-white shadow-xl relative overflow-hidden border border-purple-900/60 flex flex-col lg:flex-row items-center justify-between gap-6">
-              <div className="absolute top-0 right-0 w-80 h-80 bg-purple-500/10 rounded-full -mr-32 -mt-32 blur-3xl pointer-events-none"></div>
+            {/* 1. SOCIETY OVERVIEW HERO BANNER */}
+            <div className="bg-gradient-to-r from-[#6339CA] via-[#7c3aed] to-[#8b5cf6] p-6 sm:p-8 rounded-3xl text-white shadow-xl relative overflow-hidden border border-purple-400/30 flex flex-col lg:flex-row items-center justify-between gap-6">
+              <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full -mr-32 -mt-32 blur-3xl pointer-events-none"></div>
               
               {/* Left Content */}
               <div className="space-y-4 max-w-2xl relative z-10 text-left">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 border border-purple-400/30 text-xs font-black uppercase tracking-wider">
-                   <Building2 className="w-3.5 h-3.5 text-purple-400" />
-                   <span>Green Park Residency • TowerTech System</span>
+                <div className="flex items-center gap-4 mb-2">
+                  <div className="w-16 h-16 rounded-2xl bg-white flex items-center justify-center shadow-2xl p-2 shrink-0">
+                    <TowerTechLogo className="w-full h-full" type="icon" />
+                  </div>
+                  <div>
+                    <div className="inline-flex items-center gap-2 px-2 py-0.5 rounded-full bg-white/20 text-white border border-white/30 text-[10px] font-black uppercase tracking-wider mb-1">
+                       <Building2 className="w-3 h-3 text-white" />
+                       <span>Green Park Residency</span>
+                    </div>
+                    <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-white leading-tight">
+                      TowerTech <span className="text-[#FAA928]">Portal</span>
+                    </h2>
+                  </div>
                 </div>
 
-                <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-white leading-tight">
-                  Welcome back, {user.admin_role || 'Chairman'}
-                </h2>
-
-                <p className="text-slate-300 text-xs sm:text-sm font-medium leading-relaxed">
-                  Official Management portal for Green Park Residency. Oversee residents, maintenance billing, society notices, and financial health.
+                <p className="text-purple-50 text-xs sm:text-sm font-bold opacity-90 leading-relaxed uppercase tracking-wide">
+                  Official Management System • Welcome back, {user.admin_role || 'Chairman'}
                 </p>
 
                 {/* Quick User Badges */}
                 <div className="flex flex-wrap gap-2.5 pt-1">
                   <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-xl border border-white/10 text-xs font-bold text-white">
-                    <UserIcon className="w-3.5 h-3.5 text-purple-300" />
+                    <UserIcon className="w-3.5 h-3.5 text-white" />
                     <span>Role: {user.admin_role || 'Chairman'}</span>
                   </div>
                   <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-xl border border-white/10 text-xs font-bold text-white">
                     <Megaphone className="w-3.5 h-3.5 text-gold" />
                     <span>Notices: {(notices || []).length} Active</span>
-                  </div>
-                  <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-xl border border-white/10 text-xs font-bold text-white">
-                    <Shield className="w-3.5 h-3.5 text-mint" />
-                    <span>Authorized Access</span>
                   </div>
                 </div>
 
@@ -1068,14 +1071,14 @@ export default function AdminDashboard({
                 <div className="flex flex-wrap items-center gap-3 pt-2">
                   <button
                     onClick={() => setActiveTab('residents')}
-                    className="px-5 py-2.5 bg-[#FAA928] hover:bg-[#FBAE17] text-slate-950 rounded-xl text-xs font-extrabold shadow-lg shadow-gold/30 transition-all cursor-pointer uppercase tracking-wider flex items-center gap-2"
+                    className="px-5 py-2.5 bg-[#FAA928] hover:bg-[#FBAE17] text-slate-950 rounded-xl text-xs font-black shadow-lg shadow-gold/30 transition-all cursor-pointer uppercase tracking-wider flex items-center gap-2"
                   >
                     <Users className="w-4 h-4" />
                     <span>Manage Residents</span>
                   </button>
                   <button
                     onClick={() => setActiveTab('maintenance')}
-                    className="px-5 py-2.5 bg-[#6339CA] hover:bg-[#5D31C7] text-white rounded-xl text-xs font-extrabold shadow-lg shadow-purple-600/30 transition-all cursor-pointer uppercase tracking-wider flex items-center gap-2"
+                    className="px-5 py-2.5 bg-white hover:bg-purple-50 text-[#6339CA] rounded-xl text-xs font-black shadow-lg shadow-purple-600/10 transition-all cursor-pointer uppercase tracking-wider flex items-center gap-2"
                   >
                     <CreditCard className="w-4 h-4" />
                     <span>Maintenance Ledger</span>
@@ -1117,7 +1120,7 @@ export default function AdminDashboard({
                     className="rounded-2xl border-2 border-white/20 shadow-2xl w-full lg:w-80 h-52 sm:h-60 object-cover transform transition-transform group-hover:scale-[1.02]"
                   />
                   <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-slate-950/80 via-transparent to-transparent flex items-end p-3.5">
-                    <span className="text-[11px] font-black text-white bg-[#321F5C]/80 backdrop-blur-md px-2.5 py-1 rounded-lg border border-white/20">
+                    <span className="text-[11px] font-black text-white bg-[#6339CA]/80 backdrop-blur-md px-2.5 py-1 rounded-lg border border-white/20">
                       🏢 Green Park Residency • 4 Towers
                     </span>
                   </div>
@@ -1219,7 +1222,7 @@ export default function AdminDashboard({
               <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
                 <div>
                   <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                    <h3 className="text-base font-black text-[#321F5C] tracking-tight flex items-center gap-2">
+                    <h3 className="text-base font-black text-[#6339CA] tracking-tight flex items-center gap-2">
                       <CreditCard className="w-4 h-4 text-[#44D080]" />
                       <span>Maintenance Collection</span>
                     </h3>
@@ -1229,7 +1232,7 @@ export default function AdminDashboard({
                   </div>
 
                   <div className="mt-4 space-y-3">
-                    <div className="flex items-center justify-between text-xs font-extrabold text-slate-800">
+                    <div className="flex items-center justify-between text-xs font-extrabold text-purple-900">
                       <span>Paid ({paidMaintenanceCount} bills)</span>
                       <span className="text-emerald-700 font-mono font-black">₹{totalCollectionAmount.toLocaleString('en-IN')}</span>
                     </div>
@@ -1237,7 +1240,7 @@ export default function AdminDashboard({
                       <div className="bg-[#44D080] h-full rounded-full w-[80%] transition-all"></div>
                     </div>
 
-                    <div className="flex items-center justify-between text-xs font-extrabold text-slate-800 pt-1">
+                    <div className="flex items-center justify-between text-xs font-extrabold text-purple-900 pt-1">
                       <span>Pending ({unpaidMaintenanceCount} bills)</span>
                       <span className="text-orange-700 font-mono font-black">₹{totalPendingAmount.toLocaleString('en-IN')}</span>
                     </div>
@@ -1259,11 +1262,11 @@ export default function AdminDashboard({
               <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
                 <div>
                   <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                    <h3 className="text-base font-black text-[#321F5C] tracking-tight flex items-center gap-2">
+                    <h3 className="text-base font-black text-[#6339CA] tracking-tight flex items-center gap-2">
                       <Users className="w-4 h-4 text-[#6339CA]" />
                       <span>Resident Breakdown</span>
                     </h3>
-                    <span className="text-xs font-black text-[#6339CA] bg-[#6339CA]/10 px-2.5 py-1 rounded-lg border border-blue-200">
+                    <span className="text-xs font-black text-[#6339CA] bg-[#6339CA]/10 px-2.5 py-1 rounded-lg border border-purple-200">
                       {totalResidentsCount} Total Units
                     </span>
                   </div>
@@ -1271,12 +1274,12 @@ export default function AdminDashboard({
                   <div className="mt-4 space-y-4">
                     {/* Owner Bar */}
                     <div>
-                      <div className="flex items-center justify-between text-xs font-extrabold text-slate-800 mb-1">
+                      <div className="flex items-center justify-between text-xs font-extrabold text-purple-900 mb-1">
                         <span className="flex items-center gap-1.5">
                           <span className="w-3 h-3 rounded-full bg-[#6339CA]"></span>
                           <span>Owners</span>
                         </span>
-                        <span className="font-mono font-black text-[#321F5C]">{ownerCount} ({Math.round((ownerCount / (totalResidentsCount || 1)) * 100)}%)</span>
+                        <span className="font-mono font-black text-[#6339CA]">{ownerCount} ({Math.round((ownerCount / (totalResidentsCount || 1)) * 100)}%)</span>
                       </div>
                       <div className="w-full bg-slate-100 h-3.5 rounded-full overflow-hidden p-0.5 border border-slate-200">
                         <div className="bg-[#6339CA] h-full rounded-full" style={{ width: `${Math.round((ownerCount / (totalResidentsCount || 1)) * 100)}%` }}></div>
@@ -1285,12 +1288,12 @@ export default function AdminDashboard({
 
                     {/* Tenant Bar */}
                     <div>
-                      <div className="flex items-center justify-between text-xs font-extrabold text-slate-800 mb-1">
+                      <div className="flex items-center justify-between text-xs font-extrabold text-purple-900 mb-1">
                         <span className="flex items-center gap-1.5">
                           <span className="w-3 h-3 rounded-full bg-[#44D080]"></span>
                           <span>Tenants</span>
                         </span>
-                        <span className="font-mono font-black text-[#321F5C]">{tenantCount} ({Math.round((tenantCount / (totalResidentsCount || 1)) * 100)}%)</span>
+                        <span className="font-mono font-black text-[#6339CA]">{tenantCount} ({Math.round((tenantCount / (totalResidentsCount || 1)) * 100)}%)</span>
                       </div>
                       <div className="w-full bg-slate-100 h-3.5 rounded-full overflow-hidden p-0.5 border border-slate-200">
                         <div className="bg-[#44D080] h-full rounded-full" style={{ width: `${Math.round((tenantCount / (totalResidentsCount || 1)) * 100)}%` }}></div>
@@ -1311,7 +1314,7 @@ export default function AdminDashboard({
               <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
                 <div>
                   <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                    <h3 className="text-base font-black text-[#321F5C] tracking-tight flex items-center gap-2">
+                    <h3 className="text-base font-black text-[#6339CA] tracking-tight flex items-center gap-2">
                       <IndianRupee className="w-4 h-4 text-[#6D28D9]" />
                       <span>Monthly Outlays</span>
                     </h3>
@@ -1323,23 +1326,23 @@ export default function AdminDashboard({
                   <div className="mt-3 space-y-2.5 text-xs font-bold">
                     <div className="flex items-center justify-between">
                       <span className="text-slate-600">⚡ Electricity & Power</span>
-                      <span className="font-mono font-black text-[#321F5C]">₹45,000</span>
+                      <span className="font-mono font-black text-[#6339CA]">₹45,000</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-slate-600">🛡️ Security Services (24x7)</span>
-                      <span className="font-mono font-black text-[#321F5C]">₹65,000</span>
+                      <span className="font-mono font-black text-[#6339CA]">₹65,000</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-slate-600">🧹 Housekeeping & Cleaning</span>
-                      <span className="font-mono font-black text-[#321F5C]">₹32,000</span>
+                      <span className="font-mono font-black text-[#6339CA]">₹32,000</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-slate-600">🛗 Lift Maintenance AMC</span>
-                      <span className="font-mono font-black text-[#321F5C]">₹22,000</span>
+                      <span className="font-mono font-black text-[#6339CA]">₹22,000</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-slate-600">💧 Water Supply & Plumbing</span>
-                      <span className="font-mono font-black text-[#321F5C]">₹18,000</span>
+                      <span className="font-mono font-black text-[#6339CA]">₹18,000</span>
                     </div>
                   </div>
                 </div>
@@ -1357,7 +1360,7 @@ export default function AdminDashboard({
             <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div>
-                  <h3 className="text-lg font-black text-[#321F5C] tracking-tight flex items-center gap-2">
+                  <h3 className="text-lg font-black text-[#6339CA] tracking-tight flex items-center gap-2">
                     <Building2 className="w-5 h-5 text-[#6339CA]" />
                     <span>Green Park Residency — Society at a Glance</span>
                   </h3>
@@ -1365,20 +1368,20 @@ export default function AdminDashboard({
                     Official infrastructure and operational assets overview.
                   </p>
                 </div>
-                <span className="px-3 py-1 bg-[#6339CA]/10 text-[#6339CA] text-xs font-extrabold rounded-xl border border-blue-200">
+                <span className="px-3 py-1 bg-[#6339CA]/10 text-[#6339CA] text-xs font-extrabold rounded-xl border border-purple-200">
                   GV2026
                 </span>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
-                <div className="p-3.5 bg-[#6339CA]/10/80 rounded-xl border border-blue-100 text-center">
+                <div className="p-3.5 bg-[#6339CA]/10/80 rounded-xl border border-purple-100 text-center">
                   <span className="text-xl font-black block text-blue-900">🏢 TOWERS</span>
                   <span className="text-2xl font-black text-[#6339CA] font-mono mt-1 block">4</span>
                   <span className="text-[10px] font-bold text-[#6339CA]/80">Towers A, B, C, D</span>
                 </div>
 
                 <div className="p-3.5 bg-[#6339CA]/10/80 rounded-xl border border-[#6339CA]/20 text-center">
-                  <span className="text-xl font-black block text-[#321F5C]">👥 RESIDENTS</span>
+                  <span className="text-xl font-black block text-[#6339CA]">👥 RESIDENTS</span>
                   <span className="text-2xl font-black text-[#6339CA] font-mono mt-1 block">{totalResidentsCount}</span>
                   <span className="text-[10px] font-bold text-[#6339CA]/80">{ownerCount} Owners, {tenantCount} Tenants</span>
                 </div>
@@ -1414,7 +1417,7 @@ export default function AdminDashboard({
               {/* Recent Bookings */}
               <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
                 <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50/80">
-                  <h3 className="text-sm font-black text-[#321F5C] uppercase tracking-wider flex items-center gap-2">
+                  <h3 className="text-sm font-black text-[#6339CA] uppercase tracking-wider flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-[#6339CA]" />
                     <span>Recent Bookings</span>
                   </h3>
@@ -1424,7 +1427,7 @@ export default function AdminDashboard({
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left">
-                    <thead className="bg-slate-100/80 text-slate-700 text-[10.5px] font-black uppercase tracking-wider border-b border-slate-200">
+                    <thead className="bg-slate-100/80 text-purple-800 text-[10.5px] font-black uppercase tracking-wider border-b border-slate-200">
                       <tr>
                         <th className="px-5 py-3">Booking ID</th>
                         <th className="px-5 py-3">Amenity</th>
@@ -1436,8 +1439,8 @@ export default function AdminDashboard({
                       {recentBookings.map((b, idx) => (
                         <tr key={b.id || idx} className="hover:bg-slate-50 transition-colors">
                           <td className="px-5 py-3.5 font-mono font-extrabold text-[#6339CA]">{b.booking_id}</td>
-                          <td className="px-5 py-3.5 font-black text-[#321F5C]">{b.amenity_name}</td>
-                          <td className="px-5 py-3.5 text-slate-700 font-bold">{format(new Date(b.booking_date), 'dd MMM yyyy')}</td>
+                          <td className="px-5 py-3.5 font-black text-[#6339CA]">{b.amenity_name}</td>
+                          <td className="px-5 py-3.5 text-purple-800 font-bold">{format(new Date(b.booking_date), 'dd MMM yyyy')}</td>
                           <td className="px-5 py-3.5">
                             <span className={`px-3 py-1 rounded-xl font-black text-[10px] uppercase tracking-wider ${
                               b.status === 'Approved' ? 'bg-[#44D080] text-white' : 
@@ -1455,7 +1458,7 @@ export default function AdminDashboard({
               {/* Recent Complaints */}
               <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
                 <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50/80">
-                  <h3 className="text-sm font-black text-[#321F5C] uppercase tracking-wider flex items-center gap-2">
+                  <h3 className="text-sm font-black text-[#6339CA] uppercase tracking-wider flex items-center gap-2">
                     <MessageSquare className="w-4 h-4 text-[#FAA928]" />
                     <span>Recent Complaints</span>
                   </h3>
@@ -1465,7 +1468,7 @@ export default function AdminDashboard({
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left">
-                    <thead className="bg-slate-100/80 text-slate-700 text-[10.5px] font-black uppercase tracking-wider border-b border-slate-200">
+                    <thead className="bg-slate-100/80 text-purple-800 text-[10.5px] font-black uppercase tracking-wider border-b border-slate-200">
                       <tr>
                         <th className="px-5 py-3">Complaint ID</th>
                         <th className="px-5 py-3">Category</th>
@@ -1476,7 +1479,7 @@ export default function AdminDashboard({
                       {recentComplaints.map((c, idx) => (
                         <tr key={c.id || idx} className="hover:bg-slate-50 transition-colors">
                           <td className="px-5 py-3.5 font-mono font-extrabold text-[#6339CA]">{c.complaint_id}</td>
-                          <td className="px-5 py-3.5 font-black text-[#321F5C]">{c.category}</td>
+                          <td className="px-5 py-3.5 font-black text-[#6339CA]">{c.category}</td>
                           <td className="px-5 py-3.5">
                             <span className={`px-3 py-1 rounded-xl font-black text-[10px] uppercase tracking-wider ${
                               c.status === 'Done' ? 'bg-[#44D080] text-white' : 
@@ -1569,15 +1572,15 @@ export default function AdminDashboard({
         return (
           <div className="flex flex-col gap-5 w-full">
             {/* Header Bar with Blue/Purple Accent */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gradient-to-r from-blue-50/70 via-purple-50/40 to-slate-50/60 p-4 rounded-2xl border border-blue-100/80">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gradient-to-r from-purple-50/70 via-purple-50/40 to-slate-50/60 p-4 rounded-2xl border border-purple-100/80">
               <div className="flex items-center gap-3.5">
                 <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-purple-600 to-[#5D31C7] text-white flex items-center justify-center shadow-md shadow-[#6339CA]/20 shrink-0">
                   <Users className="w-5 h-5 text-white" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-2xl font-black text-[#321F5C] tracking-tight">Residents</h2>
-                    <span className="px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-[#6339CA]/10 text-[#6339CA] border border-blue-200">
+                    <h2 className="text-2xl font-black text-[#6339CA] tracking-tight">Residents</h2>
+                    <span className="px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-[#6339CA]/10 text-[#6339CA] border border-purple-200">
                       Directory
                     </span>
                   </div>
@@ -1634,7 +1637,7 @@ export default function AdminDashboard({
                   placeholder="Search residents by ID, name, email, phone, tower, or flat..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-9 py-2.5 rounded-xl border border-slate-300 outline-none focus:ring-2 focus:ring-[#6339CA] focus:border-[#6339CA] transition-all text-xs font-medium text-slate-800 placeholder-slate-400 bg-slate-50/50 focus:bg-white"
+                  className="w-full pl-10 pr-9 py-2.5 rounded-xl border border-slate-300 outline-none focus:ring-2 focus:ring-[#6339CA] focus:border-[#6339CA] transition-all text-xs font-medium text-purple-900 placeholder-slate-400 bg-slate-50/50 focus:bg-white"
                 />
                 {searchTerm && (
                   <button
@@ -1658,7 +1661,7 @@ export default function AdminDashboard({
                       className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                         residentRoleFilter === 'All'
                           ? 'bg-[#6339CA] text-white shadow-sm shadow-[#6339CA]/30'
-                          : 'text-slate-700 hover:text-[#6339CA] hover:bg-white/80'
+                          : 'text-purple-800 hover:text-[#6339CA] hover:bg-white/80'
                       }`}
                     >
                       All Residents ({residents.length})
@@ -1669,7 +1672,7 @@ export default function AdminDashboard({
                       className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                         residentRoleFilter === 'Owner'
                           ? 'bg-[#6339CA] text-white shadow-sm shadow-[#6339CA]/30'
-                          : 'bg-[#6339CA]/10 text-[#6339CA] border border-blue-200/80 hover:bg-[#6339CA]/10'
+                          : 'bg-[#6339CA]/10 text-[#6339CA] border border-purple-200/80 hover:bg-[#6339CA]/10'
                       }`}
                     >
                       Owners ({residents.filter(r => (r.role || r.occupancy_type || 'Owner') === 'Owner').length})
@@ -1694,8 +1697,8 @@ export default function AdminDashboard({
                       onClick={() => setResidentStatusFilter('All')}
                       className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                         residentStatusFilter === 'All'
-                          ? 'bg-slate-800 text-white shadow-sm'
-                          : 'text-slate-700 hover:text-[#321F5C] hover:bg-white/80'
+                          ? 'bg-purple-900 text-white shadow-sm'
+                          : 'text-purple-800 hover:text-[#6339CA] hover:bg-white/80'
                       }`}
                     >
                       All Status
@@ -1728,7 +1731,7 @@ export default function AdminDashboard({
 
                   {/* Tower & Flat Quick Selects */}
                   <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1.5 bg-[#6339CA]/10 px-3 py-1.5 rounded-xl border border-blue-200 text-xs shadow-2xs">
+                    <div className="flex items-center gap-1.5 bg-[#6339CA]/10 px-3 py-1.5 rounded-xl border border-purple-200 text-xs shadow-2xs">
                       <span className="text-[10px] font-black text-[#6339CA] uppercase tracking-wider">Tower</span>
                       <select 
                         value={residentTowerFilter}
@@ -1775,13 +1778,13 @@ export default function AdminDashboard({
                       key={r.resident_id}
                       className={`w-full rounded-2xl transition-all p-4.5 flex flex-col justify-between border-t-4 shadow-sm hover:shadow-md ${
                         isOwner 
-                          ? 'bg-[#f0f6ff] hover:bg-[#e8f1ff] border border-blue-200/90 border-t-purple-600' 
+                          ? 'bg-[#f0f6ff] hover:bg-[#e8f1ff] border border-purple-200/90 border-t-purple-600' 
                           : 'bg-[#faf5ff] hover:bg-[#f3e8ff] border border-purple-200/90 border-t-purple-600'
                       }`}
                     >
                       {/* Top row: Avatar + Occupancy Badge + Status Badge */}
                       <div className="w-full flex flex-col">
-                        <div className={`flex items-start justify-between gap-2.5 pb-3 border-b ${isOwner ? 'border-blue-100' : 'border-purple-100'}`}>
+                        <div className={`flex items-start justify-between gap-2.5 pb-3 border-b ${isOwner ? 'border-purple-100' : 'border-purple-100'}`}>
                           <div className="flex items-center gap-3 min-w-0">
                             {r.profile_photo || (r as any).avatar ? (
                               <img 
@@ -1837,13 +1840,13 @@ export default function AdminDashboard({
 
                         {/* Resident Name & ID */}
                         <div className="mt-3">
-                          <h3 className="text-base font-black text-[#321F5C] tracking-tight leading-snug truncate">
+                          <h3 className="text-base font-black text-[#6339CA] tracking-tight leading-snug truncate">
                             {r.name}
                           </h3>
                           <div className="flex items-center gap-1.5 mt-1">
                             <span className="text-[11px] font-bold text-slate-500">Resident ID:</span>
                             <span className={`px-2 py-0.5 rounded text-xs font-mono font-bold border ${
-                              isOwner ? 'bg-[#6339CA]/10 text-[#6339CA] border-blue-200' : 'bg-purple-50 text-purple-700 border-purple-200'
+                              isOwner ? 'bg-[#6339CA]/10 text-[#6339CA] border-purple-200' : 'bg-purple-50 text-purple-700 border-purple-200'
                             }`}>
                               {r.resident_id}
                             </span>
@@ -1857,10 +1860,10 @@ export default function AdminDashboard({
 
                         {/* Flat Location & Specs Box */}
                         <div className={`mt-3 space-y-2 bg-white/95 p-3 rounded-xl border shadow-2xs text-xs ${
-                          isOwner ? 'border-blue-100' : 'border-purple-100'
+                          isOwner ? 'border-purple-100' : 'border-purple-100'
                         }`}>
                           {/* Location with Blue Icon */}
-                          <div className="flex items-center gap-2 text-slate-800 font-bold">
+                          <div className="flex items-center gap-2 text-purple-900 font-bold">
                             <div className="w-5 h-5 rounded-md bg-[#6339CA]/10 text-[#6339CA] flex items-center justify-center shrink-0">
                               <MapPin className="w-3.5 h-3.5" />
                             </div>
@@ -1872,7 +1875,7 @@ export default function AdminDashboard({
                           </div>
 
                           {/* BHK / Flat Type with Purple Icon */}
-                          <div className="flex items-center gap-2 text-slate-700 font-semibold">
+                          <div className="flex items-center gap-2 text-purple-800 font-semibold">
                             <div className="w-5 h-5 rounded-md bg-purple-100 text-purple-600 flex items-center justify-center shrink-0">
                               <Home className="w-3.5 h-3.5" />
                             </div>
@@ -1897,17 +1900,17 @@ export default function AdminDashboard({
 
                         {/* Contact Information with Teal and Green Icons */}
                         <div className={`mt-2.5 space-y-1.5 bg-white/95 p-3 rounded-xl border shadow-2xs text-xs ${
-                          isOwner ? 'border-blue-100' : 'border-purple-100'
+                          isOwner ? 'border-purple-100' : 'border-purple-100'
                         }`}>
                           {r.email && (
-                            <div className="flex items-center gap-2 text-slate-700">
+                            <div className="flex items-center gap-2 text-purple-800">
                               <div className="w-5 h-5 rounded-md bg-teal-100 text-teal-600 flex items-center justify-center shrink-0">
                                 <Mail className="w-3.5 h-3.5" />
                               </div>
                               <span className="truncate font-medium">{r.email}</span>
                             </div>
                           )}
-                          <div className="flex items-center gap-2 text-[#321F5C] font-bold">
+                          <div className="flex items-center gap-2 text-[#6339CA] font-bold">
                             <div className="w-5 h-5 rounded-md bg-emerald-100 text-#44D080 flex items-center justify-center shrink-0">
                               <Phone className="w-3.5 h-3.5" />
                             </div>
@@ -1918,7 +1921,7 @@ export default function AdminDashboard({
 
                       {/* Actions Divider & Coordinated Action Buttons */}
                       <div className={`mt-3.5 pt-3 border-t flex items-center justify-between gap-2 ${
-                        isOwner ? 'border-blue-100' : 'border-purple-100'
+                        isOwner ? 'border-purple-100' : 'border-purple-100'
                       }`}>
                         {/* View Button: Blue */}
                         <button
@@ -1927,7 +1930,7 @@ export default function AdminDashboard({
                             setSelectedResidentDetails(r);
                             setResidentWorkspace('view');
                           }}
-                          className="flex-1 py-2 px-2.5 bg-[#6339CA]/10 hover:bg-blue-200 active:bg-blue-300 text-[#6339CA] font-bold rounded-xl text-xs transition-colors border border-blue-300 flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer"
+                          className="flex-1 py-2 px-2.5 bg-[#6339CA]/10 hover:bg-purple-200 active:bg-blue-300 text-[#6339CA] font-bold rounded-xl text-xs transition-colors border border-blue-300 flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer"
                         >
                           <Eye className="w-3.5 h-3.5 text-[#6339CA]" />
                           View Profile
@@ -1986,11 +1989,11 @@ export default function AdminDashboard({
             ) : (
               /* Empty State */
               <div className="bg-white rounded-2xl p-12 border border-slate-200 text-center space-y-3">
-                <div className="w-12 h-12 rounded-2xl bg-[#6339CA]/10 text-[#6339CA] border border-blue-200 flex items-center justify-center mx-auto">
+                <div className="w-12 h-12 rounded-2xl bg-[#6339CA]/10 text-[#6339CA] border border-purple-200 flex items-center justify-center mx-auto">
                   <Users className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-[#321F5C]">No residents found</h3>
+                  <h3 className="text-base font-bold text-[#6339CA]">No residents found</h3>
                   <p className="text-xs text-slate-500 mt-1">Try changing your search or filter.</p>
                 </div>
                 {(searchTerm || residentRoleFilter !== 'All' || residentStatusFilter !== 'All' || residentTowerFilter !== 'All' || residentFlatFilter !== 'All') && (
@@ -2176,10 +2179,10 @@ export default function AdminDashboard({
                 </div>
                 <div>
                   <div className="flex items-center gap-3">
-                    <h2 className="text-2xl font-black text-[#321F5C] tracking-tight">
+                    <h2 className="text-2xl font-black text-[#6339CA] tracking-tight">
                       Maintenance Management
                     </h2>
-                    <span className="px-3 py-0.5 rounded-full text-xs font-bold bg-[#6339CA]/10 text-[#6339CA] border border-blue-200">
+                    <span className="px-3 py-0.5 rounded-full text-xs font-bold bg-[#6339CA]/10 text-[#6339CA] border border-purple-200">
                       {selectedMonth}
                     </span>
                   </div>
@@ -2206,7 +2209,7 @@ export default function AdminDashboard({
                       }
                       setMaintenancePage(1);
                     }}
-                    className="bg-transparent outline-none font-bold text-slate-700 cursor-pointer"
+                    className="bg-transparent outline-none font-bold text-purple-800 cursor-pointer"
                   >
                     <option value="All">All Months</option>
                     {monthsList.map(m => (
@@ -2222,7 +2225,7 @@ export default function AdminDashboard({
                       setSelectedMonth(`${m} ${yr}`);
                       setMaintenancePage(1);
                     }}
-                    className="bg-transparent outline-none font-bold text-slate-700 cursor-pointer border-l border-slate-200 pl-2"
+                    className="bg-transparent outline-none font-bold text-purple-800 cursor-pointer border-l border-slate-200 pl-2"
                   >
                     {availableYears.map(y => (
                       <option key={y} value={String(y)}>{y}</option>
@@ -2319,10 +2322,10 @@ export default function AdminDashboard({
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <TrendingUp className="w-4 h-4 text-#44D080" />
-                  <h4 className="text-xs font-black text-[#321F5C] uppercase tracking-wider">MONTHLY COLLECTION</h4>
+                  <h4 className="text-xs font-black text-[#6339CA] uppercase tracking-wider">MONTHLY COLLECTION</h4>
                 </div>
-                <p className="text-sm font-extrabold text-slate-800">
-                  <span className="text-#44D080">₹{totalCollectionAmount.toLocaleString()}</span> collected of <span className="text-[#321F5C]">₹{totalBilled.toLocaleString()}</span>
+                <p className="text-sm font-extrabold text-purple-900">
+                  <span className="text-#44D080">₹{totalCollectionAmount.toLocaleString()}</span> collected of <span className="text-[#6339CA]">₹{totalBilled.toLocaleString()}</span>
                 </p>
               </div>
 
@@ -2358,7 +2361,7 @@ export default function AdminDashboard({
               <div className="p-5 border-b border-slate-200 bg-slate-50/70 space-y-4">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
                   <div>
-                    <h3 className="text-lg font-black text-[#321F5C] tracking-tight">Maintenance Bills</h3>
+                    <h3 className="text-lg font-black text-[#6339CA] tracking-tight">Maintenance Bills</h3>
                     <p className="text-xs font-medium text-slate-500">Search and manage resident maintenance bills.</p>
                   </div>
 
@@ -2370,7 +2373,7 @@ export default function AdminDashboard({
                       className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer ${
                         maintenanceViewMode === 'cards'
                           ? 'bg-[#6339CA] text-white shadow-xs'
-                          : 'text-slate-600 hover:text-[#321F5C] hover:bg-white/80'
+                          : 'text-slate-600 hover:text-[#6339CA] hover:bg-white/80'
                       }`}
                     >
                       <span>▦</span>
@@ -2382,7 +2385,7 @@ export default function AdminDashboard({
                       className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer ${
                         maintenanceViewMode === 'list'
                           ? 'bg-[#6339CA] text-white shadow-xs'
-                          : 'text-slate-600 hover:text-[#321F5C] hover:bg-white/80'
+                          : 'text-slate-600 hover:text-[#6339CA] hover:bg-white/80'
                       }`}
                     >
                       <span>☷</span>
@@ -2404,7 +2407,7 @@ export default function AdminDashboard({
                         setSearchTerm(e.target.value);
                         setMaintenancePage(1);
                       }}
-                      className="pl-9 pr-4 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-[#6339CA] text-xs font-semibold w-full bg-white text-slate-800 placeholder:text-slate-400"
+                      className="pl-9 pr-4 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-[#6339CA] text-xs font-semibold w-full bg-white text-purple-900 placeholder:text-slate-400"
                     />
                   </div>
 
@@ -2418,7 +2421,7 @@ export default function AdminDashboard({
                           setMaintenanceFilter(e.target.value);
                           setMaintenancePage(1);
                         }}
-                        className="bg-transparent outline-none text-xs font-bold text-slate-700 cursor-pointer"
+                        className="bg-transparent outline-none text-xs font-bold text-purple-800 cursor-pointer"
                       >
                         <option value="All">All Statuses</option>
                         <option value="Paid">Paid</option>
@@ -2438,7 +2441,7 @@ export default function AdminDashboard({
                           setMaintenanceTowerFilter(e.target.value);
                           setMaintenancePage(1);
                         }}
-                        className="bg-transparent outline-none text-xs font-bold text-slate-700 cursor-pointer"
+                        className="bg-transparent outline-none text-xs font-bold text-purple-800 cursor-pointer"
                       >
                         <option value="All">All Towers</option>
                         {Array.from(new Set(residents.map(r => r.tower))).sort().map(t => (
@@ -2456,7 +2459,7 @@ export default function AdminDashboard({
                           setMaintenanceFlatFilter(e.target.value);
                           setMaintenancePage(1);
                         }}
-                        className="bg-transparent outline-none text-xs font-bold text-slate-700 cursor-pointer max-w-[110px]"
+                        className="bg-transparent outline-none text-xs font-bold text-purple-800 cursor-pointer max-w-[110px]"
                       >
                         <option value="All">All Flats</option>
                         {Array.from(new Set(residents.map(r => r.flat))).sort().map(f => (
@@ -2474,7 +2477,7 @@ export default function AdminDashboard({
                           setSelectedMonth(e.target.value);
                           setMaintenancePage(1);
                         }}
-                        className="bg-transparent outline-none text-xs font-bold text-slate-700 cursor-pointer"
+                        className="bg-transparent outline-none text-xs font-bold text-purple-800 cursor-pointer"
                       >
                         <option value="All">All Months</option>
                         {monthsList.map(m => {
@@ -2510,13 +2513,13 @@ export default function AdminDashboard({
                                 ? 'border-rose-200/90 border-t-4 border-t-rose-500'
                                 : effectiveStatus === 'Partial'
                                 ? 'border-amber-200/90 border-t-4 border-t-amber-500'
-                                : 'border-blue-200/90 border-t-4 border-t-#6339CA'
+                                : 'border-purple-200/90 border-t-4 border-t-#6339CA'
                             }`}
                           >
                             {/* Card Top Row: Bill ID & Status Badge */}
                             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                               <div className="flex items-center gap-2">
-                                <span className="px-2.5 py-0.5 rounded-lg text-xs font-mono font-black bg-[#6339CA]/10 text-[#6339CA] border border-blue-200">
+                                <span className="px-2.5 py-0.5 rounded-lg text-xs font-mono font-black bg-[#6339CA]/10 text-[#6339CA] border border-purple-200">
                                   {m.maintenance_id || m.bill_no || `M${561 + index}`}
                                 </span>
                                 <span className={`px-2 py-0.5 rounded text-[10px] font-black font-mono uppercase ${
@@ -2559,7 +2562,7 @@ export default function AdminDashboard({
                                   {displayResidentName.charAt(0).toUpperCase()}
                                 </div>
                                 <div>
-                                  <h3 className="text-base font-black text-[#321F5C] leading-snug truncate max-w-[200px]">
+                                  <h3 className="text-base font-black text-[#6339CA] leading-snug truncate max-w-[200px]">
                                     {displayResidentName}
                                   </h3>
                                   <p className="text-xs font-mono font-bold text-slate-500">
@@ -2569,7 +2572,7 @@ export default function AdminDashboard({
                               </div>
 
                               {/* Location Details Box */}
-                              <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 flex items-center justify-between text-xs font-bold text-slate-800">
+                              <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 flex items-center justify-between text-xs font-bold text-purple-900">
                                 <div className="flex items-center gap-1.5">
                                   <Building2 className="w-3.5 h-3.5 text-[#6339CA]" />
                                   <span>Tower {m.tower}</span>
@@ -2585,11 +2588,11 @@ export default function AdminDashboard({
                               <div className="grid grid-cols-2 gap-2 pt-0.5 text-xs">
                                 <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
                                   <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider block">Billing Month</span>
-                                  <span className="font-extrabold text-slate-800 text-xs mt-0.5 block truncate">{m.month || selectedMonth}</span>
+                                  <span className="font-extrabold text-purple-900 text-xs mt-0.5 block truncate">{m.month || selectedMonth}</span>
                                 </div>
                                 <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
                                   <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider block">Amount Due</span>
-                                  <span className="font-black text-[#321F5C] font-mono text-sm mt-0.5 block">₹{m.amount.toLocaleString()}</span>
+                                  <span className="font-black text-[#6339CA] font-mono text-sm mt-0.5 block">₹{m.amount.toLocaleString()}</span>
                                 </div>
                               </div>
 
@@ -2597,7 +2600,7 @@ export default function AdminDashboard({
                               <div className="flex items-center justify-between text-[11px] font-medium text-slate-500 pt-1">
                                 <div className="flex items-center gap-1">
                                   <Calendar className="w-3 h-3 text-slate-400" />
-                                  <span>Due: <strong className={effectiveStatus === 'Overdue' ? 'text-#FAA928 font-bold' : 'text-slate-700'}>{m.due_date ? format(new Date(m.due_date), 'dd MMM yyyy') : '15 Oct 2026'}</strong></span>
+                                  <span>Due: <strong className={effectiveStatus === 'Overdue' ? 'text-#FAA928 font-bold' : 'text-purple-800'}>{m.due_date ? format(new Date(m.due_date), 'dd MMM yyyy') : '15 Oct 2026'}</strong></span>
                                 </div>
                                 {m.payment_date && (
                                   <div className="flex items-center gap-1 text-emerald-700 font-semibold">
@@ -2616,7 +2619,7 @@ export default function AdminDashboard({
                                   setSelectedBillForInvoice(m);
                                   setMaintenanceWorkspace('view_bill');
                                 }}
-                                className="py-2 px-3 bg-[#6339CA]/10 hover:bg-[#6339CA]/10 text-[#6339CA] font-bold rounded-xl text-xs transition-colors border border-blue-200 flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+                                className="py-2 px-3 bg-[#6339CA]/10 hover:bg-[#6339CA]/10 text-[#6339CA] font-bold rounded-xl text-xs transition-colors border border-purple-200 flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
                               >
                                 <Eye className="w-3.5 h-3.5 text-[#6339CA]" />
                                 <span>View Details</span>
@@ -2680,10 +2683,10 @@ export default function AdminDashboard({
                               <tr key={m.id || m.maintenance_id || `mlist-${index}`} className="hover:bg-slate-50">
                                 <td className="px-4 py-3 font-mono font-bold text-[#6339CA]">{m.maintenance_id || `M${561 + index}`}</td>
                                 <td className="px-4 py-3 font-mono text-slate-500">{m.resident_id}</td>
-                                <td className="px-4 py-3 font-bold text-slate-800">{displayResidentName}</td>
+                                <td className="px-4 py-3 font-bold text-purple-900">{displayResidentName}</td>
                                 <td className="px-4 py-3">Tower {m.tower}</td>
                                 <td className="px-4 py-3 font-bold">Flat {m.flat_no}</td>
-                                <td className="px-4 py-3 font-mono font-black text-[#321F5C]">₹{m.amount.toLocaleString()}</td>
+                                <td className="px-4 py-3 font-mono font-black text-[#6339CA]">₹{m.amount.toLocaleString()}</td>
                                 <td className="px-4 py-3 text-slate-600">{m.month || selectedMonth}</td>
                                 <td className="px-4 py-3 font-mono text-slate-600">{m.due_date ? format(new Date(m.due_date), 'dd MMM yyyy') : '—'}</td>
                                 <td className="px-4 py-3">
@@ -2732,7 +2735,7 @@ export default function AdminDashboard({
                     <div className="w-14 h-14 rounded-2xl bg-[#6339CA]/10 text-[#6339CA] flex items-center justify-center font-bold">
                       <CreditCard className="w-7 h-7" />
                     </div>
-                    <h3 className="text-lg font-black text-[#321F5C]">No Maintenance Bills Found</h3>
+                    <h3 className="text-lg font-black text-[#6339CA]">No Maintenance Bills Found</h3>
                     <p className="text-xs text-slate-500 max-w-md font-medium">
                       No maintenance bills match your selected filter or search criteria for {selectedMonth}.
                     </p>
@@ -2758,7 +2761,7 @@ export default function AdminDashboard({
                         type="button"
                         disabled={maintenancePage === 1}
                         onClick={() => setMaintenancePage(p => Math.max(1, p - 1))}
-                        className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 text-xs font-bold text-slate-700 flex items-center gap-1 cursor-pointer transition-all"
+                        className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 text-xs font-bold text-purple-800 flex items-center gap-1 cursor-pointer transition-all"
                       >
                         <ChevronLeft className="w-4 h-4" />
                         <span>Previous</span>
@@ -2772,7 +2775,7 @@ export default function AdminDashboard({
                           className={`w-8 h-8 rounded-xl text-xs font-black transition-all cursor-pointer ${
                             maintenancePage === page
                               ? 'bg-[#6339CA] text-white shadow-xs'
-                              : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
+                              : 'bg-white hover:bg-slate-100 text-purple-800 border border-slate-200'
                           }`}
                         >
                           {page}
@@ -2783,7 +2786,7 @@ export default function AdminDashboard({
                         type="button"
                         disabled={maintenancePage === totalPages}
                         onClick={() => setMaintenancePage(p => Math.min(totalPages, p + 1))}
-                        className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 text-xs font-bold text-slate-700 flex items-center gap-1 cursor-pointer transition-all"
+                        className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 text-xs font-bold text-purple-800 flex items-center gap-1 cursor-pointer transition-all"
                       >
                         <span>Next</span>
                         <ChevronRight className="w-4 h-4" />
@@ -2803,7 +2806,7 @@ export default function AdminDashboard({
             <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden flex flex-col flex-1 min-h-0">
               <div className="p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-50/50 shrink-0">
                 <div>
-                  <h3 className="text-xl font-extrabold text-[#321F5C] tracking-tight">Complaint Management</h3>
+                  <h3 className="text-xl font-extrabold text-[#6339CA] tracking-tight">Complaint Management</h3>
                   <p className="text-xs font-medium text-slate-500 mt-1">Track and resolve resident issues reported by residents.</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
@@ -2873,16 +2876,16 @@ export default function AdminDashboard({
                           <span className="font-black text-[#6339CA] tracking-tight">{c.complaint_id}</span>
                         </td>
                         <td className="px-6 py-4">
-                          <p className="font-bold text-slate-800">{c.category}</p>
+                          <p className="font-bold text-purple-900">{c.category}</p>
                         </td>
                         <td className="px-6 py-4">
                           <p className="font-black text-slate-400">T-{c.tower} / {c.flat_no}</p>
                         </td>
                         <td className="px-6 py-4">
-                          <p className="font-bold text-slate-800">{c.resident_name || 'Resident'}</p>
+                          <p className="font-bold text-purple-900">{c.resident_name || 'Resident'}</p>
                           <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{c.resident_id}</p>
                         </td>
-                        <td className="px-6 py-4 font-bold text-slate-800">
+                        <td className="px-6 py-4 font-bold text-purple-900">
                           {new Date(c.complaint_date || Date.now()).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
                         </td>
                         <td className="px-6 py-4">
@@ -2980,7 +2983,7 @@ export default function AdminDashboard({
           <div className="flex flex-col gap-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 shrink-0">
               <div>
-                <h2 className="text-2xl font-extrabold text-[#321F5C] tracking-tight">Amenity Bookings</h2>
+                <h2 className="text-2xl font-extrabold text-[#6339CA] tracking-tight">Amenity Bookings</h2>
                 <p className="text-xs font-medium text-slate-500 mt-1">Manage and approve resident facility requests.</p>
               </div>
               <div className="flex items-center gap-3">
@@ -3032,7 +3035,7 @@ export default function AdminDashboard({
                   </div>
                   <div>
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">{amenity.name}</p>
-                    <p className="text-sm font-black text-[#321F5C] leading-none">₹{amenity.price}</p>
+                    <p className="text-sm font-black text-[#6339CA] leading-none">₹{amenity.price}</p>
                   </div>
                 </div>
               ))}
@@ -3064,24 +3067,24 @@ export default function AdminDashboard({
                         </td>
                         <td className="px-6 py-3">
                           <div className="space-y-0.5">
-                            <p className="font-bold text-slate-800">{b.name}</p>
+                            <p className="font-bold text-purple-900">{b.name}</p>
                             <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">T-{b.tower} / {b.flat}</p>
                           </div>
                         </td>
                         <td className="px-6 py-3">
-                          <p className="font-bold text-slate-700">{b.amenity_name}</p>
+                          <p className="font-bold text-purple-800">{b.amenity_name}</p>
                         </td>
                         <td className="px-6 py-3 font-medium text-slate-600">
                           {b.event_name || 'N/A'}
                         </td>
-                        <td className="px-6 py-3 font-bold text-slate-800">
+                        <td className="px-6 py-3 font-bold text-purple-900">
                           {format(new Date(b.booking_date), 'dd MMM yyyy')}
                         </td>
                         <td className="px-6 py-3 text-slate-500">
                           {b.start_time} - {b.end_time}
                         </td>
                         <td className="px-6 py-3">
-                          <p className="font-black text-[#321F5C]">₹{b.charges || 0}</p>
+                          <p className="font-black text-[#6339CA]">₹{b.charges || 0}</p>
                         </td>
                         <td className="px-6 py-3">
                           <span className={`text-[9px] font-black px-2 py-0.5 rounded-full uppercase ${
@@ -3096,7 +3099,7 @@ export default function AdminDashboard({
                           <div className="flex justify-end gap-1">
                             <button 
                               onClick={() => setSelectedBooking(b)}
-                              className="text-[#6339CA] hover:text-[#321F5C] font-black uppercase text-[9px] px-2 py-1 rounded-lg border border-[#6339CA]/20 hover:bg-[#6339CA]/10"
+                              className="text-[#6339CA] hover:text-[#6339CA] font-black uppercase text-[9px] px-2 py-1 rounded-lg border border-[#6339CA]/20 hover:bg-[#6339CA]/10"
                             >
                               View
                             </button>
@@ -3272,7 +3275,7 @@ export default function AdminDashboard({
   const renderProfileModal = () => (
     <div>
       {showProfileModal && (
-        <div className="fixed inset-0 bg-[#321F5C]/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-[#6339CA]/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden">
             <div className="p-8 bg-[#6339CA] text-white flex justify-between items-center">
               <div>
@@ -3354,7 +3357,7 @@ export default function AdminDashboard({
 
       {/* Maintenance Bill Form Modal */}
       {showBillForm && (
-        <div className="fixed inset-0 bg-[#321F5C]/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-[#6339CA]/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white w-full max-w-xl rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
             <div className="p-6 bg-[#6339CA] text-white flex justify-between items-center shrink-0">
               <div>
@@ -3421,7 +3424,7 @@ export default function AdminDashboard({
               {/* Maintenance Rate Configuration */}
               {calcMethod === 'Flat/BHK Maintenance' ? (
                 <div className="bg-[#6339CA]/10 p-4 rounded-2xl border border-[#6339CA]/20 space-y-3">
-                  <p className="text-[10px] font-black text-[#321F5C] uppercase tracking-widest">
+                  <p className="text-[10px] font-black text-[#6339CA] uppercase tracking-widest">
                     Flat/BHK Maintenance Amounts Configuration (₹)
                   </p>
                   <div className="grid grid-cols-2 gap-3 text-xs">
@@ -3469,7 +3472,7 @@ export default function AdminDashboard({
                 </div>
               ) : (
                 <div className="bg-[#6339CA]/10 p-4 rounded-2xl border border-[#6339CA]/20 space-y-2">
-                  <label className="text-[10px] font-black text-[#321F5C] uppercase tracking-widest block">
+                  <label className="text-[10px] font-black text-[#6339CA] uppercase tracking-widest block">
                     Square Foot Maintenance Rate (₹ per sq.ft)
                   </label>
                   <div className="flex items-center gap-3">
@@ -3653,7 +3656,7 @@ export default function AdminDashboard({
 
       {/* Booking Edit Modal */}
       {showBookingEditModal && editingBooking && (
-        <div className="fixed inset-0 bg-[#321F5C]/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-[#6339CA]/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden">
             <div className="p-6 bg-[#6339CA] text-white flex justify-between items-center">
               <div>
@@ -3739,7 +3742,7 @@ export default function AdminDashboard({
 
       {/* Amenity Price Management Modal */}
       {showAmenityForm && (
-        <div className="fixed inset-0 bg-[#321F5C]/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-[#6339CA]/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden">
             <div className="p-6 bg-[#6339CA] text-white flex justify-between items-center">
               <div>
@@ -3768,7 +3771,7 @@ export default function AdminDashboard({
                 </div>
               )}
               {/* Add New Amenity Form */}
-              <div className="bg-[#6339CA]/10/50 p-4 rounded-2xl border border-blue-100">
+              <div className="bg-[#6339CA]/10/50 p-4 rounded-2xl border border-purple-100">
                 <h4 className="text-sm font-black text-[#6339CA] uppercase tracking-widest mb-4">Manage Amenity</h4>
                 <form onSubmit={handleAddAmenity} className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -3966,7 +3969,7 @@ export default function AdminDashboard({
       {/* Image Preview Modal */}
       {selectedImage && (
         <div 
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#321F5C]/90 backdrop-blur-sm"
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#6339CA]/90 backdrop-blur-sm"
           onClick={() => setSelectedImage(null)}
         >
           <button 
@@ -3986,7 +3989,7 @@ export default function AdminDashboard({
       )}
 
       {showSqlModal && (
-        <div className="fixed inset-0 bg-[#321F5C]/50 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+        <div className="fixed inset-0 bg-[#6339CA]/50 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
           <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden">
             <div className="p-6 bg-#FAA928 text-white flex justify-between items-center">
               <div>
@@ -3998,7 +4001,7 @@ export default function AdminDashboard({
               </button>
             </div>
             <div className="p-6 space-y-4">
-              <div className="bg-[#321F5C] rounded-xl p-4 overflow-x-auto">
+              <div className="bg-[#6339CA] rounded-xl p-4 overflow-x-auto">
                 <pre className="text-green-400 text-xs font-mono leading-relaxed">
 {`-- 1. Create or Fix the amenities table
 CREATE TABLE IF NOT EXISTS public.amenities (
@@ -4208,9 +4211,9 @@ NOTIFY pgrst, 'reload schema';`);
 
       {/* Edit/Add Resident Modal */}
       {showEditResidentModal && (
-        <div className="fixed inset-0 bg-[#321F5C]/60 backdrop-blur-xs flex items-center justify-center z-[100] p-3 sm:p-4 animate-in fade-in duration-150">
+        <div className="fixed inset-0 bg-[#6339CA]/60 backdrop-blur-xs flex items-center justify-center z-[100] p-3 sm:p-4 animate-in fade-in duration-150">
           <div className="bg-white w-full max-w-[490px] rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[88vh] border border-slate-200 animate-in zoom-in-95 duration-150">
-            <div className="px-5 py-3 bg-[#321F5C] text-white flex justify-between items-center shrink-0 border-b border-slate-800">
+            <div className="px-5 py-3 bg-[#6339CA] text-white flex justify-between items-center shrink-0 border-b border-purple-900">
               <div>
                 <h3 className="text-sm font-bold text-white leading-tight">{editingResident ? 'Edit Resident Profile' : 'Add New Resident'}</h3>
                 <p className="text-slate-400 text-[10px] font-medium">{editingResident ? 'Update resident credentials & unit details' : 'Register a new member'}</p>
@@ -4300,7 +4303,7 @@ NOTIFY pgrst, 'reload schema';`);
               {/* Row 3: BHK, Flat Type & Square Feet Configuration */}
               <div className="grid grid-cols-3 gap-2 bg-[#6339CA]/10/60 p-2.5 rounded-xl border border-[#6339CA]/20">
                 <div className="space-y-0.5">
-                  <label className="text-[9px] font-black text-[#321F5C] uppercase tracking-wider">BHK</label>
+                  <label className="text-[9px] font-black text-[#6339CA] uppercase tracking-wider">BHK</label>
                   <select 
                     value={residentEditData.bhk}
                     onChange={(e) => {
@@ -4322,7 +4325,7 @@ NOTIFY pgrst, 'reload schema';`);
                         square_feet: newSqft
                       });
                     }}
-                    className="w-full px-2.5 py-1.5 rounded-lg border border-[#6339CA]/20 outline-none focus:ring-1 focus:ring-[#6339CA] font-bold text-xs bg-white text-slate-800"
+                    className="w-full px-2.5 py-1.5 rounded-lg border border-[#6339CA]/20 outline-none focus:ring-1 focus:ring-[#6339CA] font-bold text-xs bg-white text-purple-900"
                   >
                     <option value="1 BHK">1 BHK</option>
                     <option value="2 BHK">2 BHK</option>
@@ -4331,7 +4334,7 @@ NOTIFY pgrst, 'reload schema';`);
                 </div>
 
                 <div className="space-y-0.5">
-                  <label className="text-[9px] font-black text-[#321F5C] uppercase tracking-wider">Flat Type</label>
+                  <label className="text-[9px] font-black text-[#6339CA] uppercase tracking-wider">Flat Type</label>
                   <select 
                     value={residentEditData.flat_type}
                     onChange={(e) => {
@@ -4357,7 +4360,7 @@ NOTIFY pgrst, 'reload schema';`);
                         square_feet: newSqft
                       });
                     }}
-                    className="w-full px-2.5 py-1.5 rounded-lg border border-[#6339CA]/20 outline-none focus:ring-1 focus:ring-[#6339CA] font-bold text-xs bg-white text-slate-800"
+                    className="w-full px-2.5 py-1.5 rounded-lg border border-[#6339CA]/20 outline-none focus:ring-1 focus:ring-[#6339CA] font-bold text-xs bg-white text-purple-900"
                   >
                     <optgroup label="Standard Types">
                       <option value="Smart">Smart</option>
@@ -4379,14 +4382,14 @@ NOTIFY pgrst, 'reload schema';`);
                 </div>
 
                 <div className="space-y-0.5">
-                  <label className="text-[9px] font-black text-[#321F5C] uppercase tracking-wider">Sq. Ft</label>
+                  <label className="text-[9px] font-black text-[#6339CA] uppercase tracking-wider">Sq. Ft</label>
                   <input 
                     type="number"
                     required
                     min="100"
                     value={isNaN(residentEditData.square_feet) || residentEditData.square_feet === 0 ? '' : residentEditData.square_feet}
                     onChange={(e) => setResidentEditData({ ...residentEditData, square_feet: parseInt(e.target.value) || 0 })}
-                    className="w-full px-2.5 py-1.5 rounded-lg border border-[#6339CA]/20 outline-none focus:ring-1 focus:ring-[#6339CA] font-bold text-xs bg-white text-slate-800"
+                    className="w-full px-2.5 py-1.5 rounded-lg border border-[#6339CA]/20 outline-none focus:ring-1 focus:ring-[#6339CA] font-bold text-xs bg-white text-purple-900"
                   />
                 </div>
               </div>
@@ -4487,7 +4490,7 @@ NOTIFY pgrst, 'reload schema';`);
                         required
                         value={residentEditData.owner_id || ''}
                         onChange={(e) => setResidentEditData({ ...residentEditData, owner_id: e.target.value })}
-                        className="w-full px-2.5 py-1 rounded-lg border border-[#6339CA]/20 outline-none focus:ring-1 focus:ring-[#6339CA] font-bold text-[11px] bg-white text-slate-800"
+                        className="w-full px-2.5 py-1 rounded-lg border border-[#6339CA]/20 outline-none focus:ring-1 focus:ring-[#6339CA] font-bold text-[11px] bg-white text-purple-900"
                       >
                         <option value="">-- Choose Owner --</option>
                         {validOwners.map(owner => (
@@ -4537,7 +4540,7 @@ NOTIFY pgrst, 'reload schema';`);
         const wing = r.wing || r.tower;
 
         return (
-          <div className="fixed inset-0 bg-[#321F5C]/60 backdrop-blur-md flex items-center justify-center z-[100] p-4 animate-in fade-in duration-200">
+          <div className="fixed inset-0 bg-[#6339CA]/60 backdrop-blur-md flex items-center justify-center z-[100] p-4 animate-in fade-in duration-200">
             <div className="bg-white w-full max-w-3xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] border border-slate-100">
               <div className={`p-6 text-white flex justify-between items-center ${isOwner ? 'bg-[#6339CA]' : 'bg-purple-600'}`}>
                 <div>
@@ -4570,7 +4573,7 @@ NOTIFY pgrst, 'reload schema';`);
                             <Home className="w-4 h-4" />
                           </div>
                           <div>
-                            <h4 className="text-sm font-black text-[#321F5C] uppercase tracking-wider">Owner Profile Details</h4>
+                            <h4 className="text-sm font-black text-[#6339CA] uppercase tracking-wider">Owner Profile Details</h4>
                             <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Property & Ownership Specifications</p>
                           </div>
                         </div>
@@ -4582,27 +4585,27 @@ NOTIFY pgrst, 'reload schema';`);
                       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 text-xs">
                         <div>
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Owner Name</p>
-                          <p className="font-black text-[#321F5C] mt-0.5">{r.name}</p>
+                          <p className="font-black text-[#6339CA] mt-0.5">{r.name}</p>
                         </div>
                         <div>
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Flat Number</p>
-                          <p className="font-black text-[#321F5C] mt-0.5">{r.flat}</p>
+                          <p className="font-black text-[#6339CA] mt-0.5">{r.flat}</p>
                         </div>
                         <div>
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Building / Wing</p>
-                          <p className="font-bold text-slate-800 mt-0.5">Tower {r.tower} / Wing {wing}</p>
+                          <p className="font-bold text-purple-900 mt-0.5">Tower {r.tower} / Wing {wing}</p>
                         </div>
                         <div>
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Mobile Number</p>
-                          <p className="font-mono font-bold text-slate-800 mt-0.5">{r.phone || '—'}</p>
+                          <p className="font-mono font-bold text-purple-900 mt-0.5">{r.phone || '—'}</p>
                         </div>
                         <div>
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Email</p>
-                          <p className="font-medium text-slate-700 truncate mt-0.5">{r.email || '—'}</p>
+                          <p className="font-medium text-purple-800 truncate mt-0.5">{r.email || '—'}</p>
                         </div>
                         <div>
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Date of Possession</p>
-                          <p className="font-bold text-slate-800 mt-0.5">{r.possession_date || '15 Jan 2024'}</p>
+                          <p className="font-bold text-purple-900 mt-0.5">{r.possession_date || '15 Jan 2024'}</p>
                         </div>
                         <div>
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Resident Status</p>
@@ -4612,11 +4615,11 @@ NOTIFY pgrst, 'reload schema';`);
                         </div>
                         <div>
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Family Members</p>
-                          <p className="font-bold text-slate-800 mt-0.5">{r.family_members ? `${r.family_members} Members` : '3 Members'}</p>
+                          <p className="font-bold text-purple-900 mt-0.5">{r.family_members ? `${r.family_members} Members` : '3 Members'}</p>
                         </div>
                         <div>
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">BHK</p>
-                          <p className="font-bold text-slate-800 mt-0.5">{bhk}</p>
+                          <p className="font-bold text-purple-900 mt-0.5">{bhk}</p>
                         </div>
                         <div>
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Flat Type</p>
@@ -4624,7 +4627,7 @@ NOTIFY pgrst, 'reload schema';`);
                         </div>
                         <div>
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Square Feet</p>
-                          <p className="font-mono font-bold text-slate-800 mt-0.5">{sqft} sq.ft.</p>
+                          <p className="font-mono font-bold text-purple-900 mt-0.5">{sqft} sq.ft.</p>
                         </div>
                       </div>
                     </div>
@@ -4641,7 +4644,7 @@ NOTIFY pgrst, 'reload schema';`);
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                           <div>
                             <p className="text-[9px] font-black text-purple-600 uppercase tracking-wider">Tenant Name</p>
-                            <p className="font-bold text-[#321F5C] mt-0.5">{linkedTenant.name}</p>
+                            <p className="font-bold text-[#6339CA] mt-0.5">{linkedTenant.name}</p>
                           </div>
                           <div>
                             <p className="text-[9px] font-black text-purple-600 uppercase tracking-wider">Tenant ID</p>
@@ -4649,7 +4652,7 @@ NOTIFY pgrst, 'reload schema';`);
                           </div>
                           <div>
                             <p className="text-[9px] font-black text-purple-600 uppercase tracking-wider">Tenant Phone</p>
-                            <p className="font-mono font-bold text-slate-800 mt-0.5">{linkedTenant.phone}</p>
+                            <p className="font-mono font-bold text-purple-900 mt-0.5">{linkedTenant.phone}</p>
                           </div>
                           <div>
                             <p className="text-[9px] font-black text-purple-600 uppercase tracking-wider">Tenant Status</p>
@@ -4673,11 +4676,11 @@ NOTIFY pgrst, 'reload schema';`);
                     <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-4 font-sans">
                       <div className="flex items-center justify-between pb-3 border-b border-slate-200">
                         <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-lg bg-indigo-100 text-[#321F5C] flex items-center justify-center font-bold text-xs">
+                          <div className="w-8 h-8 rounded-lg bg-indigo-100 text-[#6339CA] flex items-center justify-center font-bold text-xs">
                             <Key className="w-4 h-4" />
                           </div>
                           <div>
-                            <h4 className="text-sm font-black text-[#321F5C] uppercase tracking-wider">Tenant Profile Details</h4>
+                            <h4 className="text-sm font-black text-[#6339CA] uppercase tracking-wider">Tenant Profile Details</h4>
                             <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Tenancy & Rental Agreement Records</p>
                           </div>
                         </div>
@@ -4689,23 +4692,23 @@ NOTIFY pgrst, 'reload schema';`);
                       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 text-xs">
                         <div>
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Tenant Name</p>
-                          <p className="font-black text-[#321F5C] mt-0.5">{r.name}</p>
+                          <p className="font-black text-[#6339CA] mt-0.5">{r.name}</p>
                         </div>
                         <div>
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Flat Number</p>
-                          <p className="font-black text-[#321F5C] mt-0.5">{r.flat}</p>
+                          <p className="font-black text-[#6339CA] mt-0.5">{r.flat}</p>
                         </div>
                         <div>
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Building / Wing</p>
-                          <p className="font-bold text-slate-800 mt-0.5">Tower {r.tower} / Wing {wing}</p>
+                          <p className="font-bold text-purple-900 mt-0.5">Tower {r.tower} / Wing {wing}</p>
                         </div>
                         <div>
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Mobile Number</p>
-                          <p className="font-mono font-bold text-slate-800 mt-0.5">{r.phone || '—'}</p>
+                          <p className="font-mono font-bold text-purple-900 mt-0.5">{r.phone || '—'}</p>
                         </div>
                         <div>
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Email</p>
-                          <p className="font-medium text-slate-700 truncate mt-0.5">{r.email || '—'}</p>
+                          <p className="font-medium text-purple-800 truncate mt-0.5">{r.email || '—'}</p>
                         </div>
                         <div>
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Owner Name</p>
@@ -4719,15 +4722,15 @@ NOTIFY pgrst, 'reload schema';`);
                         </div>
                         <div>
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Move-in Date</p>
-                          <p className="font-bold text-slate-800 mt-0.5">{r.move_in_date || '01 Mar 2025'}</p>
+                          <p className="font-bold text-purple-900 mt-0.5">{r.move_in_date || '01 Mar 2025'}</p>
                         </div>
                         <div>
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Expected Move-out Date</p>
-                          <p className="font-bold text-slate-800 mt-0.5">{r.expected_move_out_date || '28 Feb 2027'}</p>
+                          <p className="font-bold text-purple-900 mt-0.5">{r.expected_move_out_date || '28 Feb 2027'}</p>
                         </div>
                         <div>
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">BHK</p>
-                          <p className="font-bold text-slate-800 mt-0.5">{bhk}</p>
+                          <p className="font-bold text-purple-900 mt-0.5">{bhk}</p>
                         </div>
                         <div>
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Flat Type</p>
@@ -4735,11 +4738,11 @@ NOTIFY pgrst, 'reload schema';`);
                         </div>
                         <div>
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Square Feet</p>
-                          <p className="font-mono font-bold text-slate-800 mt-0.5">{sqft} sq.ft.</p>
+                          <p className="font-mono font-bold text-purple-900 mt-0.5">{sqft} sq.ft.</p>
                         </div>
                         <div className="col-span-2 sm:col-span-3 md:col-span-4 bg-white p-3 rounded-xl border border-slate-200">
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Permanent Address</p>
-                          <p className="font-medium text-slate-800 mt-0.5">{r.permanent_address || '402, Shivam Enclave, Main Road, Pune, Maharashtra 411038'}</p>
+                          <p className="font-medium text-purple-900 mt-0.5">{r.permanent_address || '402, Shivam Enclave, Main Road, Pune, Maharashtra 411038'}</p>
                         </div>
                       </div>
                     </div>
@@ -4758,7 +4761,7 @@ NOTIFY pgrst, 'reload schema';`);
               <div className="p-5 bg-slate-50 border-t border-slate-200 flex justify-end gap-3">
                 <button
                   onClick={() => setSelectedResidentDetails(null)}
-                  className="px-6 py-2.5 bg-white border border-slate-200 text-slate-700 font-bold text-xs uppercase tracking-wider rounded-xl hover:bg-slate-100 transition-all shadow-2xs"
+                  className="px-6 py-2.5 bg-white border border-slate-200 text-purple-800 font-bold text-xs uppercase tracking-wider rounded-xl hover:bg-slate-100 transition-all shadow-2xs"
                 >
                   Close
                 </button>
@@ -4768,7 +4771,7 @@ NOTIFY pgrst, 'reload schema';`);
         );
       })()}
       {selectedBooking && (
-        <div className="fixed inset-0 bg-[#321F5C]/60 backdrop-blur-md flex items-center justify-center z-[100] p-4">
+        <div className="fixed inset-0 bg-[#6339CA]/60 backdrop-blur-md flex items-center justify-center z-[100] p-4">
           <div className="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
             <div className="p-8 bg-[#6339CA] text-white flex justify-between items-center">
               <div>
@@ -4783,15 +4786,15 @@ NOTIFY pgrst, 'reload schema';`);
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                 <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Resident</p>
-                  <p className="text-sm font-black text-slate-800">{selectedBooking.name}</p>
+                  <p className="text-sm font-black text-purple-900">{selectedBooking.name}</p>
                 </div>
                 <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Tower / Flat</p>
-                  <p className="text-sm font-black text-slate-800">T-{selectedBooking.tower} / {selectedBooking.flat}</p>
+                  <p className="text-sm font-black text-purple-900">T-{selectedBooking.tower} / {selectedBooking.flat}</p>
                 </div>
                 <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Amenity</p>
-                  <p className="text-sm font-black text-slate-800">{selectedBooking.amenity_name}</p>
+                  <p className="text-sm font-black text-purple-900">{selectedBooking.amenity_name}</p>
                 </div>
                 <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Status</p>
@@ -4804,25 +4807,25 @@ NOTIFY pgrst, 'reload schema';`);
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-3">
-                  <h4 className="text-sm font-black text-slate-800 uppercase tracking-widest">Event Information</h4>
+                  <h4 className="text-sm font-black text-purple-900 uppercase tracking-widest">Event Information</h4>
                   <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 space-y-4">
                     <div>
                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Event Name</p>
-                      <p className="text-sm font-bold text-slate-800">{selectedBooking.event_name}</p>
+                      <p className="text-sm font-bold text-purple-900">{selectedBooking.event_name}</p>
                     </div>
                     <div>
                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Booking Date</p>
-                      <p className="text-sm font-bold text-slate-800">{format(new Date(selectedBooking.booking_date), 'dd MMM yyyy')}</p>
+                      <p className="text-sm font-bold text-purple-900">{format(new Date(selectedBooking.booking_date), 'dd MMM yyyy')}</p>
                     </div>
                   </div>
                 </div>
 
                 <div className="space-y-3">
-                  <h4 className="text-sm font-black text-slate-800 uppercase tracking-widest">Time & Charges</h4>
+                  <h4 className="text-sm font-black text-purple-900 uppercase tracking-widest">Time & Charges</h4>
                   <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 space-y-4">
                     <div>
                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Time Slot</p>
-                      <p className="text-sm font-bold text-slate-800">{selectedBooking.start_time} - {selectedBooking.end_time}</p>
+                      <p className="text-sm font-bold text-purple-900">{selectedBooking.start_time} - {selectedBooking.end_time}</p>
                     </div>
                     <div>
                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Charges</p>
@@ -4846,7 +4849,7 @@ NOTIFY pgrst, 'reload schema';`);
 
       {/* Complaint Details Modal */}
       {selectedComplaint && (
-        <div className="fixed inset-0 bg-[#321F5C]/60 backdrop-blur-md flex items-center justify-center z-[100] p-4">
+        <div className="fixed inset-0 bg-[#6339CA]/60 backdrop-blur-md flex items-center justify-center z-[100] p-4">
           <div className="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
             <div className="p-8 bg-[#6339CA] text-white flex justify-between items-center">
               <div>
@@ -4861,41 +4864,41 @@ NOTIFY pgrst, 'reload schema';`);
               <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
                 <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Complaint ID</p>
-                  <p className="text-sm font-black text-slate-800">{selectedComplaint.complaint_id}</p>
+                  <p className="text-sm font-black text-purple-900">{selectedComplaint.complaint_id}</p>
                 </div>
                 <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Category</p>
-                  <p className="text-sm font-black text-slate-800">{selectedComplaint.category}</p>
+                  <p className="text-sm font-black text-purple-900">{selectedComplaint.category}</p>
                 </div>
                 <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Tower</p>
-                  <p className="text-sm font-black text-slate-800">{selectedComplaint.tower}</p>
+                  <p className="text-sm font-black text-purple-900">{selectedComplaint.tower}</p>
                 </div>
                 <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Flat Number</p>
-                  <p className="text-sm font-black text-slate-800">{selectedComplaint.flat_no}</p>
+                  <p className="text-sm font-black text-purple-900">{selectedComplaint.flat_no}</p>
                 </div>
                 <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Resident ID</p>
-                  <p className="text-sm font-black text-slate-800">{selectedComplaint.resident_id}</p>
+                  <p className="text-sm font-black text-purple-900">{selectedComplaint.resident_id}</p>
                 </div>
                 <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Date</p>
-                  <p className="text-sm font-black text-slate-800">
+                  <p className="text-sm font-black text-purple-900">
                     {new Date(selectedComplaint.complaint_date || Date.now()).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
                   </p>
                 </div>
               </div>
 
               <div className="space-y-3">
-                <h4 className="text-sm font-black text-slate-800 uppercase tracking-widest">Description</h4>
+                <h4 className="text-sm font-black text-purple-900 uppercase tracking-widest">Description</h4>
                 <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
                   <p className="text-slate-600 font-medium leading-relaxed">{selectedComplaint.description}</p>
                 </div>
               </div>
 
               <div className="space-y-3">
-                <h4 className="text-sm font-black text-slate-800 uppercase tracking-widest">Media Attachment</h4>
+                <h4 className="text-sm font-black text-purple-900 uppercase tracking-widest">Media Attachment</h4>
                 <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
                   {selectedComplaint.media && selectedComplaint.media.length > 0 ? (
                     <div className="relative group overflow-hidden rounded-2xl border border-slate-200 bg-white">
@@ -4929,7 +4932,7 @@ NOTIFY pgrst, 'reload schema';`);
 
       {/* Complaint Comment Modal */}
       {complaintToComment && (
-        <div className="fixed inset-0 bg-[#321F5C]/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-[#6339CA]/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <div className="bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 w-full max-w-md overflow-hidden">
             <div className={`p-8 text-white relative overflow-hidden ${
               complaintToComment.status === 'Done' ? 'bg-#44D080' : 
@@ -5001,9 +5004,9 @@ NOTIFY pgrst, 'reload schema';`);
       )}
       {/* Change Password Modal */}
       {showChangePasswordModal && (
-        <div className="fixed inset-0 bg-[#321F5C]/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-[#6339CA]/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-2xl border border-slate-100 w-full max-w-md overflow-hidden">
-            <div className="p-8 bg-[#321F5C] text-white flex justify-between items-center">
+            <div className="p-8 bg-[#6339CA] text-white flex justify-between items-center">
               <div>
                 <h3 className="text-2xl font-black tracking-tight">Change Password</h3>
                 <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">Secure your admin account</p>
@@ -5021,7 +5024,7 @@ NOTIFY pgrst, 'reload schema';`);
                     required
                     value={passwordData.oldPassword}
                     onChange={(e) => setPasswordData({ ...passwordData, oldPassword: e.target.value })}
-                    className="w-full px-5 py-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-slate-900 transition-all font-bold text-sm" 
+                    className="w-full px-5 py-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-purple-950 transition-all font-bold text-sm" 
                   />
                   <button 
                     type="button"
@@ -5040,7 +5043,7 @@ NOTIFY pgrst, 'reload schema';`);
                     required
                     value={passwordData.newPassword}
                     onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                    className="w-full px-5 py-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-slate-900 transition-all font-bold text-sm" 
+                    className="w-full px-5 py-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-purple-950 transition-all font-bold text-sm" 
                   />
                   <button 
                     type="button"
@@ -5059,7 +5062,7 @@ NOTIFY pgrst, 'reload schema';`);
                     required
                     value={passwordData.confirmPassword}
                     onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-                    className="w-full px-5 py-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-slate-900 transition-all font-bold text-sm" 
+                    className="w-full px-5 py-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-purple-950 transition-all font-bold text-sm" 
                   />
                   <button 
                     type="button"
@@ -5081,7 +5084,7 @@ NOTIFY pgrst, 'reload schema';`);
                 <button
                   type="submit"
                   disabled={updating === 'changing-password'}
-                  className="flex-[2] px-6 py-4 rounded-xl bg-[#321F5C] text-white font-black text-xs uppercase tracking-widest shadow-lg hover:bg-slate-800 transition-all flex items-center justify-center gap-2"
+                  className="flex-[2] px-6 py-4 rounded-xl bg-[#6339CA] text-white font-black text-xs uppercase tracking-widest shadow-lg hover:bg-purple-900 transition-all flex items-center justify-center gap-2"
                 >
                   {updating === 'changing-password' ? (
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -5096,14 +5099,14 @@ NOTIFY pgrst, 'reload schema';`);
       )}
 
       {showBillSuccessModal && (
-        <div className="fixed inset-0 bg-[#321F5C]/60 backdrop-blur-md z-[200] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-[#6339CA]/60 backdrop-blur-md z-[200] flex items-center justify-center p-4">
           <div className="bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-300">
             <div className="p-8 text-center space-y-6">
               <div className="w-20 h-20 bg-emerald-50 text-#44D080 rounded-full flex items-center justify-center mx-auto shadow-inner">
                 <CheckCircle2 className="w-10 h-10" />
               </div>
               <div>
-                <h3 className="text-2xl font-black text-[#321F5C] tracking-tight">Bills Generated!</h3>
+                <h3 className="text-2xl font-black text-[#6339CA] tracking-tight">Bills Generated!</h3>
                 <p className="text-slate-500 font-medium mt-2">Maintenance bills have been generated and sent to the selected residents successfully.</p>
               </div>
               <button 
@@ -5128,10 +5131,10 @@ NOTIFY pgrst, 'reload schema';`);
         const isOverdue = m.status === 'Unpaid' && m.due_date && new Date(m.due_date) < new Date();
 
         return (
-          <div className="fixed inset-0 bg-[#321F5C]/60 backdrop-blur-md z-[200] flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200">
+          <div className="fixed inset-0 bg-[#6339CA]/60 backdrop-blur-md z-[200] flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200">
             <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-2xl overflow-hidden flex flex-col max-h-[92vh]">
               {/* Header */}
-              <div className="p-6 bg-gradient-to-r from-[#321F5C] via-[#5D31C7] to-[#6339CA] text-white flex justify-between items-start shrink-0">
+              <div className="p-6 bg-gradient-to-r from-[#6339CA] via-[#5D31C7] to-[#6339CA] text-white flex justify-between items-start shrink-0">
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-white/20 text-white">
@@ -5155,16 +5158,16 @@ NOTIFY pgrst, 'reload schema';`);
               </div>
 
               {/* Printable Body */}
-              <div className="p-6 overflow-y-auto space-y-6 text-slate-800">
+              <div className="p-6 overflow-y-auto space-y-6 text-purple-900">
                 {/* Invoice Meta Grid */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs">
                   <div>
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Billing Month</p>
-                    <p className="font-bold text-[#321F5C] mt-0.5">{m.month || selectedMonth}</p>
+                    <p className="font-bold text-[#6339CA] mt-0.5">{m.month || selectedMonth}</p>
                   </div>
                   <div>
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Due Date</p>
-                    <p className={`font-bold mt-0.5 ${isOverdue ? 'text-red-600' : 'text-[#321F5C]'}`}>
+                    <p className={`font-bold mt-0.5 ${isOverdue ? 'text-red-600' : 'text-[#6339CA]'}`}>
                       {m.due_date ? format(new Date(m.due_date), 'dd MMM yyyy') : '15 Oct 2026'}
                     </p>
                   </div>
@@ -5182,7 +5185,7 @@ NOTIFY pgrst, 'reload schema';`);
                   </div>
                   <div>
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Payment Date</p>
-                    <p className="font-mono font-bold text-[#321F5C] mt-0.5">
+                    <p className="font-mono font-bold text-[#6339CA] mt-0.5">
                       {m.payment_date ? format(new Date(m.payment_date), 'dd MMM yyyy') : '—'}
                     </p>
                   </div>
@@ -5191,7 +5194,7 @@ NOTIFY pgrst, 'reload schema';`);
                 {/* Resident Details Box */}
                 <div className="p-5 rounded-2xl border border-slate-200 bg-white space-y-3">
                   <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-                    <h4 className="text-xs font-black uppercase tracking-wider text-[#321F5C] flex items-center gap-2">
+                    <h4 className="text-xs font-black uppercase tracking-wider text-[#6339CA] flex items-center gap-2">
                       <UserIcon className="w-4 h-4 text-[#6339CA]" />
                       Billed To Resident
                     </h4>
@@ -5204,7 +5207,7 @@ NOTIFY pgrst, 'reload schema';`);
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
                     <div>
                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Resident Name</p>
-                      <p className="font-bold text-[#321F5C] mt-0.5">{displayResidentName}</p>
+                      <p className="font-bold text-[#6339CA] mt-0.5">{displayResidentName}</p>
                     </div>
                     <div>
                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Resident ID</p>
@@ -5212,19 +5215,19 @@ NOTIFY pgrst, 'reload schema';`);
                     </div>
                     <div>
                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Tower & Flat</p>
-                      <p className="font-bold text-[#321F5C] mt-0.5">Tower {m.tower} / Flat {m.flat_no}</p>
+                      <p className="font-bold text-[#6339CA] mt-0.5">Tower {m.tower} / Flat {m.flat_no}</p>
                     </div>
                     <div>
                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Flat Type</p>
-                      <p className="font-bold text-slate-800 mt-0.5">{flatType}</p>
+                      <p className="font-bold text-purple-900 mt-0.5">{flatType}</p>
                     </div>
                     <div>
                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Unit Area</p>
-                      <p className="font-mono font-bold text-slate-800 mt-0.5">{sqft} sq.ft.</p>
+                      <p className="font-mono font-bold text-purple-900 mt-0.5">{sqft} sq.ft.</p>
                     </div>
                     <div>
                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Contact Phone</p>
-                      <p className="font-mono font-bold text-slate-800 mt-0.5">{residentObj?.phone || '—'}</p>
+                      <p className="font-mono font-bold text-purple-900 mt-0.5">{residentObj?.phone || '—'}</p>
                     </div>
                   </div>
                 </div>
@@ -5241,12 +5244,12 @@ NOTIFY pgrst, 'reload schema';`);
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       <tr>
-                        <td className="px-4 py-3 font-bold text-[#321F5C]">
+                        <td className="px-4 py-3 font-bold text-[#6339CA]">
                           Society Monthly Maintenance
                           <p className="text-[10px] font-normal text-slate-500">Security, common lighting, water, cleaning, landscaping & elevators</p>
                         </td>
                         <td className="px-4 py-3 text-slate-600">{flatType} ({sqft} sq.ft)</td>
-                        <td className="px-4 py-3 text-right font-mono font-bold text-[#321F5C]">₹{m.amount.toLocaleString()}</td>
+                        <td className="px-4 py-3 text-right font-mono font-bold text-[#6339CA]">₹{m.amount.toLocaleString()}</td>
                       </tr>
                       <tr className="bg-slate-50/50 font-bold">
                         <td colSpan={2} className="px-4 py-3 text-right uppercase text-[10px] tracking-wider text-slate-600">
@@ -5295,7 +5298,7 @@ NOTIFY pgrst, 'reload schema';`);
               <div className="p-5 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-3 shrink-0">
                 <button
                   onClick={() => globalThis.print?.()}
-                  className="px-4 py-2.5 bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 font-bold text-xs rounded-xl transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer"
+                  className="px-4 py-2.5 bg-white border border-slate-300 hover:bg-slate-100 text-purple-800 font-bold text-xs rounded-xl transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer"
                 >
                   <Printer className="w-4 h-4 text-slate-600" />
                   Print / Download
@@ -5318,7 +5321,7 @@ NOTIFY pgrst, 'reload schema';`);
                   </button>
                   <button
                     onClick={() => setSelectedBillForInvoice(null)}
-                    className="px-5 py-2.5 bg-[#321F5C] text-white font-bold text-xs rounded-xl hover:bg-slate-800 transition-all cursor-pointer"
+                    className="px-5 py-2.5 bg-[#6339CA] text-white font-bold text-xs rounded-xl hover:bg-purple-900 transition-all cursor-pointer"
                   >
                     Close
                   </button>
@@ -5330,7 +5333,7 @@ NOTIFY pgrst, 'reload schema';`);
       })()}
       {/* Booking Comment Modal */}
       {bookingToComment && (
-        <div className="fixed inset-0 bg-[#321F5C]/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-[#6339CA]/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <div className="bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 w-full max-w-md overflow-hidden">
             <div className={`p-8 text-white relative overflow-hidden ${
               bookingToComment.status === 'Approved' ? 'bg-#44D080' : 'bg-#FAA928'

@@ -183,11 +183,11 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
       case 'meeting':
         return { icon: Users, bg: 'bg-purple-100/50', text: 'text-purple-800', border: 'border-purple-200' };
       case 'security':
-        return { icon: ShieldAlert, bg: 'bg-slate-100', text: 'text-slate-800', border: 'border-slate-300' };
+        return { icon: ShieldAlert, bg: 'bg-slate-100', text: 'text-purple-900', border: 'border-slate-300' };
       case 'financial':
         return { icon: FileText, bg: 'bg-emerald-50', text: 'text-emerald-800', border: 'border-emerald-200' };
       default:
-        return { icon: Info, bg: 'bg-purple-50/50', text: 'text-slate-700', border: 'border-purple-100' };
+        return { icon: Info, bg: 'bg-purple-50/50', text: 'text-purple-800', border: 'border-purple-100' };
     }
   };
 
@@ -519,7 +519,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
           <button
             type="button"
             onClick={() => onSwitchTab ? onSwitchTab('dashboard') : window.history.back()}
-            className="w-9 h-9 rounded-xl bg-purple-100/50 hover:bg-[#6339CA] hover:text-white text-slate-700 flex items-center justify-center transition-all cursor-pointer shadow-2xs group shrink-0"
+            className="w-9 h-9 rounded-xl bg-purple-100/50 hover:bg-[#6339CA] hover:text-white text-purple-800 flex items-center justify-center transition-all cursor-pointer shadow-2xs group shrink-0"
             title="Back to Dashboard"
           >
             <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
@@ -537,7 +537,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
             <button
               type="button"
               onClick={() => onSwitchTab && onSwitchTab('communication')}
-              className="px-3.5 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider text-slate-600 hover:text-[#321F5C] hover:bg-white flex items-center gap-1.5 transition-all cursor-pointer"
+              className="px-3.5 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider text-slate-600 hover:text-[#6339CA] hover:bg-white flex items-center gap-1.5 transition-all cursor-pointer"
             >
               <MessageSquare className="w-3.5 h-3.5" />
               <span>Chat</span>
@@ -574,7 +574,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
               Total Published Notices
             </p>
             <div className="flex items-baseline gap-2 mt-0.5">
-              <span className="text-2xl font-black text-[#321F5C] font-mono tabular-nums">
+              <span className="text-2xl font-black text-[#6339CA] font-mono tabular-nums">
                 {publishedCount}
               </span>
               <span className="text-[11px] font-medium text-slate-500">active circulars</span>
@@ -592,7 +592,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
               Urgent Notices
             </p>
             <div className="flex items-baseline gap-2 mt-0.5">
-              <span className="text-2xl font-black text-[#321F5C] font-mono tabular-nums">
+              <span className="text-2xl font-black text-[#6339CA] font-mono tabular-nums">
                 {urgentCount}
               </span>
               <span className="text-[11px] font-medium text-[#EF8557]">high priority alerts</span>
@@ -610,7 +610,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
               Scheduled Events
             </p>
             <div className="flex items-baseline gap-2 mt-0.5">
-              <span className="text-2xl font-black text-[#321F5C] font-mono tabular-nums">
+              <span className="text-2xl font-black text-[#6339CA] font-mono tabular-nums">
                 {eventsCount}
               </span>
               <span className="text-[11px] font-medium text-slate-500">meetings & programmes</span>
@@ -635,7 +635,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                 placeholder="Search notices by title, description or author..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-8 py-2 rounded-xl bg-slate-50 border border-slate-200 focus:border-[#6339CA] focus:bg-white focus:ring-1 focus:ring-[#6339CA]/20 text-xs font-semibold text-slate-800 placeholder:text-slate-400 outline-none transition-all"
+                className="w-full pl-9 pr-8 py-2 rounded-xl bg-slate-50 border border-slate-200 focus:border-[#6339CA] focus:bg-white focus:ring-1 focus:ring-[#6339CA]/20 text-xs font-semibold text-purple-900 placeholder:text-slate-400 outline-none transition-all"
               />
               {searchQuery && (
                 <button
@@ -653,7 +653,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 outline-none focus:border-[#226192] cursor-pointer"
+              className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-purple-800 outline-none focus:border-[#226192] cursor-pointer"
               title="Filter by category"
             >
               <option value="All">All Categories</option>
@@ -666,7 +666,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
             <select
               value={selectedPriority}
               onChange={(e) => setSelectedPriority(e.target.value)}
-              className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 outline-none focus:border-[#226192] cursor-pointer"
+              className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-purple-800 outline-none focus:border-[#226192] cursor-pointer"
               title="Filter by priority"
             >
               <option value="All">All Priorities</option>
@@ -679,7 +679,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
-              className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 outline-none focus:border-[#226192] cursor-pointer"
+              className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-purple-800 outline-none focus:border-[#226192] cursor-pointer"
               title="Filter by publication status"
             >
               <option value="All">All Statuses</option>
@@ -695,7 +695,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                 className={`px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 border transition-all cursor-pointer ${
                   selectedDate 
                     ? 'bg-[#226192] text-white border-[#226192] shadow-xs' 
-                    : 'bg-slate-50 hover:bg-[#EAE6DE]/50 text-slate-700 border-slate-200'
+                    : 'bg-slate-50 hover:bg-[#EAE6DE]/50 text-purple-800 border-slate-200'
                 }`}
                 title="Filter notices by calendar date"
               >
@@ -731,7 +731,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                       className={`flex-1 py-1 text-[11px] font-semibold rounded-md transition-all ${
                         calendarDateField === 'posted_date'
                           ? 'bg-white text-[#226192] shadow-2xs font-bold'
-                          : 'text-slate-600 hover:text-[#321F5C]'
+                          : 'text-slate-600 hover:text-[#6339CA]'
                       }`}
                     >
                       Published Date
@@ -742,7 +742,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                       className={`flex-1 py-1 text-[11px] font-semibold rounded-md transition-all ${
                         calendarDateField === 'expiry_date'
                           ? 'bg-white text-[#226192] shadow-2xs font-bold'
-                          : 'text-slate-600 hover:text-[#321F5C]'
+                          : 'text-slate-600 hover:text-[#6339CA]'
                       }`}
                     >
                       Event / Date
@@ -761,7 +761,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                     </button>
 
                     <div className="flex items-center gap-1.5">
-                      <span className="text-xs font-black text-slate-800">
+                      <span className="text-xs font-black text-purple-900">
                         {format(currentCalendarMonth, 'MMMM yyyy')}
                       </span>
                       <button
@@ -819,7 +819,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                               ? 'bg-[#226192] text-white font-bold shadow-2xs'
                               : isCurrentDay
                               ? 'bg-[#EAE6DE] text-[#226192] font-bold ring-1 ring-[#226192]/30'
-                              : 'text-slate-700 hover:bg-[#EAE6DE]/40'
+                              : 'text-purple-800 hover:bg-[#EAE6DE]/40'
                           }`}
                         >
                           <span className="leading-none">{format(day, 'd')}</span>
@@ -849,7 +849,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                         setSelectedDate(null);
                         setIsCalendarOpen(false);
                       }}
-                      className="px-2.5 py-1 text-slate-500 hover:text-slate-800 font-bold transition-colors cursor-pointer"
+                      className="px-2.5 py-1 text-slate-500 hover:text-purple-900 font-bold transition-colors cursor-pointer"
                     >
                       Clear
                     </button>
@@ -871,7 +871,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
               <button
                 type="button"
                 onClick={handleClearAllFilters}
-                className="px-2.5 py-2 text-xs font-bold text-slate-500 hover:text-[#321F5C] flex items-center gap-1 transition-colors cursor-pointer"
+                className="px-2.5 py-2 text-xs font-bold text-slate-500 hover:text-[#6339CA] flex items-center gap-1 transition-colors cursor-pointer"
                 title="Reset all search & filter controls"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
@@ -897,7 +897,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                 type="button"
                 onClick={() => handleToggleViewMode('list')}
                 className={`p-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all cursor-pointer ${
-                  viewMode === 'list' ? 'bg-white text-[#226192] shadow-xs' : 'text-slate-500 hover:text-slate-800'
+                  viewMode === 'list' ? 'bg-white text-[#226192] shadow-xs' : 'text-slate-500 hover:text-purple-900'
                 }`}
                 title="List Mode"
               >
@@ -908,7 +908,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                 type="button"
                 onClick={() => handleToggleViewMode('grid')}
                 className={`p-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all cursor-pointer ${
-                  viewMode === 'grid' ? 'bg-white text-[#226192] shadow-xs' : 'text-slate-500 hover:text-slate-800'
+                  viewMode === 'grid' ? 'bg-white text-[#226192] shadow-xs' : 'text-slate-500 hover:text-purple-900'
                 }`}
                 title="Grid Mode"
               >
@@ -933,7 +933,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
           <div className="w-14 h-14 bg-slate-100 text-slate-400 rounded-2xl flex items-center justify-center mx-auto mb-2">
             <Megaphone className="w-7 h-7" />
           </div>
-          <h3 className="text-base font-bold text-slate-800">No notices found</h3>
+          <h3 className="text-base font-bold text-purple-900">No notices found</h3>
           <p className="text-xs text-slate-500 max-w-md mx-auto">
             {hasActiveFilters
               ? 'No announcements match your search keywords or calendar date filter. Try clearing filters.'
@@ -943,7 +943,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
             <button
               type="button"
               onClick={handleClearAllFilters}
-              className="mt-3 px-4 py-2 bg-[#EAE6DE]/60 hover:bg-[#EAE6DE] text-slate-700 text-xs font-bold rounded-xl transition-all cursor-pointer"
+              className="mt-3 px-4 py-2 bg-[#EAE6DE]/60 hover:bg-[#EAE6DE] text-purple-800 text-xs font-bold rounded-xl transition-all cursor-pointer"
             >
               Reset Filters
             </button>
@@ -976,7 +976,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
 
                     <h2
                       onClick={() => handleOpenNotice(notice)}
-                      className="text-sm font-bold text-[#321F5C] group-hover:text-[#226192] transition-colors cursor-pointer leading-snug line-clamp-2"
+                      className="text-sm font-bold text-[#6339CA] group-hover:text-[#226192] transition-colors cursor-pointer leading-snug line-clamp-2"
                       title={notice.title}
                     >
                       {notice.title}
@@ -999,7 +999,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                           {publisher.name.slice(0, 2).toUpperCase()}
                         </div>
                       )}
-                      <span className="font-bold text-slate-800 truncate">{publisher.name}</span>
+                      <span className="font-bold text-purple-900 truncate">{publisher.name}</span>
                     </div>
 
                     <button
@@ -1031,7 +1031,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                     {/* Notice Title */}
                     <h2
                       onClick={() => handleOpenNotice(notice)}
-                      className="text-sm sm:text-base font-bold text-[#321F5C] group-hover:text-[#226192] transition-colors cursor-pointer leading-snug line-clamp-1"
+                      className="text-sm sm:text-base font-bold text-[#6339CA] group-hover:text-[#226192] transition-colors cursor-pointer leading-snug line-clamp-1"
                       title={notice.title}
                     >
                       {notice.title}
@@ -1061,7 +1061,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                 <div>
                   <p 
                     onClick={() => handleOpenNotice(notice)}
-                    className="text-xs sm:text-sm text-slate-600 line-clamp-2 leading-relaxed font-normal cursor-pointer hover:text-slate-800 transition-colors"
+                    className="text-xs sm:text-sm text-slate-600 line-clamp-2 leading-relaxed font-normal cursor-pointer hover:text-purple-900 transition-colors"
                   >
                     {notice.description}
                   </p>
@@ -1087,7 +1087,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                         </div>
                       )}
                       <div className="leading-tight">
-                        <span className="font-bold text-slate-800 block text-xs">{publisher.name}</span>
+                        <span className="font-bold text-purple-900 block text-xs">{publisher.name}</span>
                         <span className="text-[10px] text-slate-400 block">{publisher.role}</span>
                       </div>
                     </div>
@@ -1193,7 +1193,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
         const isImage = viewingNotice.attachment_type?.startsWith('image/') || /\.(png|jpe?g|webp)$/i.test(viewingNotice.attachment_url || '');
 
         return (
-          <div className="fixed inset-0 bg-[#321F5C]/60 backdrop-blur-xs z-[100] flex items-center justify-center p-3 sm:p-5">
+          <div className="fixed inset-0 bg-[#6339CA]/60 backdrop-blur-xs z-[100] flex items-center justify-center p-3 sm:p-5">
             <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-150 flex flex-col max-h-[90vh]">
               
               {/* Modal Top Banner */}
@@ -1244,7 +1244,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                     </div>
                   )}
                   <div>
-                    <p className="font-bold text-slate-800 text-xs leading-none">{publisher.name}</p>
+                    <p className="font-bold text-purple-900 text-xs leading-none">{publisher.name}</p>
                     <p className="text-[11px] text-slate-500 mt-0.5">{publisher.role}</p>
                   </div>
                 </div>
@@ -1257,7 +1257,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                   <span className="text-slate-300">·</span>
                   <div className="flex items-center gap-1" title="Authenticated Unique Views">
                     <Eye className="w-3.5 h-3.5 text-[#226192]" />
-                    <span className="font-bold text-slate-800 tabular-nums">{viewCount} views</span>
+                    <span className="font-bold text-purple-900 tabular-nums">{viewCount} views</span>
                   </div>
                   {viewingNotice.target_audience && (
                     <>
@@ -1271,8 +1271,8 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
               </div>
 
               {/* Modal Body / Full Description */}
-              <div className="p-6 overflow-y-auto space-y-5 text-slate-700 text-xs sm:text-sm leading-relaxed">
-                <div className="whitespace-pre-wrap font-normal text-slate-800 bg-slate-50/60 p-5 rounded-2xl border border-slate-200">
+              <div className="p-6 overflow-y-auto space-y-5 text-purple-800 text-xs sm:text-sm leading-relaxed">
+                <div className="whitespace-pre-wrap font-normal text-purple-900 bg-slate-50/60 p-5 rounded-2xl border border-slate-200">
                   {viewingNotice.description}
                 </div>
 
@@ -1280,7 +1280,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                 {viewingNotice.attachment_url && (
                   <div className="p-4 rounded-2xl border border-slate-200 bg-slate-50 space-y-3">
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-xs font-bold text-[#321F5C]">
+                      <div className="flex items-center gap-2 text-xs font-bold text-[#6339CA]">
                         <Paperclip className="w-4 h-4 text-[#226192]" />
                         <span>Official Notice Attachment</span>
                       </div>
@@ -1291,7 +1291,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
 
                     {/* Image Preview */}
                     {isImage && (
-                      <div className="rounded-xl overflow-hidden border border-slate-200 max-h-64 bg-[#321F5C] flex items-center justify-center">
+                      <div className="rounded-xl overflow-hidden border border-slate-200 max-h-64 bg-[#6339CA] flex items-center justify-center">
                         <img 
                           src={viewingNotice.attachment_url} 
                           alt="Notice media preview"
@@ -1303,7 +1303,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
 
                     {/* Download & View Actions */}
                     <div className="flex items-center justify-between gap-3 pt-1">
-                      <p className="text-xs font-semibold text-slate-700 truncate max-w-sm">
+                      <p className="text-xs font-semibold text-purple-800 truncate max-w-sm">
                         {viewingNotice.attachment_name || 'Official Circular Document'}
                       </p>
 
@@ -1312,7 +1312,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                           href={viewingNotice.attachment_url}
                           target="_blank"
                           rel="noreferrer"
-                          className="px-3.5 py-1.5 rounded-lg bg-white border border-slate-200 hover:bg-[#EAE6DE]/50 text-slate-800 text-xs font-bold transition-all flex items-center gap-1.5 shadow-2xs"
+                          className="px-3.5 py-1.5 rounded-lg bg-white border border-slate-200 hover:bg-[#EAE6DE]/50 text-purple-900 text-xs font-bold transition-all flex items-center gap-1.5 shadow-2xs"
                         >
                           <ExternalLink className="w-3.5 h-3.5 text-slate-500" />
                           <span>View Document</span>
@@ -1336,7 +1336,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                 <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 bg-slate-50 rounded-xl border border-slate-200">
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                    <span className="text-xs font-bold text-slate-700">
+                    <span className="text-xs font-bold text-purple-800">
                       {viewingNotice.acknowledgements?.length || 0} residents acknowledged
                     </span>
                   </div>
@@ -1364,7 +1364,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                 <button
                   type="button"
                   onClick={() => globalThis.print?.()}
-                  className="px-3.5 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold flex items-center gap-1.5 shadow-2xs cursor-pointer"
+                  className="px-3.5 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 text-purple-800 text-xs font-bold flex items-center gap-1.5 shadow-2xs cursor-pointer"
                 >
                   <Printer className="w-4 h-4 text-slate-500" />
                   <span>Print Circular</span>
@@ -1380,7 +1380,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                           setViewingNotice(null);
                           handleOpenEdit(n);
                         }}
-                        className="px-3.5 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                        className="px-3.5 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 text-purple-800 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
                       >
                         <Edit3 className="w-3.5 h-3.5 text-slate-500" />
                         <span>Edit</span>
@@ -1398,7 +1398,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                   <button
                     type="button"
                     onClick={() => setViewingNotice(null)}
-                    className="px-5 py-2 bg-[#321F5C] hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow-2xs"
+                    className="px-5 py-2 bg-[#6339CA] hover:bg-purple-900 text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow-2xs"
                   >
                     Close
                   </button>
@@ -1413,7 +1413,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
           6. CREATE / EDIT NOTICE MODAL (Validated Media Upload, Clean Typography)
           ========================================================================= */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-[#321F5C]/60 backdrop-blur-xs z-[100] flex items-center justify-center p-3 sm:p-5">
+        <div className="fixed inset-0 bg-[#6339CA]/60 backdrop-blur-xs z-[100] flex items-center justify-center p-3 sm:p-5">
           <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-150 flex flex-col max-h-[90vh]">
             
             {/* Modal Header */}
@@ -1445,25 +1445,25 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
             <form onSubmit={handleSubmitNotice} className="p-6 space-y-4 overflow-y-auto">
               {/* Notice Title */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-800">Notice Title *</label>
+                <label className="text-xs font-bold text-purple-900">Notice Title *</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. Scheduled Water Tank Cleaning & Supply Interruption"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#226192] focus:ring-1 focus:ring-[#226192] text-xs font-semibold text-slate-800 outline-none"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-[#226192] focus:ring-1 focus:ring-[#226192] text-xs font-semibold text-purple-900 outline-none"
                 />
               </div>
 
               {/* Category, Priority, Target Audience */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-800">Category *</label>
+                  <label className="text-xs font-bold text-purple-900">Category *</label>
                   <select
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value as NoticeCategory })}
-                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:border-[#226192] text-xs font-semibold text-slate-800 outline-none bg-white cursor-pointer"
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:border-[#226192] text-xs font-semibold text-purple-900 outline-none bg-white cursor-pointer"
                   >
                     {CATEGORIES.map(cat => (
                       <option key={cat} value={cat}>{cat}</option>
@@ -1472,11 +1472,11 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-800">Priority Level *</label>
+                  <label className="text-xs font-bold text-purple-900">Priority Level *</label>
                   <select
                     value={formData.priority}
                     onChange={(e) => setFormData({ ...formData, priority: e.target.value as NoticePriority })}
-                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:border-[#226192] text-xs font-semibold text-slate-800 outline-none bg-white cursor-pointer"
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:border-[#226192] text-xs font-semibold text-purple-900 outline-none bg-white cursor-pointer"
                   >
                     {PRIORITIES.map(p => (
                       <option key={p} value={p}>{p}</option>
@@ -1485,11 +1485,11 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-800">Target Audience *</label>
+                  <label className="text-xs font-bold text-purple-900">Target Audience *</label>
                   <select
                     value={formData.target_audience}
                     onChange={(e) => setFormData({ ...formData, target_audience: e.target.value })}
-                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:border-[#226192] text-xs font-semibold text-slate-800 outline-none bg-white cursor-pointer"
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:border-[#226192] text-xs font-semibold text-purple-900 outline-none bg-white cursor-pointer"
                   >
                     {AUDIENCES.map(aud => (
                       <option key={aud} value={aud}>{aud}</option>
@@ -1501,21 +1501,21 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
               {/* Expiry Date & Status */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-800">Event / Expiry Date (Optional)</label>
+                  <label className="text-xs font-bold text-purple-900">Event / Expiry Date (Optional)</label>
                   <input
                     type="date"
                     value={formData.expiry_date}
                     onChange={(e) => setFormData({ ...formData, expiry_date: e.target.value })}
-                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:border-[#226192] text-xs font-semibold text-slate-800 outline-none bg-white"
+                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:border-[#226192] text-xs font-semibold text-purple-900 outline-none bg-white"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-800">Publication Status</label>
+                  <label className="text-xs font-bold text-purple-900">Publication Status</label>
                   <select
                     value={formData.status}
                     onChange={(e) => setFormData({ ...formData, status: e.target.value as NoticeStatus })}
-                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:border-[#226192] text-xs font-semibold text-slate-800 outline-none bg-white cursor-pointer"
+                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:border-[#226192] text-xs font-semibold text-purple-900 outline-none bg-white cursor-pointer"
                   >
                     <option value="Active">Active (Publish immediately)</option>
                     <option value="Draft">Draft (Save privately)</option>
@@ -1533,7 +1533,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                   onChange={(e) => setFormData({ ...formData, is_pinned: e.target.checked })}
                   className="w-4 h-4 text-[#226192] rounded border-slate-300 focus:ring-[#226192] cursor-pointer"
                 />
-                <label htmlFor="pin-notice-chk" className="text-xs font-bold text-slate-700 cursor-pointer flex items-center gap-1.5">
+                <label htmlFor="pin-notice-chk" className="text-xs font-bold text-purple-800 cursor-pointer flex items-center gap-1.5">
                   <Pin className="w-3.5 h-3.5 text-amber-500" />
                   <span>Pin this notice to top of the board</span>
                 </label>
@@ -1541,14 +1541,14 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
 
               {/* Description */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-800">Notice Body & Details *</label>
+                <label className="text-xs font-bold text-purple-900">Notice Body & Details *</label>
                 <textarea
                   rows={5}
                   required
                   placeholder="Enter full notice announcement details, timings, action required, or guidelines..."
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#226192] focus:ring-1 focus:ring-[#226192] text-xs text-slate-800 leading-relaxed outline-none"
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#226192] focus:ring-1 focus:ring-[#226192] text-xs text-purple-900 leading-relaxed outline-none"
                 />
               </div>
 
@@ -1556,14 +1556,14 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
               <div className="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-2.5">
                 <div className="flex items-center justify-between">
                   <div>
-                    <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                    <label className="text-xs font-bold text-purple-900 flex items-center gap-1.5">
                       <Paperclip className="w-3.5 h-3.5 text-[#226192]" />
                       <span>Attach PDF or Image (Optional)</span>
                     </label>
                     <p className="text-[11px] text-slate-500">Supported: PDF, JPG, PNG, WEBP (Max 10 MB)</p>
                   </div>
 
-                  <label className="px-3.5 py-1.5 bg-white border border-slate-300 hover:bg-slate-100 text-slate-800 text-xs font-bold rounded-lg cursor-pointer transition-colors shadow-2xs flex items-center gap-1.5">
+                  <label className="px-3.5 py-1.5 bg-white border border-slate-300 hover:bg-slate-100 text-purple-900 text-xs font-bold rounded-lg cursor-pointer transition-colors shadow-2xs flex items-center gap-1.5">
                     <Upload className="w-3.5 h-3.5 text-slate-600" />
                     <span>{uploadingFile ? 'Uploading...' : 'Choose File'}</span>
                     <input
@@ -1580,7 +1580,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
                   <div className="p-2.5 bg-white rounded-lg border border-slate-200 flex items-center justify-between gap-3 text-xs">
                     <div className="flex items-center gap-2 truncate">
                       <FileText className="w-4 h-4 text-[#226192] shrink-0" />
-                      <span className="font-bold text-slate-800 truncate">{formData.attachment_name}</span>
+                      <span className="font-bold text-purple-900 truncate">{formData.attachment_name}</span>
                       {formData.attachment_size && (
                         <span className="text-[10px] text-slate-400">({(formData.attachment_size / 1024).toFixed(0)} KB)</span>
                       )}
