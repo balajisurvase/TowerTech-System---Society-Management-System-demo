@@ -2,6 +2,8 @@ import express from 'express';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
+import process from 'node:process';
+import { Buffer } from 'node:buffer';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -13,11 +15,11 @@ const distPath = path.join(__dirname, 'dist');
 app.use(express.json({ limit: '15mb' }));
 
 // Cloud Run and deployment health check endpoint
-app.get('/api/health', (req, res) => {
-  res.status(200).json({ 
-    status: 'ok', 
+app.get('/api/health', (_req, res) => {
+  res.status(200).json({
+    status: 'ok',
     service: 'TowerTech Society Management System',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 });
 
@@ -29,7 +31,7 @@ if (!fs.existsSync(uploadsDir)) {
 
 // Serve public uploads statically
 app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads'), {
-  maxAge: '7d'
+  maxAge: '7d',
 }));
 
 // API Endpoint to securely store visitor live photos
@@ -55,7 +57,7 @@ app.post('/api/visitor-photos', (req, res) => {
 
     return res.status(200).json({
       success: true,
-      url: `/uploads/visitor-photos/${finalFilename}`
+      url: `/uploads/visitor-photos/${finalFilename}`,
     });
   } catch (err) {
     console.error('[Visitor Photo Upload Error]:', err);
@@ -67,12 +69,12 @@ app.post('/api/visitor-photos', (req, res) => {
 if (fs.existsSync(distPath)) {
   app.use(express.static(distPath, {
     maxAge: '1d',
-    etag: true
+    etag: true,
   }));
 }
 
 // SPA fallback: any non-static route serves index.html
-app.get('*', (req, res) => {
+app.get('*', (_req, res) => {
   const indexPath = path.join(distPath, 'index.html');
   if (fs.existsSync(indexPath)) {
     res.sendFile(indexPath);
@@ -91,9 +93,7 @@ app.get('*', (req, res) => {
 });
 
 // Port handling:
-// Cloud Run probe specifically checks port 3000.
-// Cloud Run may also provide PORT environment variable (e.g. 8080 or 3000).
-const primaryPort = parseInt(process.env.PORT || '3000', 10);
+const primaryPort = Number.parseInt(process.env.PORT || '3000', 10);
 
 const mainServer = app.listen(primaryPort, '0.0.0.0', () => {
   console.log(`[TowerTech Server] Listening on http://0.0.0.0:${primaryPort}`);
@@ -104,7 +104,6 @@ mainServer.on('error', (err) => {
 });
 
 // If the primary port was NOT 3000, also start a secondary listener on port 3000
-// so that the Cloud Run startup TCP probe on port 3000 immediately passes
 if (primaryPort !== 3000) {
   try {
     const probeServer = app.listen(3000, '0.0.0.0', () => {
