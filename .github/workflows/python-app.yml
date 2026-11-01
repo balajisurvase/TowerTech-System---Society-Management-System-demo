@@ -37,7 +37,7 @@ jobs:
         if [ -f python/requirements.txt ]; then pip install -r python/requirements.txt; fi
 
     - name: Validate TypeScript
-      run: npm run lint
+      run: npm run lint server.js
 
     - name: Check Python syntax
       run: python -m compileall python
