@@ -39,8 +39,7 @@ export default function DashboardModulesGrid({
   complaints: initialPropComplaints,
   bookings: initialPropBookings
 }: DashboardModulesGridProps) {
-  const hasInitialData = !!(initialPropResidents && initialPropResidents.length > 0);
-  const [loading, setLoading] = useState(!hasInitialData);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const [residents, setResidents] = useState<Resident[]>(initialPropResidents || []);
@@ -68,7 +67,7 @@ export default function DashboardModulesGrid({
 
   // Fetch real database data in parallel
   const fetchDashboardData = useCallback(async () => {
-    if (!hasInitialData) setLoading(true);
+    setLoading(true);
     setError(null);
     try {
       const [resData, mainData, compData, noticeData, bookData, visitorData] = await Promise.all([
@@ -874,7 +873,7 @@ export default function DashboardModulesGrid({
           <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-md w-full overflow-hidden flex flex-col">
             <div className="bg-[#542d87] text-white p-4 flex items-center justify-between">
               <h3 className="text-sm font-bold text-white tracking-tight">
-                Complaint Detail — Green Park Residency
+                Complaint Detail — Joyville Sensorium
               </h3>
               <button
                 onClick={() => setSelectedComplaint(null)}

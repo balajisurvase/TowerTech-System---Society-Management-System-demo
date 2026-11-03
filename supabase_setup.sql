@@ -25,9 +25,7 @@ CREATE TABLE IF NOT EXISTS resident (
     phone TEXT,
     password TEXT NOT NULL,
     role VARCHAR(20) DEFAULT 'Owner' NOT NULL,
-    occupancy_type VARCHAR(20) DEFAULT 'Owner',
     owner_id TEXT,
-    tenant_id TEXT,
     status VARCHAR(20) DEFAULT 'Active' NOT NULL,
     society_id TEXT DEFAULT 'GV2026',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -35,10 +33,10 @@ CREATE TABLE IF NOT EXISTS resident (
 
 -- Migration for existing resident records:
 ALTER TABLE resident ADD COLUMN IF NOT EXISTS role VARCHAR(20) DEFAULT 'Owner';
-ALTER TABLE resident ADD COLUMN IF NOT EXISTS occupancy_type VARCHAR(20) DEFAULT 'Owner';
 ALTER TABLE resident ADD COLUMN IF NOT EXISTS owner_id TEXT;
-ALTER TABLE resident ADD COLUMN IF NOT EXISTS tenant_id TEXT;
 ALTER TABLE resident ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'Active';
+UPDATE resident SET role = 'Owner' WHERE role IS NULL OR role = '';
+UPDATE resident SET status = 'Active' WHERE status IS NULL OR status = '';
 
 -- 3. Maintenance Table
 CREATE TABLE IF NOT EXISTS maintenance (
@@ -53,11 +51,6 @@ CREATE TABLE IF NOT EXISTS maintenance (
     admin_id TEXT,
     society_id TEXT DEFAULT 'GV2026',
     resident_id TEXT,
-    payment_date TIMESTAMP WITH TIME ZONE,
-    payment_method TEXT,
-    transaction_id TEXT,
-    late_fee NUMERIC DEFAULT 0,
-    total_paid NUMERIC,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -68,7 +61,6 @@ CREATE TABLE IF NOT EXISTS complaint (
     flat_no TEXT,
     tower TEXT,
     complaint_date DATE,
-    category TEXT,
     description TEXT,
     status TEXT,
     society_id TEXT DEFAULT 'GV2026',
@@ -102,7 +94,6 @@ CREATE TABLE IF NOT EXISTS amenity (
     type TEXT,
     charges BIGINT,
     society_id TEXT DEFAULT 'GV2026',
-    description TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -112,7 +103,6 @@ CREATE TABLE IF NOT EXISTS security (
     security_id TEXT UNIQUE NOT NULL,
     name TEXT NOT NULL,
     phone TEXT,
-    mobile_number TEXT,
     password TEXT NOT NULL,
     society_id TEXT DEFAULT 'GV2026',
     role TEXT DEFAULT 'security',
@@ -120,37 +110,7 @@ CREATE TABLE IF NOT EXISTS security (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 8. Visitor Table (Visitors Management Module)
-CREATE TABLE IF NOT EXISTS visitor (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    visitor_id TEXT UNIQUE,
-    visitor_name TEXT NOT NULL,
-    visitor_mobile TEXT NOT NULL,
-    visitor_type TEXT DEFAULT 'Guest',
-    vehicle_number TEXT,
-    profile_photo TEXT,
-    resident_id TEXT NOT NULL,
-    resident_name TEXT,
-    tower TEXT,
-    floor INTEGER,
-    flat TEXT,
-    purpose TEXT NOT NULL,
-    entry_time TEXT,
-    exit_time TEXT,
-    status TEXT DEFAULT 'Pending', -- Pending, Approved, Inside, Exited, Rejected
-    approval_status TEXT DEFAULT 'Pending', -- Pending, Approved, Rejected
-    approval_time TIMESTAMP WITH TIME ZONE,
-    security_id TEXT,
-    security_user_name TEXT,
-    security_user_shift TEXT,
-    gate TEXT DEFAULT 'Main Gate',
-    visitor_count INTEGER DEFAULT 1,
-    rejection_reason TEXT,
-    society_id TEXT DEFAULT 'GV2026',
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- 9. Resident Documents Table
+-- 8. Resident Documents Table
 CREATE TABLE IF NOT EXISTS resident_documents (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     resident_id TEXT NOT NULL,
@@ -175,27 +135,8 @@ CREATE TABLE IF NOT EXISTS resident_documents (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 10. Audit Logs Table
-CREATE TABLE IF NOT EXISTS public.audit_logs (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    society_id TEXT NOT NULL DEFAULT 'GV2026',
-    user_id TEXT,
-    user_name TEXT,
-    user_role TEXT,
-    action TEXT NOT NULL,
-    module_name TEXT NOT NULL,
-    record_id TEXT,
-    details JSONB,
-    ip_address TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- Indexes
+-- Index for fast lookup by resident and document_type
 CREATE INDEX IF NOT EXISTS idx_resident_docs_resident_type ON resident_documents (resident_id, document_type);
-CREATE INDEX IF NOT EXISTS idx_visitor_society ON visitor (society_id);
-CREATE INDEX IF NOT EXISTS idx_visitor_resident ON visitor (resident_id);
-CREATE INDEX IF NOT EXISTS idx_visitor_status ON visitor (status);
-CREATE INDEX IF NOT EXISTS idx_audit_logs_society ON audit_logs (society_id, created_at);
 
 -- Enable RLS
 ALTER TABLE admin ENABLE ROW LEVEL SECURITY;
@@ -205,11 +146,9 @@ ALTER TABLE complaint ENABLE ROW LEVEL SECURITY;
 ALTER TABLE booking ENABLE ROW LEVEL SECURITY;
 ALTER TABLE amenity ENABLE ROW LEVEL SECURITY;
 ALTER TABLE security ENABLE ROW LEVEL SECURITY;
-ALTER TABLE visitor ENABLE ROW LEVEL SECURITY;
 ALTER TABLE resident_documents ENABLE ROW LEVEL SECURITY;
-ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
 
--- Basic Policies
+-- Basic Policies (allowing seamless application flow)
 CREATE POLICY "Allow all on admin" ON admin FOR ALL USING (true);
 CREATE POLICY "Allow all on resident" ON resident FOR ALL USING (true);
 CREATE POLICY "Allow all on maintenance" ON maintenance FOR ALL USING (true);
@@ -217,7 +156,43 @@ CREATE POLICY "Allow all on complaint" ON complaint FOR ALL USING (true);
 CREATE POLICY "Allow all on booking" ON booking FOR ALL USING (true);
 CREATE POLICY "Allow all on amenity" ON amenity FOR ALL USING (true);
 CREATE POLICY "Allow all on security" ON security FOR ALL USING (true);
-CREATE POLICY "Allow all on visitor" ON visitor FOR ALL USING (true);
 CREATE POLICY "Allow all on resident_documents" ON resident_documents FOR ALL USING (true);
-CREATE POLICY "Allow all on audit_logs" ON audit_logs FOR ALL USING (true);
+
+-- ====================================================================
+-- Production RBAC Policies for resident_documents & Storage
+-- ====================================================================
+-- Note: In production with Supabase Auth, you can replace the open policy with:
+-- 1. Residents can view and upload their own documents:
+--    CREATE POLICY "Residents access own documents" ON resident_documents
+--    FOR ALL USING (resident_id = (SELECT resident_id FROM resident WHERE id = auth.uid()));
+--
+-- 2. Secretary & Admins can view and review all society documents:
+--    CREATE POLICY "Secretary and admin review documents" ON resident_documents
+--    FOR ALL USING (EXISTS (SELECT 1 FROM admin WHERE id = auth.uid() AND role IN ('Secretary', 'Admin', 'SuperAdmin')));
+--
+-- 3. Security guards cannot access private ownership documents (sale deed, registry, etc.)
+-- ====================================================================
+
+-- 9. Supabase Storage Bucket Setup for 'resident-documents'
+-- Run these commands in Supabase SQL Editor if creating bucket via SQL:
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('resident-documents', 'resident-documents', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- Storage Policies for 'resident-documents' bucket
+CREATE POLICY "Allow public select on resident-documents"
+ON storage.objects FOR SELECT
+USING (bucket_id = 'resident-documents');
+
+CREATE POLICY "Allow public insert on resident-documents"
+ON storage.objects FOR INSERT
+WITH CHECK (bucket_id = 'resident-documents');
+
+CREATE POLICY "Allow public update on resident-documents"
+ON storage.objects FOR UPDATE
+USING (bucket_id = 'resident-documents');
+
+CREATE POLICY "Allow public delete on resident-documents"
+ON storage.objects FOR DELETE
+USING (bucket_id = 'resident-documents');
 

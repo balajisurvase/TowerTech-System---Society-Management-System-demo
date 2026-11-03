@@ -1,4 +1,10 @@
-import { supabase } from '../../lib/supabase';
+import { createBrowserClient } from "@supabase/ssr";
 
-export const createClient = () => supabase;
-export { supabase };
+const supabaseUrl = "https://mniarauxuzqcmdrplgiz.supabase.co";
+const supabaseKey = "sb_publishable_lyGIIhz89nFb_vMNQVfLCA_HvJeEk_5";
+
+export const createClient = () =>
+  createBrowserClient(
+    supabaseUrl,
+    supabaseKey,
+  );

@@ -1,49 +1,35 @@
-import { useState, useEffect, useRef, lazy, Suspense } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { User, Resident, MaintenanceRecord, Complaint, Booking } from './types';
 import { initialResidents, initialMaintenance, initialComplaints, initialBookings } from './data';
 import { societyService } from './lib/societyService';
+import { supabase, isSupabaseConfigured } from './lib/supabase';
 import Sidebar from './components/Sidebar';
 import Login from './components/Login';
 import TopHeader from './components/TopHeader';
 import DashboardModulesGrid from './components/DashboardModulesGrid';
-import SkeletonFallback from './components/ui/SkeletonFallback';
+import AdminDashboard from './components/AdminDashboard';
+import ResidentDashboard from './components/ResidentDashboard';
+import TenantDashboard from './components/TenantDashboard';
+import SecurityDashboard from './components/SecurityDashboard';
+import NoticeBoard from './components/NoticeBoard';
+import CommunicationCenter from './components/CommunicationCenter';
 import { Toaster } from 'sonner';
-import VisitorAlertPopup from './modules/visitors/components/VisitorAlertPopup';
 import { Users, ShieldAlert, ArrowLeft } from 'lucide-react';
-
-// Lazy-loaded Dashboard and Module Components for instant initial bundle loading
-const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
-const ResidentDashboard = lazy(() => import('./components/ResidentDashboard'));
-const SecurityDashboard = lazy(() => import('./components/SecurityDashboard'));
-const NoticeBoard = lazy(() => import('./components/NoticeBoard'));
-const CommunicationCenter = lazy(() => import('./components/CommunicationCenter'));
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   
-  // App State - Pre-hydrated for instant 0ms initial render
-  const [residents, setResidents] = useState<Resident[]>(() => 
-    initialResidents.map(r => ({
-      ...r,
-      role: (r.role || r.occupancy_type || (r.tenant_id ? 'Tenant' : 'Owner')) as 'Owner' | 'Tenant',
-      occupancy_type: (r.occupancy_type || r.role || (r.tenant_id ? 'Tenant' : 'Owner')) as 'Owner' | 'Tenant',
-      status: (r.status ? (r.status.toLowerCase() === 'active' ? 'Active' : 'Inactive') : 'Active') as 'Active' | 'Inactive',
-      owner_id: r.owner_id || null,
-      tenant_id: r.tenant_id || null,
-      bhk: r.bhk || '2 BHK',
-      flat_type: r.flat_type || 'Smart 2 BHK',
-      square_feet: r.square_feet || 620
-    }))
-  );
-  const [maintenance, setMaintenance] = useState<MaintenanceRecord[]>(initialMaintenance);
-  const [complaints, setComplaints] = useState<Complaint[]>(initialComplaints);
-  const [bookings, setBookings] = useState<Booking[]>(initialBookings);
+  // App State
+  const [residents, setResidents] = useState<Resident[]>([]);
+  const [maintenance, setMaintenance] = useState<MaintenanceRecord[]>([]);
+  const [complaints, setComplaints] = useState<Complaint[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
   const isFetchingRef = useRef(false);
 
-  // Fetch data from Supabase after user logs in
+  // Fetch data from Supabase or fallback
   const fetchData = async () => {
     if (isFetchingRef.current) return;
     isFetchingRef.current = true;
@@ -152,10 +138,15 @@ export default function App() {
   };
 
   useEffect(() => {
-    if (user) {
-      fetchData();
-    }
-  }, [user?.id]);
+    fetchData();
+    // Conservative auto-refresh every 60 seconds only when tab is active
+    const interval = setInterval(() => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        fetchData();
+      }
+    }, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleLogin = (loggedInUser: User) => {
     setUser(loggedInUser);
@@ -184,16 +175,16 @@ export default function App() {
     globalThis.scrollTo?.(0, 0);
   }, [activeTab, user?.id]);
 
-  if (!user) {
-    return <Login onLogin={handleLogin} />;
-  }
-
-  if (loading) {
+  if (loading && !user) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
       </div>
     );
+  }
+
+  if (!user) {
+    return <Login onLogin={handleLogin} />;
   }
 
   const foundResident = user.resident_id 
@@ -231,16 +222,6 @@ export default function App() {
     <div className="min-h-screen bg-[#f8f5fd] font-sans text-slate-900 flex flex-col w-full min-w-0">
       <Toaster position="top-center" richColors />
       
-      {/* Realtime Instant Pop-up Alerts for Incoming Visitors */}
-      {(user.role === 'resident' || (!isAdmin && user.role !== 'security')) && (
-        <VisitorAlertPopup
-          currentResidentId={currentResident?.resident_id || user.resident_id || user.id}
-          currentResidentFlat={currentResident?.flat || user.flat}
-          currentResidentTower={currentResident?.tower || user.tower}
-          currentResidentName={currentResident?.name || user.name}
-        />
-      )}
-
       {/* TowerTech Deep Purple Top Header Bar */}
       <TopHeader 
         user={user}
@@ -264,26 +245,26 @@ export default function App() {
 
         {/* Main Workspace Area */}
         <main className="flex-1 w-full max-w-7xl mx-auto p-3 sm:p-5 md:p-6 overflow-y-auto">
-          <Suspense fallback={<SkeletonFallback />}>
-            {activeTab === 'dashboard' ? (
-              isAdmin ? (
-                <DashboardModulesGrid 
-                  user={user}
-                  setActiveTab={setActiveTab}
-                  residents={residents}
-                  maintenance={maintenance}
-                  complaints={complaints}
-                  bookings={bookings}
-                />
-              ) : user.role === 'security' ? (
-                <SecurityDashboard 
-                  user={user}
-                  residents={residents}
-                  onLogout={handleLogout}
-                  onUserUpdate={handleUserUpdate}
-                />
-              ) : currentResident ? (
-                <ResidentDashboard 
+          {activeTab === 'dashboard' ? (
+            isAdmin ? (
+              <DashboardModulesGrid 
+                user={user}
+                setActiveTab={setActiveTab}
+                residents={residents}
+                maintenance={maintenance}
+                complaints={complaints}
+                bookings={bookings}
+              />
+            ) : user.role === 'security' ? (
+              <SecurityDashboard 
+                user={user}
+                residents={residents}
+                onLogout={handleLogout}
+                onUserUpdate={handleUserUpdate}
+              />
+            ) : currentResident ? (
+              (currentResident.role === 'Tenant' || currentResident.occupancy_type === 'Tenant' || user.occupancy_type === 'Tenant') ? (
+                <TenantDashboard 
                   activeTab="dashboard"
                   resident={currentResident}
                   residents={residents}
@@ -296,136 +277,163 @@ export default function App() {
                   onUserUpdate={handleUserUpdate}
                 />
               ) : (
-                <DashboardModulesGrid 
-                  user={user}
-                  setActiveTab={setActiveTab}
+                <ResidentDashboard 
+                  activeTab="dashboard"
+                  resident={currentResident}
                   residents={residents}
                   maintenance={maintenance}
                   complaints={complaints}
                   bookings={bookings}
+                  onRefresh={fetchData}
+                  setActiveTab={setActiveTab}
+                  onLogout={handleLogout}
+                  onUserUpdate={handleUserUpdate}
                 />
               )
             ) : (
-              <div className="space-y-6">
-                {/* Top Back Navigation Bar for Module Views */}
-                {activeTab !== 'notices' && (
-                  <div className="flex items-center justify-between bg-white p-3.5 px-5 rounded-xl border border-slate-200/90 shadow-xs">
-                    <button
-                      onClick={() => setActiveTab('dashboard')}
-                      className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#6e44d8] hover:bg-[#5b32c6] text-white font-black text-xs transition-all shadow-xs active:scale-95 cursor-pointer"
-                    >
-                      <ArrowLeft className="w-4 h-4 text-white" />
-                      <span>Back to Dashboard</span>
-                    </button>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-black text-[#6e44d8] bg-purple-50 border border-purple-100 px-3 py-1 rounded-full uppercase tracking-wider">
-                        {activeTab === 'security' ? 'VISITOR MANAGEMENT' : activeTab === 'communication' ? 'COMMUNICATION' : activeTab === 'financial' ? 'FINANCIAL MANAGEMENT' : activeTab.toUpperCase()} MODULE
-                      </span>
-                    </div>
+              <DashboardModulesGrid 
+                user={user}
+                setActiveTab={setActiveTab}
+                residents={residents}
+                maintenance={maintenance}
+                complaints={complaints}
+                bookings={bookings}
+              />
+            )
+          ) : (
+            <div className="space-y-6">
+              {/* Top Back Navigation Bar for Module Views (Notices module has its own integrated clean header) */}
+              {activeTab !== 'notices' && (
+                <div className="flex items-center justify-between bg-white p-3.5 px-5 rounded-xl border border-slate-200/90 shadow-xs">
+                  <button
+                    onClick={() => setActiveTab('dashboard')}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#6e44d8] hover:bg-[#5b32c6] text-white font-black text-xs transition-all shadow-xs active:scale-95 cursor-pointer"
+                  >
+                    <ArrowLeft className="w-4 h-4 text-white" />
+                    <span>Back to Dashboard</span>
+                  </button>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-black text-[#6e44d8] bg-purple-50 border border-purple-100 px-3 py-1 rounded-full uppercase tracking-wider">
+                      {activeTab === 'security' ? 'VISITOR MANAGEMENT' : activeTab === 'communication' ? 'COMMUNICATION' : activeTab === 'financial' ? 'FINANCIAL MANAGEMENT' : activeTab.toUpperCase()} MODULE
+                    </span>
                   </div>
-                )}
+                </div>
+              )}
 
-                {/* Active Module Content */}
-                {(!isAdmin && ['financial', 'residents'].includes(activeTab)) ? (
-                  <div className="bg-white rounded-3xl p-12 border border-rose-100 shadow-sm text-center max-w-2xl mx-auto my-12">
-                    <div className="w-16 h-16 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-rose-100">
-                      <ShieldAlert className="w-8 h-8" />
-                    </div>
-                    <h2 className="text-2xl font-black text-slate-900 mb-2">Access Denied / Unauthorized</h2>
-                    <p className="text-sm font-medium text-slate-500 leading-relaxed mb-6">
-                      You do not have permission to access the requested module. Access is restricted according to your assigned user role.
-                    </p>
-                    <button
-                      onClick={() => setActiveTab('dashboard')}
-                      className="px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-md"
-                    >
-                      Return to Dashboard
-                    </button>
+            {/* Active Module Content */}
+            {(!isAdmin && ['financial', 'residents'].includes(activeTab)) ? (
+              <div className="bg-white rounded-3xl p-12 border border-rose-100 shadow-sm text-center max-w-2xl mx-auto my-12">
+                <div className="w-16 h-16 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-rose-100">
+                  <ShieldAlert className="w-8 h-8" />
+                </div>
+                <h2 className="text-2xl font-black text-slate-900 mb-2">Access Denied / Unauthorized</h2>
+                <p className="text-sm font-medium text-slate-500 leading-relaxed mb-6">
+                  You do not have permission to access the requested module. Access is restricted according to your assigned user role.
+                </p>
+                <button
+                  onClick={() => setActiveTab('dashboard')}
+                  className="px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-md"
+                >
+                  Return to Dashboard
+                </button>
+              </div>
+            ) : user.role === 'security' && activeTab === 'notices' ? (
+              <NoticeBoard 
+                user={user}
+                onSwitchTab={(tab) => setActiveTab(tab)}
+                onRefresh={fetchData}
+              />
+            ) : user.role === 'security' && activeTab === 'communication' ? (
+              <CommunicationCenter 
+                user={user}
+                onSwitchTab={(tab) => setActiveTab(tab)}
+                onRefresh={fetchData}
+              />
+            ) : user.role === 'security' || activeTab === 'security' ? (
+              <SecurityDashboard 
+                user={user}
+                residents={residents}
+                onLogout={handleLogout}
+                onUserUpdate={handleUserUpdate}
+              />
+            ) : (user.admin_id || user.role === 'admin') ? (
+              <AdminDashboard 
+                user={user}
+                activeTab={activeTab}
+                setActiveTab={setActiveTab}
+                residents={residents}
+                maintenance={maintenance}
+                complaints={complaints}
+                bookings={bookings}
+                onRefresh={fetchData}
+                onUserUpdate={handleUserUpdate}
+              />
+            ) : currentResident ? (
+              activeTab === 'financial' ? (
+                <div className="bg-white rounded-3xl p-12 border border-rose-100 shadow-sm text-center max-w-2xl mx-auto my-12">
+                  <div className="w-16 h-16 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-rose-100">
+                    <ShieldAlert className="w-8 h-8" />
                   </div>
-                ) : user.role === 'security' && activeTab === 'notices' ? (
-                  <NoticeBoard 
-                    user={user}
-                    onSwitchTab={(tab) => setActiveTab(tab)}
-                    onRefresh={fetchData}
-                  />
-                ) : user.role === 'security' && activeTab === 'communication' ? (
-                  <CommunicationCenter 
-                    user={user}
-                    onSwitchTab={(tab) => setActiveTab(tab)}
-                    onRefresh={fetchData}
-                  />
-                ) : user.role === 'security' || activeTab === 'security' ? (
-                  <SecurityDashboard 
-                    user={user}
-                    residents={residents}
-                    onLogout={handleLogout}
-                    onUserUpdate={handleUserUpdate}
-                  />
-                ) : (user.admin_id || user.role === 'admin') ? (
-                  <AdminDashboard 
-                    user={user}
-                    activeTab={activeTab}
-                    setActiveTab={setActiveTab}
-                    residents={residents}
-                    maintenance={maintenance}
-                    complaints={complaints}
-                    bookings={bookings}
-                    onRefresh={fetchData}
-                    onUserUpdate={handleUserUpdate}
-                  />
-                ) : currentResident ? (
-                  activeTab === 'financial' ? (
-                    <div className="bg-white rounded-3xl p-12 border border-rose-100 shadow-sm text-center max-w-2xl mx-auto my-12">
-                      <div className="w-16 h-16 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-rose-100">
-                        <ShieldAlert className="w-8 h-8" />
-                      </div>
-                      <h2 className="text-2xl font-black text-slate-900 mb-2">Access Denied / Unauthorized</h2>
-                      <p className="text-sm font-medium text-slate-500 leading-relaxed mb-6">
-                        The Financial module is strictly restricted to Society Administrators. You do not have permission to view or manage society balance sheets, expenses, or financial ledgers.
-                      </p>
-                      <button
-                        onClick={() => setActiveTab('dashboard')}
-                        className="px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-md"
-                      >
-                        Return to Dashboard
-                      </button>
-                    </div>
-                  ) : (
-                    <ResidentDashboard 
-                      activeTab={activeTab}
-                      resident={currentResident}
-                      residents={residents}
-                      maintenance={maintenance}
-                      complaints={complaints}
-                      bookings={bookings}
-                      onRefresh={fetchData}
-                      setActiveTab={setActiveTab}
-                      onLogout={handleLogout}
-                      onUserUpdate={handleUserUpdate}
-                    />
-                  )
-                ) : (
-                  <div className="flex flex-col items-center justify-center h-full text-center p-8">
-                    <div className="w-16 h-16 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mb-4">
-                      <Users className="w-8 h-8" />
-                    </div>
-                    <h3 className="text-xl font-bold text-slate-900 mb-2">Profile Not Found</h3>
-                    <p className="text-slate-500 max-w-md">
-                      We couldn't find your user profile in the database. Please contact your society administrator.
-                    </p>
-                    <button 
-                      onClick={handleLogout}
-                      className="mt-6 px-6 py-2 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-colors"
-                    >
-                      Logout & Try Again
-                    </button>
-                  </div>
-                )}
+                  <h2 className="text-2xl font-black text-slate-900 mb-2">Access Denied / Unauthorized</h2>
+                  <p className="text-sm font-medium text-slate-500 leading-relaxed mb-6">
+                    The Financial module is strictly restricted to Society Administrators. You do not have permission to view or manage society balance sheets, expenses, or financial ledgers.
+                  </p>
+                  <button
+                    onClick={() => setActiveTab('dashboard')}
+                    className="px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-md"
+                  >
+                    Return to Dashboard
+                  </button>
+                </div>
+              ) : (currentResident.role === 'Tenant' || currentResident.occupancy_type === 'Tenant' || user.occupancy_type === 'Tenant') ? (
+                <TenantDashboard 
+                  activeTab={activeTab}
+                  resident={currentResident}
+                  residents={residents}
+                  maintenance={maintenance}
+                  complaints={complaints}
+                  bookings={bookings}
+                  onRefresh={fetchData}
+                  setActiveTab={setActiveTab}
+                  onLogout={handleLogout}
+                  onUserUpdate={handleUserUpdate}
+                />
+              ) : (
+                <ResidentDashboard 
+                  activeTab={activeTab}
+                  resident={currentResident}
+                  residents={residents}
+                  maintenance={maintenance}
+                  complaints={complaints}
+                  bookings={bookings}
+                  onRefresh={fetchData}
+                  setActiveTab={setActiveTab}
+                  onLogout={handleLogout}
+                  onUserUpdate={handleUserUpdate}
+                />
+              )
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full text-center p-8">
+                <div className="w-16 h-16 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mb-4">
+                  <Users className="w-8 h-8" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 mb-2">Profile Not Found</h3>
+                <p className="text-slate-500 max-w-md">
+                  We couldn't find your user profile in the database. Please contact your society administrator.
+                </p>
+                <button 
+                  onClick={handleLogout}
+                  className="mt-6 px-6 py-2 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-colors"
+                >
+                  Logout & Try Again
+                </button>
               </div>
             )}
-          </Suspense>
+          </div>
+        )}
         </main>
       </div>
     </div>
   );
 }
+
