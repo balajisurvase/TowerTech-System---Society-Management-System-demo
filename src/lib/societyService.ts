@@ -55,15 +55,66 @@ export function invalidateCache(keyPrefix?: string) {
   }
 }
 
+function getLocalStorageCache<T>(key: string): T | null {
+  try {
+    const raw = localStorage.getItem(`tt_cache_${key}`);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed && parsed.data) {
+      return parsed.data;
+    }
+  } catch {}
+  return null;
+}
+
+function setLocalStorageCache<T>(key: string, data: T) {
+  try {
+    if (data !== undefined && data !== null) {
+      localStorage.setItem(`tt_cache_${key}`, JSON.stringify({ data, timestamp: Date.now() }));
+    }
+  } catch {}
+}
+
+async function withTimeout<T>(promise: Promise<T>, ms = 3000, fallback: T): Promise<T> {
+  let timer: any;
+  const timeoutPromise = new Promise<T>((resolve) => {
+    timer = setTimeout(() => resolve(fallback), ms);
+  });
+  return Promise.race([promise, timeoutPromise]).finally(() => clearTimeout(timer));
+}
+
 async function cachedQuery<T>(key: string, fetcher: () => Promise<T>, fallback: T, ttl = CACHE_TTL_MS): Promise<T> {
   const cached = queryCache.get(key);
+  const localCached = cached ? cached.data : getLocalStorageCache<T>(key);
+
   if (isRateLimited()) {
-    if (cached) return cached.data;
+    if (localCached) return localCached;
     return fallback;
   }
 
-  if (cached && (Date.now() - cached.timestamp < ttl)) {
-    return cached.data;
+  // Stale-While-Revalidate: Return cached/localStorage data instantly if available!
+  if (localCached) {
+    if (cached && (Date.now() - cached.timestamp < ttl)) {
+      return cached.data;
+    }
+    // Revalidate background update without blocking the user
+    if (!inFlightRequests.has(key)) {
+      const bgPromise = (async () => {
+        try {
+          const result = await withTimeout(fetcher(), 3500, localCached);
+          if (result && (Array.isArray(result) ? result.length > 0 : true)) {
+            queryCache.set(key, { data: result, timestamp: Date.now() });
+            setLocalStorageCache(key, result);
+          }
+        } catch (err) {
+          checkRateLimitError(err);
+        } finally {
+          inFlightRequests.delete(key);
+        }
+      })();
+      inFlightRequests.set(key, bgPromise);
+    }
+    return localCached;
   }
 
   const existing = inFlightRequests.get(key);
@@ -73,12 +124,13 @@ async function cachedQuery<T>(key: string, fetcher: () => Promise<T>, fallback: 
 
   const promise = (async () => {
     try {
-      const result = await fetcher();
-      queryCache.set(key, { data: result, timestamp: Date.now() });
-      return result;
+      const result = await withTimeout(fetcher(), 3000, fallback);
+      const finalData = (result && (Array.isArray(result) ? result.length > 0 : true)) ? result : fallback;
+      queryCache.set(key, { data: finalData, timestamp: Date.now() });
+      setLocalStorageCache(key, finalData);
+      return finalData;
     } catch (err) {
       checkRateLimitError(err);
-      if (cached) return cached.data;
       return fallback;
     } finally {
       inFlightRequests.delete(key);
@@ -108,15 +160,44 @@ async function pythonApi<T>(_endpoint: string, _options?: RequestInit): Promise<
 }
 
 export const societyService = {
+  // Failed login tracking for brute-force prevention
+  failedAttempts: new Map<string, { count: number; lockedUntil: number }>(),
+
   async authenticateUser(loginId: string, password: string, societyId?: string): Promise<{ success: boolean; user?: any; error?: string }> {
     const cleanId = loginId.trim();
     const cleanPass = password.trim();
     const lowerId = cleanId.toLowerCase();
     const cleanFlat = lowerId.replace(/^[a-z]-?/i, '');
 
-    // Skip network queries if currently in rate limit backoff
+    if (!cleanId || !cleanPass) {
+      return { success: false, error: 'User ID and Password are required.' };
+    }
+
+    // Check failed attempt lockout (5 failed attempts = 5 min lock)
+    const lockRecord = this.failedAttempts.get(lowerId);
+    if (lockRecord && Date.now() < lockRecord.lockedUntil) {
+      const waitMins = Math.ceil((lockRecord.lockedUntil - Date.now()) / 60000);
+      return {
+        success: false,
+        error: `Account temporarily locked due to multiple failed login attempts. Please try again in ${waitMins} minute(s).`
+      };
+    }
+
+    const recordFailedAttempt = () => {
+      const current = this.failedAttempts.get(lowerId) || { count: 0, lockedUntil: 0 };
+      current.count += 1;
+      if (current.count >= 5) {
+        current.lockedUntil = Date.now() + 5 * 60 * 1000; // 5 minute lock
+      }
+      this.failedAttempts.set(lowerId, current);
+    };
+
+    const clearFailedAttempt = () => {
+      this.failedAttempts.delete(lowerId);
+    };
+
+    // 1. Direct Supabase Query: Admin table
     if (!isRateLimited()) {
-      // 1. Direct Supabase Query: Admin table
       try {
         const { data: adminRows, error } = await supabase.from('admin').select('*');
         if (error) checkRateLimitError(error);
@@ -128,10 +209,12 @@ export const societyService = {
               (a.name && a.name.toLowerCase() === lowerId) ||
               (a.phone && String(a.phone).trim() === cleanId);
             if (!matchId) return false;
-            return a.password === cleanPass || cleanPass === 'admin123';
+            // STRICT password check - NO BACKDOORS
+            return a.password === cleanPass;
           });
 
           if (found) {
+            clearFailedAttempt();
             return {
               success: true,
               user: {
@@ -148,10 +231,10 @@ export const societyService = {
         }
       } catch (e) {
         checkRateLimitError(e);
-        console.warn('Supabase admin check error:', e);
+        console.warn('Supabase admin check notice:', e);
       }
 
-      // 2. Direct Supabase Query: Security table (columns: security_user_id, email, mobile_number)
+      // 2. Direct Supabase Query: Security table
       try {
         const { data: secRows, error } = await supabase.from('security').select('*');
         if (error) checkRateLimitError(error);
@@ -165,10 +248,12 @@ export const societyService = {
               (s.mobile_number && String(s.mobile_number).trim() === cleanId) ||
               (s.phone && String(s.phone).trim() === cleanId);
             if (!matchId) return false;
-            return s.password === cleanPass || cleanPass === 'security123';
+            // STRICT password check - NO BACKDOORS
+            return s.password === cleanPass;
           });
 
           if (found) {
+            clearFailedAttempt();
             const resolvedId = found.security_user_id || found.security_id || found.id;
             return {
               success: true,
@@ -187,10 +272,10 @@ export const societyService = {
         }
       } catch (e) {
         checkRateLimitError(e);
-        console.warn('Supabase security check error:', e);
+        console.warn('Supabase security check notice:', e);
       }
 
-      // 3. Direct Supabase Query: Resident table (columns: resident_id, tenant_id, email, flat, phone)
+      // 3. Direct Supabase Query: Resident table
       try {
         const { data: resRows, error } = await supabase.from('resident').select('*');
         if (error) checkRateLimitError(error);
@@ -206,15 +291,12 @@ export const societyService = {
               (r.name && r.name.toLowerCase() === lowerId);
             if (!matchId) return false;
 
-            const isTenant = r.role === 'Tenant' || r.occupancy_type === 'Tenant' || Boolean(r.tenant_id);
-            return (
-              r.password === cleanPass ||
-              (isTenant && (cleanPass === 'tenant123' || cleanPass === 'resident123')) ||
-              (!isTenant && (cleanPass === 'resident123' || cleanPass === 'tenant123'))
-            );
+            // STRICT password check - NO BACKDOORS
+            return r.password === cleanPass;
           });
 
           if (found) {
+            clearFailedAttempt();
             const isTenant = found.role === 'Tenant' || found.occupancy_type === 'Tenant' || Boolean(found.tenant_id);
             return {
               success: true,
@@ -238,34 +320,21 @@ export const societyService = {
         }
       } catch (e) {
         checkRateLimitError(e);
-        console.warn('Supabase resident check error:', e);
+        console.warn('Supabase resident check notice:', e);
       }
     }
 
-    // 4. Try Python backend auth endpoint if running
-    try {
-      const candidateRole: Role = lowerId.startsWith('a') ? 'admin' : lowerId.startsWith('s') ? 'security' : 'resident';
-      const pyRes = await pythonApi<{ success: boolean; user?: any; error?: string }>('/api/auth/login', {
-        method: 'POST',
-        body: JSON.stringify({ role: candidateRole, username: cleanId, loginId: cleanId, password: cleanPass, societyId }),
-      });
-      if (pyRes?.success && pyRes.user) {
-        return pyRes;
-      }
-    } catch {
-      // offline
-    }
-
-    // 5. Fallback to local memory users if database is temporarily unreachable or offline
+    // Fallback checking in local initial dataset with STRICT password check - NO BACKDOORS
     const localAdmin = initialAdmins.find(
       a => (
         a.admin_id.toLowerCase() === lowerId ||
         (a.email && a.email.toLowerCase() === lowerId) ||
         (a.name && a.name.toLowerCase() === lowerId) ||
         (a.phone && String(a.phone).trim() === cleanId)
-      ) && (a.password === cleanPass || cleanPass === 'admin123')
+      ) && a.password === cleanPass
     );
     if (localAdmin) {
+      clearFailedAttempt();
       return {
         success: true,
         user: {
@@ -286,9 +355,10 @@ export const societyService = {
         (s.email && s.email.toLowerCase() === lowerId) ||
         (s.name && s.name.toLowerCase() === lowerId) ||
         (s.phone && String(s.phone).trim() === cleanId)
-      ) && (s.password === cleanPass || cleanPass === 'security123')
+      ) && s.password === cleanPass
     );
     if (localSec) {
+      clearFailedAttempt();
       return {
         success: true,
         user: {
@@ -314,15 +384,11 @@ export const societyService = {
         (r.phone && String(r.phone).trim() === cleanId) ||
         (r.name && r.name.toLowerCase() === lowerId);
       if (!matchId) return false;
-      const isTenant = r.role === 'Tenant' || r.occupancy_type === 'Tenant' || Boolean(r.tenant_id);
-      return (
-        r.password === cleanPass ||
-        (isTenant && (cleanPass === 'tenant123' || cleanPass === 'resident123')) ||
-        (!isTenant && (cleanPass === 'resident123' || cleanPass === 'tenant123'))
-      );
+      return r.password === cleanPass;
     });
 
     if (localRes) {
+      clearFailedAttempt();
       const isTenant = localRes.role === 'Tenant' || localRes.occupancy_type === 'Tenant' || Boolean(localRes.tenant_id);
       return {
         success: true,
@@ -344,6 +410,7 @@ export const societyService = {
       };
     }
 
+    recordFailedAttempt();
     return { success: false, error: 'Invalid User ID or Password. Please check your credentials.' };
   },
 

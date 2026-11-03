@@ -135,7 +135,7 @@ export async function uploadVisitorPhoto(
       path: filename
     };
   } catch (err: any) {
-    console.error('Visitor photo processing error:', err);
+    console.warn('Visitor photo processing error:', err);
     return {
       success: false,
       url: '',

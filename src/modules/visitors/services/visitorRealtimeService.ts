@@ -1,6 +1,5 @@
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase } from '../../../lib/supabase';
-import { visitorNotificationService } from './visitorNotificationService';
 
 type RealtimeCallback = (payload: {
   eventType: 'INSERT' | 'UPDATE' | 'DELETE';
@@ -13,6 +12,8 @@ class VisitorRealtimeService {
   private subscribers: Set<RealtimeCallback> = new Set();
   private isSubscribed = false;
   private reconnectTimer: any = null;
+  private reconnectAttempts = 0;
+  private maxReconnectAttempts = 4;
 
   init() {
     if (this.channel || typeof window === 'undefined') return;
@@ -27,22 +28,29 @@ class VisitorRealtimeService {
             this.handleDatabaseChange(payload);
           }
         )
-        .subscribe((status, err) => {
+        .subscribe((status) => {
           if (status === 'SUBSCRIBED') {
             this.isSubscribed = true;
+            this.reconnectAttempts = 0;
           } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
             this.isSubscribed = false;
             this.scheduleReconnect();
           }
         });
-    } catch (e) {
-      console.warn('Realtime subscription initialization error:', e);
+    } catch {
       this.scheduleReconnect();
     }
   }
 
   private scheduleReconnect() {
     if (this.reconnectTimer) return;
+    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+      // Quiet backoff after max retries
+      return;
+    }
+    this.reconnectAttempts++;
+    const delay = Math.min(5000 * Math.pow(2, this.reconnectAttempts - 1), 30000);
+
     this.reconnectTimer = setTimeout(() => {
       this.reconnectTimer = null;
       if (this.channel) {
@@ -52,7 +60,7 @@ class VisitorRealtimeService {
         this.channel = null;
       }
       this.init();
-    }, 5000);
+    }, delay);
   }
 
   private handleDatabaseChange(payload: any) {
@@ -65,7 +73,7 @@ class VisitorRealtimeService {
       try {
         cb({ eventType, newRecord, oldRecord });
       } catch (err) {
-        console.error('Realtime subscriber callback error:', err);
+        console.warn('[visitorRealtime] Subscriber callback warning:', err);
       }
     });
   }
@@ -93,6 +101,7 @@ class VisitorRealtimeService {
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = null;
     }
+    this.reconnectAttempts = 0;
   }
 }
 

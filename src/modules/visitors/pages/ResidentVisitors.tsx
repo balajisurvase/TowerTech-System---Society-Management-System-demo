@@ -53,7 +53,7 @@ export default function ResidentVisitors({ user, onRefresh }: ResidentVisitorsPr
       });
       setVisitors(myVisitors);
     } catch (err) {
-      console.error('Failed to load resident visitors:', err);
+      console.warn('Failed to load resident visitors:', err);
     } finally {
       setLoading(false);
       setRefreshing(false);

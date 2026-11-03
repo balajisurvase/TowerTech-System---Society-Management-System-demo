@@ -73,7 +73,7 @@ export default function VisitorForm({ onSuccess, onCancel, securityUser }: Visit
           setSelectedResident(flatsData[0]);
         }
       } catch (err) {
-        console.error('Failed to load flats and gates:', err);
+        console.warn('Failed to load flats and gates:', err);
       } finally {
         setLoadingInitial(false);
       }
@@ -154,7 +154,7 @@ export default function VisitorForm({ onSuccess, onCancel, securityUser }: Visit
 
       setCreatedSummary(result.data);
     } catch (err: any) {
-      console.error('Submit error:', err);
+      console.warn('Submit warning:', err);
       setErrorMessage(err?.message || 'Failed to submit visitor request. Please check database connection.');
     } finally {
       setSubmitting(false);

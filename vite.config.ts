@@ -18,5 +18,32 @@ export default defineConfig(({mode}) => {
     server: {
       hmr: (typeof process !== 'undefined' && process.env?.DISABLE_HMR ? process.env.DISABLE_HMR : env.DISABLE_HMR) !== 'true',
     },
+    build: {
+      chunkSizeWarningLimit: 1000,
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes('node_modules')) {
+              if (id.includes('react') || id.includes('react-dom')) {
+                return 'vendor-react';
+              }
+              if (id.includes('lucide-react')) {
+                return 'vendor-lucide';
+              }
+              if (id.includes('@supabase')) {
+                return 'vendor-supabase';
+              }
+              if (id.includes('recharts') || id.includes('d3-')) {
+                return 'vendor-charts';
+              }
+              if (id.includes('date-fns')) {
+                return 'vendor-utils';
+              }
+              return 'vendor-others';
+            }
+          }
+        }
+      }
+    }
   };
 });

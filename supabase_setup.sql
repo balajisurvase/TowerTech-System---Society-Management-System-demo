@@ -175,11 +175,27 @@ CREATE TABLE IF NOT EXISTS resident_documents (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- 10. Audit Logs Table
+CREATE TABLE IF NOT EXISTS public.audit_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    society_id TEXT NOT NULL DEFAULT 'GV2026',
+    user_id TEXT,
+    user_name TEXT,
+    user_role TEXT,
+    action TEXT NOT NULL,
+    module_name TEXT NOT NULL,
+    record_id TEXT,
+    details JSONB,
+    ip_address TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Indexes
 CREATE INDEX IF NOT EXISTS idx_resident_docs_resident_type ON resident_documents (resident_id, document_type);
 CREATE INDEX IF NOT EXISTS idx_visitor_society ON visitor (society_id);
 CREATE INDEX IF NOT EXISTS idx_visitor_resident ON visitor (resident_id);
 CREATE INDEX IF NOT EXISTS idx_visitor_status ON visitor (status);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_society ON audit_logs (society_id, created_at);
 
 -- Enable RLS
 ALTER TABLE admin ENABLE ROW LEVEL SECURITY;
@@ -191,6 +207,7 @@ ALTER TABLE amenity ENABLE ROW LEVEL SECURITY;
 ALTER TABLE security ENABLE ROW LEVEL SECURITY;
 ALTER TABLE visitor ENABLE ROW LEVEL SECURITY;
 ALTER TABLE resident_documents ENABLE ROW LEVEL SECURITY;
+ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
 
 -- Basic Policies
 CREATE POLICY "Allow all on admin" ON admin FOR ALL USING (true);
@@ -202,3 +219,5 @@ CREATE POLICY "Allow all on amenity" ON amenity FOR ALL USING (true);
 CREATE POLICY "Allow all on security" ON security FOR ALL USING (true);
 CREATE POLICY "Allow all on visitor" ON visitor FOR ALL USING (true);
 CREATE POLICY "Allow all on resident_documents" ON resident_documents FOR ALL USING (true);
+CREATE POLICY "Allow all on audit_logs" ON audit_logs FOR ALL USING (true);
+

@@ -71,9 +71,10 @@ export default function TopHeader({
   const isManagementTab = activeTab === 'maintenance' || activeTab === 'financial' || activeTab === 'bookings' || activeTab === 'complaints';
 
   return (
-    <header className="sticky top-0 z-50 bg-gradient-to-r from-[#6e44d8] via-[#7952de] to-[#6e44d8] text-white shadow-md font-sans">
+    <header className="sticky top-0 z-50 bg-[#30204F] text-white shadow-md font-sans">
       {/* Top Bar: Brand, Search, Notifications, Avatar */}
-      <div className="w-full px-4 md:px-6 py-2.5 flex items-center justify-between gap-4 border-b border-purple-400/30">
+      <div className="w-full px-4 md:px-6 py-2.5 flex items-center justify-between gap-4 border-b border-purple-900/40">
+
         
         {/* Left Section: Brand Logo + Hamburger */}
         <div className="flex items-center gap-3">

@@ -45,7 +45,7 @@ export default function AdminVisitors({ user, residents }: AdminVisitorsProps) {
       const data = await visitorService.getVisitors();
       setVisitors(data);
     } catch (err) {
-      console.error('Failed to load visitors:', err);
+      console.warn('Failed to load visitors:', err);
     } finally {
       setLoading(false);
       setRefreshing(false);

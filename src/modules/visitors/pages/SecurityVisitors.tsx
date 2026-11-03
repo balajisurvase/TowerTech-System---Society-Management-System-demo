@@ -28,6 +28,8 @@ import VisitorHistoryTable from '../components/VisitorHistoryTable';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 
+import LiveClock from '../../../components/ui/LiveClock';
+
 interface SecurityVisitorsProps {
   user: User;
   residents?: Resident[];
@@ -40,7 +42,6 @@ export default function SecurityVisitors({ user, residents, onLogout }: Security
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'new_visitor' | 'pending' | 'inside' | 'history'>('overview');
   const [selectedVisitor, setSelectedVisitor] = useState<VisitorRecord | null>(null);
-  const [currentTime, setCurrentTime] = useState(new Date());
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
 
@@ -49,19 +50,13 @@ export default function SecurityVisitors({ user, residents, onLogout }: Security
   const guardName = user.name || 'Amit Jadhav';
   const guardShift = user.shift || 'Morning Shift';
 
-  // Live clock
-  useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
-
   // Fetch visitors from Supabase
   const fetchVisitors = async () => {
     try {
       const data = await visitorService.getVisitors();
       setVisitors(data);
     } catch (err) {
-      console.error('Error fetching visitors:', err);
+      console.warn('Error fetching visitors:', err);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -155,7 +150,7 @@ export default function SecurityVisitors({ user, residents, onLogout }: Security
   return (
     <div className="space-y-6 font-sans">
       {/* 1. SECURITY HEADER */}
-      <div className="bg-gradient-to-r from-[#321F5C] via-[#5D31C7] to-[#6339CA] text-white p-6 sm:p-7 rounded-3xl shadow-xl border border-purple-900/60 relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
+      <div className="bg-gradient-to-r from-[#30204F] via-[#46288f] to-[#6841C6] text-white p-6 sm:p-7 rounded-3xl shadow-xl border border-purple-900/40 relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
         <div className="absolute top-0 right-0 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="flex items-center gap-4 relative z-10">
@@ -165,8 +160,8 @@ export default function SecurityVisitors({ user, residents, onLogout }: Security
 
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <span className="bg-amber-400/20 text-amber-200 border border-amber-400/30 text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full flex items-center gap-1.5">
-                <Shield className="w-3.5 h-3.5 text-amber-400" />
+              <span className="bg-[#F4B740]/20 text-[#F4B740] border border-[#F4B740]/30 text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full flex items-center gap-1.5">
+                <Shield className="w-3.5 h-3.5 text-[#F4B740]" />
                 <span>Security Gate Operations</span>
               </span>
               <span className="text-purple-200 text-xs font-mono font-bold">
@@ -185,15 +180,7 @@ export default function SecurityVisitors({ user, residents, onLogout }: Security
 
         {/* Date, Time & Actions */}
         <div className="flex flex-wrap items-center gap-3 relative z-10 w-full md:w-auto justify-between md:justify-end">
-          <div className="bg-white/10 px-4 py-2 rounded-2xl border border-white/10 text-right">
-            <p className="text-[10px] font-black text-purple-200 uppercase tracking-widest">Current Time</p>
-            <p className="text-base font-black font-mono text-white">
-              {format(currentTime, 'hh:mm:ss a')}
-            </p>
-            <p className="text-[10px] text-purple-200 font-medium">
-              {format(currentTime, 'dd MMMM yyyy')}
-            </p>
-          </div>
+          <LiveClock />
 
           <button
             type="button"
@@ -208,7 +195,7 @@ export default function SecurityVisitors({ user, residents, onLogout }: Security
           <button
             type="button"
             onClick={() => setActiveTab('new_visitor')}
-            className="px-5 py-3 bg-[#FAA928] hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-2xl shadow-lg shadow-amber-500/20 flex items-center gap-2 transition-all cursor-pointer"
+            className="px-5 py-3 bg-[#F4B740] hover:bg-[#e0a430] text-[#272333] font-black text-xs uppercase tracking-wider rounded-2xl shadow-lg shadow-amber-500/20 flex items-center gap-2 transition-all cursor-pointer active:scale-95"
           >
             <Plus className="w-4 h-4" />
             <span>New Visitor Entry</span>

@@ -3697,8 +3697,13 @@ export default function ResidentDashboard({
           onConfirm={async (payData) => {
             try {
               const billId = payingBill.maintenance_id || payingBill.id!;
-              await societyService.updateMaintenanceStatus(billId, 'Paid');
-              toast.success(`Payment of ₹${payData.amount.toLocaleString()} recorded successfully!`);
+              await societyService.updateMaintenanceStatus(billId, 'Paid', {
+                total_paid: payData.amount,
+                payment_date: payData.payment_date,
+                payment_method: payData.payment_method,
+                transaction_id: payData.transaction_id
+              });
+              toast.success(`Payment of ₹${payData.amount.toLocaleString()} (Ref: ${payData.transaction_id}) recorded successfully!`);
               setPayingBill(null);
               onRefresh();
             } catch (err: unknown) {
