@@ -1,40 +1,33 @@
-# Use a base image with both Node.js and Python
+# Production Dockerfile for TowerTech Society Management System
 FROM node:20-slim AS builder
 
-# Install dependencies for building
-RUN apt-get update && apt-get install -y python3 python3-pip
-
-# Set working directory
 WORKDIR /app
 
-# Copy package files
+# Copy package files and install dependencies
 COPY package*.json ./
+RUN npm ci || npm install
 
-# Install npm dependencies
-RUN npm install
-
-# Copy source files
+# Copy source and build
 COPY . .
-
-# Build the React app
 RUN npm run build
 
-# --- Runtime ---
-FROM python:3.11-slim
+# Runtime Stage
+FROM node:20-slim AS runner
 
-# Set working directory
 WORKDIR /app
+ENV NODE_ENV=production
 
-# Copy built files from the builder
-COPY --from=builder /app/dist /app/dist
-COPY --from=builder /app/python /app/python
+# Install only production dependencies
+COPY package*.json ./
+RUN npm ci --omit=dev || npm install --omit=dev
 
-# Install Python dependencies if any (though server.py says zero dependencies)
-# COPY --from=builder /app/requirements.txt ./
-# RUN pip install -r requirements.txt
+# Copy built frontend assets and production server
+COPY --from=builder /app/dist ./dist
+COPY server.js ./server.js
 
-# Expose port
+# Expose port 3000 (Cloud Run startup TCP probe) and 8080 (standard Cloud Run)
 EXPOSE 3000
+EXPOSE 8080
 
-# Start the server
-CMD ["python", "python/server.py"]
+# Run the Node.js production server
+CMD ["node", "server.js"]

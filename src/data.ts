@@ -221,74 +221,7 @@ export const initialSecurityUsers = [
   { id: 'S003', security_id: 'S003', name: 'Suresh Shinde', email: 'suresh.security@towertech.com', phone: '9002000003', password: 'security123', shift: 'Night', status: 'Active', role: 'security' as const },
 ];
 
-export const initialVisitors = [
-  {
-    visitor_id: 1,
-    id: 1,
-    visitor_name: 'Neha Joshi',
-    visitor_mobile: '9876543210',
-    visitor_type: 'Guest',
-    vehicle_number: 'MH-12-AB-1234',
-    resident_id: 'R001',
-    resident_name: 'Rahul Sharma',
-    tower: 'A',
-    floor: 1,
-    flat: 'A101',
-    purpose: 'Family Visit',
-    entry_time: '2026-09-22 09:30 AM',
-    exit_time: '',
-    status: 'Inside' as const,
-    security_id: 'S001',
-    security_user_name: 'Amit Jadhav',
-    security_user_shift: 'Morning',
-    approval_status: 'Approved' as const,
-    created_at: '2026-09-22T09:15:00Z'
-  },
-  {
-    visitor_id: 2,
-    id: 2,
-    visitor_name: 'Kunal Deshmukh',
-    visitor_mobile: '9822114455',
-    visitor_type: 'Delivery',
-    vehicle_number: 'MH-12-CD-5678',
-    resident_id: 'R002',
-    resident_name: 'Priya Mehta',
-    tower: 'A',
-    floor: 1,
-    flat: 'A102',
-    purpose: 'Parcel Delivery',
-    entry_time: '2026-09-22 10:15 AM',
-    exit_time: '2026-09-22 10:35 AM',
-    status: 'Exited' as const,
-    security_id: 'S001',
-    security_user_name: 'Amit Jadhav',
-    security_user_shift: 'Morning',
-    approval_status: 'Approved' as const,
-    created_at: '2026-09-22T10:10:00Z'
-  },
-  {
-    visitor_id: 3,
-    id: 3,
-    visitor_name: 'Vikas Jadhav',
-    visitor_mobile: '9890123456',
-    visitor_type: 'Maintenance / Service',
-    vehicle_number: 'MH-14-XY-9090',
-    resident_id: 'R003',
-    resident_name: 'Amit Patil',
-    tower: 'A',
-    floor: 1,
-    flat: 'A103',
-    purpose: 'AC Repair Service',
-    entry_time: '',
-    exit_time: '',
-    status: 'Pending' as const,
-    security_id: 'S001',
-    security_user_name: 'Amit Jadhav',
-    security_user_shift: 'Morning',
-    approval_status: 'Pending' as const,
-    created_at: '2026-09-22T10:40:00Z'
-  }
-];
+export const initialVisitors: any[] = [];
 
 export const initialFinances: Finance[] = [
   // ==========================================

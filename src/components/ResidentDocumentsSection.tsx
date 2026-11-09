@@ -33,7 +33,7 @@ export default function ResidentDocumentsSection({
   onRefresh
 }: ResidentDocumentsSectionProps) {
   const [documents, setDocuments] = useState<ResidentDocument[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [uploadingType, setUploadingType] = useState<string | null>(null);
   
   // Full-screen Workspace Mode

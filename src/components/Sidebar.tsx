@@ -159,8 +159,8 @@ export default function Sidebar({
         />
       )}
 
-      {/* SIDEBAR THEME (Light Purple Shaded Theme with Bright White Text) */}
-      <aside className={`fixed md:sticky top-0 left-0 h-screen w-[240px] sm:w-[260px] bg-gradient-to-b from-[#6e44d8] to-[#5b32c6] text-white flex flex-col shrink-0 z-50 font-sans select-none transition-transform duration-200 ease-in-out p-4 shadow-2xl border-r border-purple-400/30 ${
+      {/* SIDEBAR THEME (Deep Aubergine Sidebar with Ivory & Gold Accents) */}
+      <aside className={`fixed md:sticky top-0 left-0 h-screen w-[240px] sm:w-[260px] bg-[#30204F] text-white flex flex-col shrink-0 z-50 font-sans select-none transition-transform duration-200 ease-in-out p-4 shadow-2xl border-r border-purple-900/40 ${
         isMobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
       }`}>
         
@@ -171,25 +171,25 @@ export default function Sidebar({
             onClick={() => setActiveTab('dashboard')}
           >
             {/* Logo Image */}
-            <div className="w-11 h-11 rounded-2xl bg-white flex items-center justify-center shadow-lg shadow-purple-900/20 group-hover:scale-105 transition-transform overflow-hidden p-1">
+            <div className="w-11 h-11 rounded-2xl bg-white flex items-center justify-center shadow-lg shadow-purple-950/40 group-hover:scale-105 transition-transform overflow-hidden p-1">
               <TowerTechLogo className="w-full h-full" />
             </div>
 
             <div>
               <div className="flex items-center gap-1.5 leading-none">
                 <span className="text-xl font-black text-white tracking-tight">
-                  TowerTech<span className="text-[#FAA928]">.</span>
+                  TowerTech<span className="text-[#F4B740]">.</span>
                 </span>
               </div>
-              <p className="text-[10px] font-black text-white uppercase tracking-widest mt-1 opacity-100">
-                Society Management
+              <p className="text-[10px] font-black text-purple-200/80 uppercase tracking-widest mt-1">
+                Green Park Residency
               </p>
             </div>
           </div>
 
           {/* Figma Style Collapse Indicator Button */}
-          <div className="hidden md:flex absolute -right-7 top-4 w-6 h-6 rounded-full bg-white border border-purple-200 shadow-md text-purple-600 items-center justify-center cursor-pointer hover:bg-purple-50 transition-colors z-20">
-            <ChevronLeft className="w-3.5 h-3.5 text-purple-700" />
+          <div className="hidden md:flex absolute -right-7 top-4 w-6 h-6 rounded-full bg-[#6841C6] border border-purple-300/40 shadow-md text-white items-center justify-center cursor-pointer hover:bg-[#5531ab] transition-colors z-20">
+            <ChevronLeft className="w-3.5 h-3.5 text-white" />
           </div>
 
           {onCloseMobile && (
@@ -207,7 +207,7 @@ export default function Sidebar({
         <nav className="flex-1 overflow-y-auto custom-scrollbar pr-1 py-3 space-y-5">
           {navCategories.map((group) => (
             <div key={group.category} className="space-y-1.5">
-              <p className="text-[11px] font-black text-white uppercase tracking-wider px-3 mb-2 opacity-100">
+              <p className="text-[10px] font-black text-purple-300/70 uppercase tracking-widest px-3 mb-2">
                 {group.category}
               </p>
               {group.items.map((item) => {
@@ -220,25 +220,25 @@ export default function Sidebar({
                       setActiveTab(item.id);
                       if (onCloseMobile) onCloseMobile();
                     }}
-                    className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all duration-150 text-[13px] font-extrabold cursor-pointer border ${
+                    className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all duration-150 text-xs font-bold cursor-pointer border ${
                       isActive 
-                        ? 'bg-white text-[#6e44d8] font-black shadow-lg border-white' 
-                        : 'text-white font-extrabold border-transparent hover:bg-white/20 hover:border-white/10'
+                        ? 'bg-[#6841C6] text-white font-black shadow-lg shadow-purple-950/50 border-[#6841C6]' 
+                        : 'text-purple-100/90 font-bold border-transparent hover:bg-white/10 hover:text-white'
                     }`}
                   >
                     <div className="flex items-center gap-3.5 min-w-0">
-                      <Icon className={`w-[18px] h-[18px] shrink-0 transition-colors ${isActive ? 'text-[#6e44d8]' : 'text-white'}`} />
+                      <Icon className={`w-4 h-4 shrink-0 transition-colors ${isActive ? 'text-[#F4B740]' : 'text-purple-200'}`} />
                       <span className="truncate">{item.label}</span>
                     </div>
 
                     {item.badge ? (
                       <span className={`px-2 py-0.5 rounded-md text-[9px] font-black shrink-0 shadow-xs ${
-                        isActive ? 'bg-[#6e44d8] text-white' : 'bg-[#FAA928] text-white'
+                        isActive ? 'bg-[#F4B740] text-[#272333]' : 'bg-[#F4B740] text-[#272333]'
                       }`}>
                         {item.badge}
                       </span>
                     ) : isActive ? (
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#6e44d8] shrink-0"></span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#F4B740] shrink-0"></span>
                     ) : null}
                   </button>
                 );
@@ -248,10 +248,10 @@ export default function Sidebar({
         </nav>
 
         {/* SIGN OUT */}
-        <div className="pt-2 shrink-0">
+        <div className="pt-2 shrink-0 border-t border-purple-900/40">
           <button
             onClick={onLogout}
-            className="w-full flex items-center justify-center gap-2 py-2 text-rose-200 hover:text-white hover:bg-rose-500/10 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+            className="w-full flex items-center justify-center gap-2 py-2.5 text-rose-300 hover:text-white hover:bg-rose-500/10 rounded-xl text-xs font-black uppercase tracking-wider transition-colors cursor-pointer"
           >
             <LogOut className="w-3.5 h-3.5" />
             <span>Sign Out</span>
@@ -262,3 +262,4 @@ export default function Sidebar({
     </>
   );
 }
+

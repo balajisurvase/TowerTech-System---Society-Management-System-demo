@@ -95,7 +95,7 @@ export default function Login({ onLogin }: LoginProps) {
   }
 
   return (
-    <div className="fixed inset-0 w-screen h-screen h-[100vh] h-[100dvh] bg-[#6339CA] font-sans selection:bg-purple-100 selection:text-purple-900 flex flex-col md:flex-row overflow-y-auto md:overflow-hidden m-0 p-0">
+    <div className="fixed inset-0 w-screen h-screen h-[100vh] h-[100dvh] bg-[#6339CA] font-sans selection:bg-purple-100 selection:text-purple-900 flex flex-col md:flex-row overflow-hidden m-0 p-0">
       
       {/* Forgot Password Modal */}
       {showForgotModal && (
@@ -172,28 +172,28 @@ export default function Login({ onLogin }: LoginProps) {
       )}
 
       {/* LEFT COLUMN: LOGIN FORM PANEL */}
-      <div className="w-full md:w-[48%] lg:w-[42%] xl:w-[38%] min-h-screen md:min-h-0 md:h-full bg-white p-6 sm:p-8 lg:p-12 flex flex-col justify-between overflow-y-auto z-20 shrink-0 shadow-2xl font-sans">
+      <div className="w-full md:w-[48%] lg:w-[42%] xl:w-[38%] h-full bg-white p-5 sm:p-6 lg:p-8 flex flex-col justify-center overflow-hidden z-20 shrink-0 shadow-2xl font-sans">
         
-        <div className="my-auto py-2">
+        <div className="w-full max-w-sm mx-auto">
           {/* Header Title */}
-          <div className="mb-8">
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-14 h-14 rounded-2xl flex items-center justify-center font-black text-sm border border-purple-100 shadow-lg p-2 bg-white">
-                <TowerTechLogo className="w-full h-full" />
+          <div className="mb-4">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 rounded-2xl flex items-center justify-center font-black text-sm border border-purple-100 shadow-sm p-1.5 bg-[#30204F]">
+                <TowerTechLogo className="w-full h-full text-white" />
               </div>
               <div>
-                <h1 className="text-3xl font-black text-[#6339CA] tracking-tight">
+                <h1 className="text-xl sm:text-2xl font-black text-[#30204F] tracking-tight">
                   TowerTech
                 </h1>
-                <p className="text-[12px] font-black uppercase tracking-widest text-slate-400">Login to Dashboard</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-[#777383]">Society Management System</p>
               </div>
             </div>
-            <p className="text-sm font-semibold text-slate-500 mt-2">
-              Welcome back to your society portal.{' '}
+            <p className="text-xs font-semibold text-[#777383]">
+              Green Park Residency Portal.{' '}
               <button 
                 type="button" 
                 onClick={() => setView('register')} 
-                className="text-[#6339CA] hover:text-[#5D31C7] font-black hover:underline cursor-pointer transition-colors"
+                className="text-[#6841C6] hover:text-[#5531ab] font-black hover:underline cursor-pointer transition-colors"
               >
                 Register Here
               </button>
@@ -201,63 +201,69 @@ export default function Login({ onLogin }: LoginProps) {
           </div>
 
           {/* Login Form */}
-          <form onSubmit={handleLogin} className="space-y-5 w-full">
+          <form onSubmit={handleLogin} className="space-y-3 w-full">
             
             {/* Society ID Field */}
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-0.5">
+            <div className="space-y-1">
+              <label className="text-[10px] font-black text-[#777383] uppercase tracking-widest block ml-0.5">
                 SOCIETY ID
               </label>
               <div className="relative group">
-                <Building2 className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 group-focus-within:text-[#6339CA] transition-colors" />
+                <Building2 className="w-4 h-4 text-[#777383] absolute left-3.5 top-1/2 -translate-y-1/2 group-focus-within:text-[#6841C6] transition-colors" />
                 <input
                   type="text"
+                  id="societyId"
+                  name="societyId"
                   value={societyId}
                   onChange={(e) => setSocietyId(e.target.value)}
                   placeholder="GV2026"
-                  className="w-full pl-10 pr-4 h-12 rounded-xl border border-slate-200 focus:border-[#6339CA] focus:ring-4 focus:ring-[#6339CA]/10 outline-none text-sm font-black text-purple-900 bg-slate-50/60 focus:bg-white transition-all shadow-sm placeholder:text-slate-300"
+                  className="w-full pl-10 pr-4 h-10 rounded-xl border border-slate-200 focus:border-[#6841C6] focus:ring-4 focus:ring-[#6841C6]/10 outline-none text-xs font-black text-[#272333] bg-slate-50/60 focus:bg-white transition-all shadow-2xs placeholder:text-slate-400"
                   required
                 />
               </div>
             </div>
 
             {/* User ID / Email Field */}
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-0.5">
-                USER ID / EMAIL
+            <div className="space-y-1">
+              <label htmlFor="loginId" className="text-[10px] font-black text-[#777383] uppercase tracking-widest block ml-0.5">
+                USER ID / EMAIL / FLAT NO
               </label>
               <div className="relative group">
-                <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 group-focus-within:text-[#6339CA] transition-colors" />
+                <Mail className="w-4 h-4 text-[#777383] absolute left-3.5 top-1/2 -translate-y-1/2 group-focus-within:text-[#6841C6] transition-colors" />
                 <input
                   type="text"
+                  id="loginId"
+                  name="loginId"
                   value={loginId}
                   onChange={(e) => setLoginId(e.target.value)}
-                  placeholder="Enter User ID or Email"
-                  className="w-full pl-10 pr-4 h-12 rounded-xl border border-slate-200 focus:border-[#6339CA] focus:ring-4 focus:ring-[#6339CA]/10 outline-none text-sm font-bold text-purple-900 bg-slate-50/60 focus:bg-white transition-all shadow-sm placeholder:text-slate-300"
+                  placeholder="Enter User ID, Email or Flat No"
+                  className="w-full pl-10 pr-4 h-10 rounded-xl border border-slate-200 focus:border-[#6841C6] focus:ring-4 focus:ring-[#6841C6]/10 outline-none text-xs font-bold text-[#272333] bg-slate-50/60 focus:bg-white transition-all shadow-2xs placeholder:text-slate-400"
                   required
                 />
               </div>
             </div>
 
             {/* Password Field */}
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-0.5">
+            <div className="space-y-1">
+              <label htmlFor="password" className="text-[10px] font-black text-[#777383] uppercase tracking-widest block ml-0.5">
                 PASSWORD
               </label>
               <div className="relative group">
-                <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 group-focus-within:text-[#6339CA] transition-colors" />
+                <Lock className="w-4 h-4 text-[#777383] absolute left-3.5 top-1/2 -translate-y-1/2 group-focus-within:text-[#6841C6] transition-colors" />
                 <input
                   type={showPassword ? 'text' : 'password'}
+                  id="password"
+                  name="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter Password"
-                  className="w-full pl-10 pr-10 h-12 rounded-xl border border-slate-200 focus:border-[#6339CA] focus:ring-4 focus:ring-[#6339CA]/10 outline-none text-sm font-bold text-purple-900 bg-slate-50/60 focus:bg-white transition-all shadow-sm placeholder:text-slate-300"
+                  className="w-full pl-10 pr-10 h-10 rounded-xl border border-slate-200 focus:border-[#6841C6] focus:ring-4 focus:ring-[#6841C6]/10 outline-none text-xs font-bold text-[#272333] bg-slate-50/60 focus:bg-white transition-all shadow-2xs placeholder:text-slate-400"
                   required
                 />
                 <button 
-                  type="button"
+                  type="button" 
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer p-1"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#777383] hover:text-[#272333] transition-colors cursor-pointer p-1"
                   title={showPassword ? "Hide Password" : "Show Password"}
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -266,20 +272,20 @@ export default function Login({ onLogin }: LoginProps) {
             </div>
 
             {/* Remember Me & Forgot Password Row */}
-            <div className="flex items-center justify-between pt-1 text-xs">
-              <label className="flex items-center gap-2 font-bold text-slate-500 cursor-pointer select-none">
+            <div className="flex items-center justify-between pt-0.5 text-xs">
+              <label className="flex items-center gap-2 font-bold text-[#777383] cursor-pointer select-none">
                 <input 
                   type="checkbox"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
-                  className="w-4 h-4 rounded border-slate-300 text-[#6339CA] focus:ring-[#6339CA] cursor-pointer"
+                  className="w-4 h-4 rounded border-slate-300 text-[#6841C6] focus:ring-[#6841C6] cursor-pointer"
                 />
                 <span>Remember Me</span>
               </label>
               <button 
-                type="button"
+                type="button" 
                 onClick={() => setShowForgotModal(true)}
-                className="font-black text-[#6339CA] hover:text-[#5D31C7] cursor-pointer transition-colors"
+                className="font-black text-[#6841C6] hover:text-[#5531ab] cursor-pointer transition-colors"
               >
                 Forgot password?
               </button>
@@ -287,21 +293,21 @@ export default function Login({ onLogin }: LoginProps) {
 
             {/* Error Message */}
             {error && (
-              <div className="bg-rose-50 text-rose-600 p-3 rounded-xl text-xs font-bold border border-rose-200 flex items-center gap-2 animate-in fade-in duration-150">
+              <div className="bg-rose-50 text-rose-700 p-2.5 rounded-xl text-xs font-bold border border-rose-200 flex items-center gap-2 animate-in fade-in duration-150">
                 <X className="w-4 h-4 shrink-0 text-rose-500" />
                 <span>{error}</span>
               </div>
             )}
 
             {/* Login Button */}
-            <div className="pt-2">
+            <div className="pt-1">
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-[#6339CA] hover:bg-[#5D31C7] active:scale-[0.99] disabled:bg-slate-300 text-white font-black py-4 px-8 rounded-xl text-sm uppercase tracking-widest transition-all shadow-lg shadow-purple-500/20 hover:shadow-xl hover:shadow-purple-500/30 flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full bg-[#6841C6] hover:bg-[#5531ab] active:scale-[0.99] disabled:bg-slate-300 text-white font-black py-3 px-6 rounded-xl text-xs uppercase tracking-widest transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer"
               >
                 {loading ? (
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 ) : (
                   <>
                     <span>LOGIN</span>
@@ -313,31 +319,26 @@ export default function Login({ onLogin }: LoginProps) {
           </form>
         </div>
 
-        {/* Footer Note */}
-        <div className="pt-4 text-center border-t border-slate-100 text-[11px] font-black text-slate-400 uppercase tracking-widest">
-          TowerTech Platform • Green Park Residency
-        </div>
-
       </div>
 
       {/* RIGHT COLUMN: BRANDING & FEATURE CARDS */}
-      <div className="hidden md:flex flex-1 h-full relative overflow-hidden flex-col justify-between p-8 lg:p-12 text-white bg-[#6339CA] shrink-0 z-10">
+      <div className="hidden md:flex flex-1 h-full relative overflow-hidden flex-col justify-between p-8 lg:p-12 text-white bg-[#30204F] shrink-0 z-10">
         
         {/* Building Background Image */}
         <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
           <img 
             src="/src/assets/images/building_bg_1791112941582.jpg" 
             alt="TowerTech Platform" 
-            className="w-full h-full object-cover object-center opacity-30 mix-blend-overlay filter brightness-125"
+            className="w-full h-full object-cover object-center opacity-25 mix-blend-overlay filter brightness-110"
             referrerPolicy="no-referrer"
           />
-          <div className="absolute inset-0 bg-gradient-to-tr from-[#6339CA] via-[#6339CA]/90 to-[#8b5cf6]/40" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#6339CA] via-transparent to-[#6339CA]/80" />
+          <div className="absolute inset-0 bg-gradient-to-tr from-[#30204F] via-[#30204F]/95 to-[#6841C6]/50" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#30204F] via-transparent to-[#30204F]/90" />
         </div>
 
         {/* Ambient Glows */}
-        <div className="absolute top-10 right-10 w-96 h-96 bg-purple-400/20 rounded-full blur-3xl pointer-events-none z-0" />
-        <div className="absolute bottom-10 left-10 w-96 h-96 bg-amber-400/10 rounded-full blur-3xl pointer-events-none z-0" />
+        <div className="absolute top-10 right-10 w-96 h-96 bg-[#6841C6]/20 rounded-full blur-3xl pointer-events-none z-0" />
+        <div className="absolute bottom-10 left-10 w-96 h-96 bg-[#F4B740]/10 rounded-full blur-3xl pointer-events-none z-0" />
 
         {/* Top Brand Badge */}
         <div className="relative z-10 flex items-center justify-between">
@@ -347,7 +348,7 @@ export default function Login({ onLogin }: LoginProps) {
             </div>
             <div>
               <span className="text-2xl font-black text-white tracking-tight block">TowerTech</span>
-              <span className="text-[11px] font-black text-purple-200 uppercase tracking-[0.2em] block opacity-80">Society Management</span>
+              <span className="text-[11px] font-black text-[#EEE8FA] uppercase tracking-[0.2em] block opacity-90">Green Park Residency</span>
             </div>
           </div>
         </div>

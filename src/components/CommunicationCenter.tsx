@@ -31,6 +31,7 @@ import {
 } from 'lucide-react';
 import { Communication, CommunicationChannel, User, Resident, Role } from '../types';
 import { societyService } from '../lib/societyService';
+import { useRealtimeSubscription } from '../hooks/useRealtimeSubscription';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 
@@ -101,7 +102,7 @@ export default function CommunicationCenter({ user, onSwitchTab, onRefresh }: Co
 
   const [activeChannel, setActiveChannel] = useState<CommunicationChannel>('broadcast');
   const [messages, setMessages] = useState<Communication[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   
   // Composer state
@@ -152,6 +153,13 @@ export default function CommunicationCenter({ user, onSwitchTab, onRefresh }: Co
   useEffect(() => {
     loadMessages();
   }, [user.society_id, activeChannel]);
+
+  useRealtimeSubscription({
+    table: 'communication',
+    onData: () => {
+      loadMessages();
+    }
+  });
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });

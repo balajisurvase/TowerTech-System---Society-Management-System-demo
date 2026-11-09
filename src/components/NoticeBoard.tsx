@@ -46,6 +46,7 @@ import {
 } from 'date-fns';
 import { Notice, NoticeCategory, NoticePriority, NoticeStatus, User, Resident } from '../types';
 import { societyService } from '../lib/societyService';
+import { useRealtimeSubscription } from '../hooks/useRealtimeSubscription';
 import { initialAdmins, initialResidents } from '../data';
 import { toast } from 'sonner';
 
@@ -67,7 +68,7 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
 
   // Data state
   const [notices, setNotices] = useState<Notice[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   // Filter states
   const [searchQuery, setSearchQuery] = useState('');
@@ -124,6 +125,13 @@ export default function NoticeBoard({ user, onSwitchTab, onRefresh }: NoticeBoar
   useEffect(() => {
     loadNotices();
   }, [user.society_id]);
+
+  useRealtimeSubscription({
+    table: 'notices',
+    onData: () => {
+      loadNotices();
+    }
+  });
 
   // Click outside to close calendar popover
   useEffect(() => {

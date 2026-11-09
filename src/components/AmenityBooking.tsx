@@ -13,7 +13,7 @@ interface AmenityBookingProps {
 export default function AmenityBooking({ resident, onRefresh }: AmenityBookingProps) {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [amenitiesList, setAmenitiesList] = useState<Amenity[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [showSuccessModal, setShowSuccessModal] = useState(false);

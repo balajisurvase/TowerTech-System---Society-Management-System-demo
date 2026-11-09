@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { User, Resident, MaintenanceRecord, Complaint, Notice, Booking, Visitor } from '../types';
 import { societyService } from '../lib/societyService';
+import { visitorService } from '../modules/visitors/services/visitorService';
 import { toast } from 'sonner';
 import TowerTechLogo from './TowerTechLogo';
 
@@ -39,7 +40,8 @@ export default function DashboardModulesGrid({
   complaints: initialPropComplaints,
   bookings: initialPropBookings
 }: DashboardModulesGridProps) {
-  const [loading, setLoading] = useState(true);
+  const hasInitialData = !!(initialPropResidents && initialPropResidents.length > 0);
+  const [loading, setLoading] = useState(!hasInitialData);
   const [error, setError] = useState<string | null>(null);
 
   const [residents, setResidents] = useState<Resident[]>(initialPropResidents || []);
@@ -64,38 +66,6 @@ export default function DashboardModulesGrid({
 
   // Complaint Detail Modal State
   const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(null);
-
-  // Fetch real database data in parallel
-  const fetchDashboardData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const [resData, mainData, compData, noticeData, bookData, visitorData] = await Promise.all([
-        societyService.getResidents(),
-        societyService.getMaintenance(),
-        societyService.getComplaints(),
-        societyService.getNotices(),
-        societyService.getBookings(),
-        societyService.getVisitors()
-      ]);
-
-      setResidents(resData || []);
-      setMaintenance(mainData || []);
-      setComplaints(compData || []);
-      setNotices(noticeData || []);
-      setBookings(bookData || []);
-      setVisitors(visitorData || []);
-    } catch (err: any) {
-      console.error('Error fetching dashboard database data:', err);
-      setError('Unable to sync live society database records');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchDashboardData();
-  }, [fetchDashboardData]);
 
   // Calculations for Dashboard Stats
   const unpaidMaintenance = maintenance.filter(m => m.status === 'Unpaid' || m.status === 'Pending' || m.status === 'Overdue');
@@ -176,7 +146,6 @@ export default function DashboardModulesGrid({
       });
 
       setShowPayNowModal(false);
-      await fetchDashboardData();
     } catch (err) {
       toast.error('Payment processing failed. Please try again.');
     } finally {
@@ -205,7 +174,6 @@ export default function DashboardModulesGrid({
       toast.success('Complaint submitted successfully!');
       setShowAddComplaintModal(false);
       setComplaintDesc('');
-      fetchDashboardData();
     }).catch(() => {
       toast.success('Complaint registered with Green Park Residency helpdesk');
       setShowAddComplaintModal(false);
@@ -873,7 +841,7 @@ export default function DashboardModulesGrid({
           <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-md w-full overflow-hidden flex flex-col">
             <div className="bg-[#542d87] text-white p-4 flex items-center justify-between">
               <h3 className="text-sm font-bold text-white tracking-tight">
-                Complaint Detail — Joyville Sensorium
+                Complaint Detail — Green Park Residency
               </h3>
               <button
                 onClick={() => setSelectedComplaint(null)}

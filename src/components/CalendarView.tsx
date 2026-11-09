@@ -40,7 +40,7 @@ export default function CalendarView({ user, notices, onRefresh, onViewNotice }:
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<'month' | 'week' | 'agenda'>('month');
   const [events, setEvents] = useState<SocietyEvent[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   
   // Selected Date for Day Details Sidebar / Modal
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
