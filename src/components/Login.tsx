@@ -212,6 +212,8 @@ export default function Login({ onLogin }: LoginProps) {
                 <Building2 className="w-4 h-4 text-[#777383] absolute left-3.5 top-1/2 -translate-y-1/2 group-focus-within:text-[#6841C6] transition-colors" />
                 <input
                   type="text"
+                  id="societyId"
+                  name="societyId"
                   value={societyId}
                   onChange={(e) => setSocietyId(e.target.value)}
                   placeholder="GV2026"
@@ -223,16 +225,18 @@ export default function Login({ onLogin }: LoginProps) {
 
             {/* User ID / Email Field */}
             <div className="space-y-1">
-              <label className="text-[10px] font-black text-[#777383] uppercase tracking-widest block ml-0.5">
-                USER ID / EMAIL / FLAT NO
+              <label htmlFor="loginId" className="text-[10px] font-black text-[#777383] uppercase tracking-widest block ml-0.5">
+                USER ID / EMAIL
               </label>
               <div className="relative group">
                 <Mail className="w-4 h-4 text-[#777383] absolute left-3.5 top-1/2 -translate-y-1/2 group-focus-within:text-[#6841C6] transition-colors" />
                 <input
                   type="text"
+                  id="loginId"
+                  name="loginId"
                   value={loginId}
                   onChange={(e) => setLoginId(e.target.value)}
-                  placeholder="Enter User ID, Email or Flat No"
+                  placeholder="Enter User ID or Email"
                   className="w-full pl-10 pr-4 h-10 rounded-xl border border-slate-200 focus:border-[#6841C6] focus:ring-4 focus:ring-[#6841C6]/10 outline-none text-xs font-bold text-[#272333] bg-slate-50/60 focus:bg-white transition-all shadow-2xs placeholder:text-slate-400"
                   required
                 />
@@ -241,13 +245,15 @@ export default function Login({ onLogin }: LoginProps) {
 
             {/* Password Field */}
             <div className="space-y-1">
-              <label className="text-[10px] font-black text-[#777383] uppercase tracking-widest block ml-0.5">
+              <label htmlFor="password" className="text-[10px] font-black text-[#777383] uppercase tracking-widest block ml-0.5">
                 PASSWORD
               </label>
               <div className="relative group">
                 <Lock className="w-4 h-4 text-[#777383] absolute left-3.5 top-1/2 -translate-y-1/2 group-focus-within:text-[#6841C6] transition-colors" />
                 <input
                   type={showPassword ? 'text' : 'password'}
+                  id="password"
+                  name="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter Password"
