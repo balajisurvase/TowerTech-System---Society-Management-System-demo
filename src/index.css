@@ -1,37 +1,47 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-display: "Inter", sans-serif;
+  --font-sans: "Inter", "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Inter", "Plus Jakarta Sans", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
   
-  --color-aubergine: #30204F;
-  --color-violet: #6841C6;
-  --color-lavender: #EEE8FA;
-  --color-ivory: #F7F5F0;
-  --color-gold: #F4B740;
+  --color-primary: #0f2942; /* TowerTech Primary Deep Navy Blue */
+  --color-purple: #1e3a8a; 
+  --color-teal: #0d9488; /* TowerTech Subtle Teal Accent */
+  --color-teal-light: #ccfbf1;
+  --color-emerald: #10b981; 
+  --color-orange: #f59e0b; /* Amber/Orange for alerts & notices */
+  --color-red: #ef4444; 
+  --color-pink: #ec4899; 
+  --color-navy: #0f172a; 
   
-  --color-primary: #6841C6;
-  --color-secondary: #30204F;
-  --color-header: #30204F;
-  --color-sidebar: #30204F;
-
-  --color-background: #F7F5F0;
+  --color-background: #f8fafc; /* Clean Light Neutral Background */
   --color-card: #ffffff;
-  --color-text-main: #272333;
-  --color-text-secondary: #777383;
+  --color-sidebar: #0f2942; /* TowerTech Navy Blue Sidebar */
 
-  --color-purple-50: #f7f4fc;
-  --color-purple-100: #eee8fa;
-  --color-purple-200: #ddd1f5;
-  --color-purple-300: #c4afee;
-  --color-purple-400: #a885e3;
-  --color-purple-500: #8a58d6;
-  --color-purple-600: #6841C6;
-  --color-purple-700: #5531ab;
-  --color-purple-800: #46288f;
-  --color-purple-900: #3a2275;
-  --color-purple-950: #30204F;
+  /* Clean Navy/Indigo and Slate scales */
+  --color-indigo-50: #f0fdfa;
+  --color-indigo-100: #ccfbf1;
+  --color-indigo-200: #99f6e4;
+  --color-indigo-300: #5eead4;
+  --color-indigo-400: #2dd4bf;
+  --color-indigo-500: #14b8a6;
+  --color-indigo-600: #0d9488;
+  --color-indigo-700: #0f766e;
+  --color-indigo-800: #115e59;
+  --color-indigo-900: #134e4a;
+  --color-indigo-950: #042f2e;
+
+  --color-blue-50: #f0f9ff;
+  --color-blue-100: #e0f2fe;
+  --color-blue-200: #bae6fd;
+  --color-blue-300: #7dd3fc;
+  --color-blue-400: #38bdf8;
+  --color-blue-500: #0ea5e9;
+  --color-blue-600: #0284c7;
+  --color-blue-700: #0369a1;
+  --color-blue-800: #075985;
+  --color-blue-900: #0c4a6e;
 }
 
 @layer base {
@@ -44,13 +54,14 @@
   }
 
   body {
-    @apply bg-[#F7F5F0] text-[#272333] font-sans antialiased selection:bg-[#EEE8FA] selection:text-[#30204F];
+    @apply bg-slate-50 text-slate-900 font-sans antialiased selection:bg-teal-100 selection:text-teal-900;
   }
   
   h1, h2, h3, h4, h5, h6 {
-    @apply font-sans tracking-tight text-[#272333];
+    @apply font-sans tracking-tight text-slate-900;
   }
 
+  /* Force tabular numerals on all numeric displays */
   .tabular-nums {
     font-variant-numeric: tabular-nums;
   }
@@ -58,31 +69,31 @@
 
 @layer components {
   .card {
-    @apply bg-white rounded-xl shadow-xs border border-purple-100/80 p-5 transition-all duration-200 hover:border-purple-300;
+    @apply bg-white rounded-xl shadow-xs border border-slate-200/90 p-5 transition-all duration-200 hover:border-slate-300;
   }
   
   .btn-primary {
-    @apply bg-[#F4B740] hover:bg-[#e0a430] text-[#272333] font-black px-5 py-2.5 rounded-xl transition-all shadow-xs active:scale-[0.98] flex items-center justify-center gap-2 text-xs uppercase tracking-wider cursor-pointer;
+    @apply bg-[#542d87] hover:bg-[#462372] text-white font-bold px-5 py-2.5 rounded-lg transition-all shadow-sm active:scale-[0.98] flex items-center justify-center gap-2 text-xs uppercase tracking-wider cursor-pointer;
   }
 
   .btn-purple {
-    @apply bg-[#6841C6] hover:bg-[#5531ab] text-white font-black px-5 py-2.5 rounded-xl transition-all shadow-xs active:scale-[0.98] flex items-center justify-center gap-2 text-xs uppercase tracking-wider cursor-pointer;
+    @apply bg-[#542d87] hover:bg-[#462372] text-white font-bold px-5 py-2.5 rounded-lg transition-all shadow-sm active:scale-[0.98] flex items-center justify-center gap-2 text-xs uppercase tracking-wider cursor-pointer;
   }
 
-  .btn-gold {
-    @apply bg-[#F4B740] hover:bg-[#e0a430] text-[#272333] font-black px-5 py-2.5 rounded-xl transition-all shadow-xs active:scale-[0.98] flex items-center justify-center gap-2 text-xs uppercase tracking-wider cursor-pointer;
+  .btn-orange {
+    @apply bg-[#f57c00] hover:bg-[#e65100] text-white font-bold px-5 py-2.5 rounded-lg transition-all shadow-sm active:scale-[0.98] flex items-center justify-center gap-2 text-xs uppercase tracking-wider cursor-pointer;
   }
 
   .btn-success {
-    @apply bg-[#059669] hover:bg-[#047857] text-white font-black px-5 py-2.5 rounded-xl transition-all shadow-xs active:scale-[0.98] flex items-center justify-center gap-2 text-xs uppercase tracking-wider cursor-pointer;
+    @apply bg-[#16a34a] hover:bg-emerald-700 text-white font-bold px-5 py-2.5 rounded-lg transition-all shadow-sm active:scale-[0.98] flex items-center justify-center gap-2 text-xs uppercase tracking-wider cursor-pointer;
   }
 
   .btn-danger {
-    @apply bg-[#dc2626] hover:bg-[#b91c1c] text-white font-black px-5 py-2.5 rounded-xl transition-all shadow-xs active:scale-[0.98] flex items-center justify-center gap-2 text-xs uppercase tracking-wider cursor-pointer;
+    @apply bg-[#ef4444] hover:bg-red-700 text-white font-bold px-5 py-2.5 rounded-lg transition-all shadow-sm active:scale-[0.98] flex items-center justify-center gap-2 text-xs uppercase tracking-wider cursor-pointer;
   }
   
   .input-field {
-    @apply w-full px-3.5 py-2.5 rounded-xl border border-purple-200 outline-none focus:ring-2 focus:ring-[#6841C6]/20 focus:border-[#6841C6] transition-all bg-white text-xs font-semibold text-[#272333] placeholder:text-[#777383];
+    @apply w-full px-3.5 py-2.5 rounded-lg border border-slate-300 outline-none focus:ring-2 focus:ring-[#542d87]/20 focus:border-[#542d87] transition-all bg-white text-xs font-semibold text-slate-900 placeholder:text-slate-400;
   }
   
   .table-container {
@@ -90,11 +101,11 @@
   }
   
   .table-header {
-    @apply bg-purple-50/60 border-b border-purple-100 text-[#30204F] text-[11px] font-black uppercase tracking-wider;
+    @apply bg-slate-100/90 border-b border-slate-200 text-slate-700 text-[11px] font-black uppercase tracking-wider;
   }
   
   .table-row {
-    @apply border-b border-slate-100 hover:bg-purple-50/40 transition-colors text-xs text-[#272333] font-semibold;
+    @apply border-b border-slate-100 hover:bg-slate-50 transition-colors text-xs text-slate-900 font-semibold;
   }
   
   .custom-scrollbar::-webkit-scrollbar {
@@ -107,6 +118,7 @@
   }
   
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    @apply bg-purple-300 rounded-full hover:bg-purple-400 transition-colors;
+    @apply bg-slate-400 rounded-full hover:bg-slate-500 transition-colors;
   }
 }
+

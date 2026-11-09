@@ -7,8 +7,8 @@ on:
     branches: [ main, master ]
 
 jobs:
-  validate:
-    name: TypeScript & Build Validation
+  validate-frontend:
+    name: Frontend TypeScript & Build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -26,5 +26,21 @@ jobs:
       - name: Typecheck / Lint
         run: npm run lint
 
-      - name: Build
+      - name: Build Frontend
         run: npm run build
+
+  validate-backend:
+    name: Backend Python Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Validate Python Syntax
+        run: |
+          python3 -m py_compile python/*.py
