@@ -198,19 +198,19 @@ export const societyService = {
         this.failedAttempts.delete(lowerId);
       };
 
-      // 1. Parallel Supabase Queries: Admin, Security, Resident
+      // 1. Parallel Supabase Queries: Admin, Security, Resident (using ilike for case-insensitive matching)
       const [adminRes, secRes, resRes] = await Promise.allSettled([
         supabase.from('admin')
-          .select('id, admin_id, name, email, phone, password, society_id, role')
-          .or(`admin_id.eq.${lowerId},email.eq.${lowerId},name.eq.${lowerId},phone.eq.${cleanId}`)
+          .select('admin_id, name, email, phone, password, society_id, role')
+          .or(`admin_id.ilike.${cleanId},email.ilike.${cleanId},name.ilike.${cleanId}`)
           .maybeSingle(),
         supabase.from('security')
-          .select('id, security_id, name, email, phone, mobile_number, password, society_id, shift, role')
-          .or(`security_id.eq.${lowerId},email.eq.${lowerId},name.eq.${lowerId},phone.eq.${cleanId},mobile_number.eq.${cleanId}`)
+          .select('security_user_id, name, email, mobile_number, password, shift, status')
+          .or(`security_user_id.ilike.${cleanId},email.ilike.${cleanId},name.ilike.${cleanId},mobile_number.eq.${cleanId}`)
           .maybeSingle(),
         supabase.from('resident')
-          .select('id, resident_id, tenant_id, owner_id, name, email, phone, password, society_id, flat, tower, status, role, occupancy_type')
-          .or(`resident_id.eq.${lowerId},tenant_id.eq.${lowerId},email.eq.${lowerId},phone.eq.${cleanId},name.eq.${lowerId}`)
+          .select('resident_id, tenant_id, owner_id, name, email, phone, password, society_id, flat, tower, status, role')
+          .or(`resident_id.ilike.${cleanId},tenant_id.ilike.${cleanId},email.ilike.${cleanId},name.ilike.${cleanId},phone.eq.${cleanId}`)
           .maybeSingle()
       ]);
 
@@ -222,7 +222,7 @@ export const societyService = {
           return {
             success: true,
             user: {
-              id: found.id || found.admin_id,
+              id: found.admin_id,
               admin_id: found.admin_id,
               name: found.name,
               email: found.email || '',
@@ -239,7 +239,7 @@ export const societyService = {
         const found = secRes.value.data;
         if (found.password === cleanPass) {
           clearFailedAttempt();
-          const resolvedId = found.security_id || found.id;
+          const resolvedId = (found as any).security_user_id || (found as any).security_id;
           return {
             success: true,
             user: {
@@ -247,10 +247,10 @@ export const societyService = {
               security_id: resolvedId,
               name: found.name,
               email: found.email || '',
-              phone: found.mobile_number ? String(found.mobile_number) : found.phone ? String(found.phone) : '',
+              phone: found.mobile_number ? String(found.mobile_number) : '',
               shift: found.shift || 'Morning',
               role: 'security',
-              society_id: found.society_id || societyId || 'GV2026'
+              society_id: societyId || 'GV2026'
             }
           };
         }
@@ -261,7 +261,7 @@ export const societyService = {
         const found = resRes.value.data;
         if (found.password === cleanPass) {
           clearFailedAttempt();
-          const isTenant = found.role === 'Tenant' || found.occupancy_type === 'Tenant' || Boolean(found.tenant_id);
+          const isTenant = found.role === 'Tenant' || Boolean(found.tenant_id);
           return {
             success: true,
             user: {
