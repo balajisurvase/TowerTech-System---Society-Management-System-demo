@@ -132,6 +132,7 @@ export interface Visitor {
   security_user_shift?: string;
   approval_status?: 'Pending' | 'Approved' | 'Rejected';
   approval_time?: string;
+  society_id?: string;
   created_at?: string;
 }
 
@@ -235,10 +236,12 @@ export interface User {
   password?: string;
   resident_id?: string;
   admin_id?: string;
+  admin_role?: string;
   security_id?: string;
   shift?: string;
   society_id?: string;
   flat?: string;
+  floor?: number;
   tower?: string;
   profile_photo?: string;
   avatar?: string;
@@ -281,13 +284,23 @@ export interface Notice {
   posted_by: string;
   posted_date: string;
   expiry_date?: string;
+  event_date?: string;
+  start_time?: string;
+  end_time?: string;
   target_audience?: string;
   status: NoticeStatus | string;
   is_pinned?: boolean;
   society_id: string;
   attachment_url?: string;
   attachment_name?: string;
+  attachment_type?: string;
+  attachment_size?: number;
   acknowledgements?: string[];
+  views?: string[];
+  views_count?: number;
+  publisher_id?: string;
+  publisher_role?: string;
+  publisher_avatar?: string;
   created_at?: string;
 }
 
@@ -312,4 +325,275 @@ export interface Communication {
   is_announcement?: boolean;
   created_at: string;
 }
+
+export interface SocietyEvent {
+  id?: string;
+  event_id: string;
+  title: string;
+  category?: string;
+  description?: string;
+  event_date: string;
+  start_time?: string;
+  end_time?: string;
+  location?: string;
+  organizer?: string;
+  posted_by?: string;
+  notice_id?: string;
+  society_id: string;
+  created_at?: string;
+}
+
+export interface StaffSalaryRecord {
+  id?: string;
+  staff_id?: string;
+  name?: string;
+  staff_name?: string;
+  role: string;
+  phone?: string;
+  salary?: number;
+  monthly_salary?: number;
+  month: string;
+  payment_status: 'Paid' | 'Pending' | 'Processing';
+  payment_date?: string;
+  payment_mode?: PaymentMode;
+  notes?: string;
+  society_id?: string;
+  basic_salary?: number;
+  bonus?: number;
+  deductions?: number;
+  advance_amount?: number;
+  net_salary?: number;
+  transaction_reference?: string;
+}
+
+export interface ServiceContract {
+  id?: string;
+  contract_id?: string;
+  service_name?: string;
+  vendor_name: string;
+  service_type?: string;
+  vendor_contact?: string;
+  contact_person?: string;
+  phone?: string;
+  billing_cycle?: 'Monthly' | 'Quarterly' | 'Bi-Annual' | 'Annual' | string;
+  annual_cost?: number;
+  contract_amount?: number;
+  start_date: string;
+  end_date: string;
+  status: 'Active' | 'Expired' | 'Pending Renewal' | 'Under Renewal' | 'Terminated' | string;
+  notes?: string;
+  society_id?: string;
+  gst_number?: string;
+  outstanding_amount?: number;
+}
+
+export interface FinancialSettings {
+  id?: string;
+  society_id: string;
+  currency: string;
+  financial_year_start?: string;
+  billing_day: number;
+  due_day: number;
+  grace_period_days: number;
+  late_fee_type: 'fixed' | 'percentage';
+  late_fee_amount: number;
+  billing_frequency: 'monthly' | 'quarterly' | 'yearly';
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface MaintenanceRateRule {
+  id?: string;
+  society_id: string;
+  rate_name: string;
+  calculation_method: 'per_bhk' | 'per_sqft' | 'hybrid' | 'fixed';
+  bhk_rates?: {
+    '1 BHK': number;
+    '2 BHK': number;
+    '3 BHK': number;
+    '4 BHK': number;
+    [key: string]: number;
+  };
+  rate_per_sqft?: number;
+  base_amount?: number;
+  fixed_amount?: number;
+  effective_from: string;
+  effective_to?: string;
+  is_active: boolean;
+}
+
+export interface MaintenanceBill {
+  id?: string;
+  bill_id?: string;
+  society_id: string;
+  flat_id: string;
+  flat_number: string;
+  tower?: string;
+  resident_name?: string;
+  resident_user_id?: string;
+  bill_number: string;
+  billing_month: string;
+  calculation_method?: string;
+  bhk_type?: string;
+  flat_area?: number;
+  rate_per_unit?: number;
+  maintenance_amount: number;
+  additional_charges?: number;
+  previous_balance?: number;
+  late_fee?: number;
+  discount?: number;
+  total_amount: number;
+  paid_amount: number;
+  outstanding_amount: number;
+  due_date: string;
+  status: 'draft' | 'generated' | 'unpaid' | 'partially_paid' | 'paid' | 'overdue' | 'cancelled' | string;
+  notes?: string;
+  created_at?: string;
+}
+
+export interface FinancialPayment {
+  id?: string;
+  society_id: string;
+  payment_number: string;
+  transaction_reference?: string;
+  payer_name?: string;
+  payer_user_id?: string;
+  flat_id?: string;
+  flat_number?: string;
+  payment_category: 'maintenance' | 'parking' | 'booking' | 'penalty' | 'donation' | 'other_income' | 'vendor' | 'salary' | 'expense' | 'refund' | string;
+  amount: number;
+  payment_method: 'upi' | 'cash' | 'bank_transfer' | 'cheque' | 'online' | 'other' | string;
+  payment_date: string;
+  status: 'pending' | 'successful' | 'failed' | 'refunded' | 'cancelled' | string;
+  gateway_name?: string;
+  gateway_transaction_id?: string;
+  recorded_by?: string;
+  remarks?: string;
+  created_at?: string;
+}
+
+export interface PaymentReceipt {
+  id?: string;
+  society_id: string;
+  receipt_number: string;
+  payment_id: string;
+  payer_name: string;
+  flat_number?: string;
+  amount: number;
+  payment_date: string;
+  payment_method: string;
+  payment_category?: string;
+  billing_period?: string;
+  previous_outstanding?: number;
+  remaining_balance?: number;
+  receipt_file_url?: string;
+  created_at?: string;
+}
+
+export interface IncomeEntry {
+  id?: string;
+  income_number: string;
+  society_id: string;
+  category: 'maintenance' | 'parking' | 'clubhouse_booking' | 'hall_booking' | 'penalty' | 'interest' | 'donation' | 'festival_contribution' | 'other' | string;
+  description: string;
+  received_from: string;
+  flat_id?: string;
+  flat_number?: string;
+  amount: number;
+  payment_id?: string;
+  payment_method: string;
+  transaction_reference?: string;
+  income_date: string;
+  attachment_url?: string;
+  recorded_by?: string;
+  created_at?: string;
+}
+
+export interface ExpenseRecord {
+  id?: string;
+  expense_number: string;
+  society_id: string;
+  category_id?: string;
+  category_name?: string;
+  expense_title: string;
+  description: string;
+  vendor_name?: string;
+  invoice_number?: string;
+  amount: number;
+  paid_amount?: number;
+  expense_date: string;
+  due_date?: string;
+  payment_method?: string;
+  transaction_reference?: string;
+  approval_status: 'draft' | 'pending' | 'approved' | 'rejected' | string;
+  payment_status: 'unpaid' | 'partially_paid' | 'paid' | string;
+  invoice_url?: string;
+  created_by?: string;
+  approved_by?: string;
+  approved_at?: string;
+  remarks?: string;
+  created_at?: string;
+}
+
+export interface SocietyFund {
+  id?: string;
+  fund_id?: string;
+  society_id: string;
+  fund_name: string;
+  fund_type: 'general' | 'sinking' | 'repair' | 'reserve' | 'emergency' | 'other' | string;
+  opening_balance: number;
+  total_contributions?: number;
+  interest_earned?: number;
+  fund_transfers?: number;
+  total_utilization?: number;
+  closing_balance?: number;
+  is_active?: boolean;
+}
+
+export interface FundTransaction {
+  id?: string;
+  society_id: string;
+  fund_id: string;
+  fund_name?: string;
+  transaction_type: 'contribution' | 'interest' | 'utilization' | 'transfer_in' | 'transfer_out' | 'adjustment' | string;
+  amount: number;
+  transaction_date: string;
+  description: string;
+  reference_number?: string;
+  related_fund_id?: string;
+  recorded_by?: string;
+  created_at?: string;
+}
+
+export interface BankAccount {
+  id?: string;
+  society_id: string;
+  account_name: string;
+  account_type: 'bank' | 'cash' | 'petty_cash' | 'other' | string;
+  bank_name?: string;
+  account_number_masked?: string;
+  ifsc_code?: string;
+  opening_balance: number;
+  current_balance?: number;
+  total_credits?: number;
+  total_debits?: number;
+  is_active?: boolean;
+}
+
+export interface FinancialAuditLog {
+  id?: string;
+  society_id: string;
+  user_id?: string;
+  user_role?: string;
+  user_name?: string;
+  action: string;
+  module_name: string;
+  record_id?: string;
+  old_values?: any;
+  new_values?: any;
+  reason?: string;
+  ip_address?: string;
+  created_at?: string;
+}
+
 

@@ -52,7 +52,7 @@ import {
   ArrowLeft,
   ShieldCheck
 } from 'lucide-react';
-import { User, Resident, MaintenanceRecord, Complaint, Booking, Amenity, Admin } from '../types';
+import { User, Resident, MaintenanceRecord, Complaint, Booking, Amenity, Admin, Notice } from '../types';
 import { societyService } from '../lib/societyService';
 import { isSupabaseConfigured } from '../lib/supabase';
 import { toast } from 'sonner';
@@ -81,6 +81,7 @@ import {
   ResponsiveContainer,
   Cell
 } from 'recharts';
+import TowerTechLogo from './TowerTechLogo';
 
 interface AdminDashboardProps {
   user: User;
@@ -90,6 +91,7 @@ interface AdminDashboardProps {
   maintenance: MaintenanceRecord[];
   complaints: Complaint[];
   bookings: Booking[];
+  notices?: Notice[];
   onRefresh: () => void;
   onUserUpdate?: (updatedUser: Partial<User>) => void;
 }
@@ -102,6 +104,7 @@ export default function AdminDashboard({
   maintenance, 
   complaints, 
   bookings,
+  notices = [],
   onRefresh,
   onUserUpdate 
 }: AdminDashboardProps) {
@@ -149,6 +152,7 @@ export default function AdminDashboard({
   const [residentStatusFilter, setResidentStatusFilter] = useState<'All' | 'Active' | 'Inactive'>('All');
 
   const [complaintFilter, setComplaintFilter] = useState<'All' | 'Pending' | 'Process' | 'Done' | 'Rejected'>('All');
+  const [complaintCategoryFilter, setComplaintCategoryFilter] = useState<string>('All');
   const [bookingFilter, setBookingFilter] = useState<'All' | 'Pending' | 'Approved' | 'Rejected'>('All');
   const [amenities, setAmenities] = useState<Amenity[]>([]);
   const [dbError, setDbError] = useState<string | null>(null);
@@ -316,12 +320,12 @@ export default function AdminDashboard({
   };
 
   const stats = [
-    { label: 'Total Residents', value: totalResidentsCount, icon: Users, color: 'from-blue-500 to-indigo-600', shadow: 'shadow-blue-200', trend: '+12%', trendUp: true },
-    { label: 'Paid Maintenance', value: paidMaintenanceCount, icon: CheckCircle2, color: 'from-emerald-500 to-teal-600', shadow: 'shadow-emerald-200', trend: '+5%', trendUp: true },
-    { label: 'Unpaid Maintenance', value: unpaidMaintenanceCount, icon: AlertCircle, color: 'from-rose-500 to-orange-600', shadow: 'shadow-rose-200', trend: '-2%', trendUp: false },
-    { label: 'Total Complaints', value: totalComplaints, icon: MessageSquare, color: 'from-purple-500 to-indigo-600', shadow: 'shadow-purple-200', trend: '+8%', trendUp: true },
-    { label: 'Total Bookings', value: totalBookings, icon: Calendar, color: 'from-amber-500 to-orange-600', shadow: 'shadow-amber-200', trend: '+15%', trendUp: true },
-    { label: 'Total Collection', value: `₹${totalCollectionAmount.toLocaleString()}`, icon: CreditCard, color: 'from-cyan-500 to-blue-600', shadow: 'shadow-cyan-200', trend: '+10%', trendUp: true },
+    { label: 'Total Residents', value: totalResidentsCount, icon: Users, color: 'from-purple-500 to-purple-700', shadow: 'shadow-purple-200', trend: '+12%', trendUp: true },
+    { label: 'Paid Maintenance', value: paidMaintenanceCount, icon: CheckCircle2, color: 'from-mint to-mint-alt', shadow: 'shadow-mint/20', trend: '+5%', trendUp: true },
+    { label: 'Unpaid Maintenance', value: unpaidMaintenanceCount, icon: AlertCircle, color: 'from-rose-500 to-#FAA928', shadow: 'shadow-rose-200', trend: '-2%', trendUp: false },
+    { label: 'Total Complaints', value: totalComplaints, icon: MessageSquare, color: 'from-purple-600 to-header', shadow: 'shadow-purple-200', trend: '+8%', trendUp: true },
+    { label: 'Total Bookings', value: totalBookings, icon: Calendar, color: 'from-gold to-gold-alt', shadow: 'shadow-gold/20', trend: '+15%', trendUp: true },
+    { label: 'Total Collection', value: `₹${totalCollectionAmount.toLocaleString()}`, icon: CreditCard, color: 'from-purple-400 to-[#5D31C7]', shadow: 'shadow-purple-200', trend: '+10%', trendUp: true },
   ];
 
   const formatTime = (time?: string) => {
@@ -887,7 +891,8 @@ export default function AdminDashboard({
                           String(c.complaint_id || '').toLowerCase().includes(searchTerm.toLowerCase());
       const matchesStatus = complaintFilter === 'All' ? true : 
                            (complaintFilter === 'Done' ? (c.status === 'Done' || c.status === 'Resolved') : c.status === complaintFilter);
-      return matchesSearch && matchesStatus;
+      const matchesCategory = complaintCategoryFilter === 'All' ? true : c.category === complaintCategoryFilter;
+      return matchesSearch && matchesStatus && matchesCategory;
     })
     .sort((a, b) => {
       const idA = String(a.complaint_id || a.id || '');
@@ -1012,43 +1017,53 @@ export default function AdminDashboard({
       case 'dashboard':
         const recentComplaints = complaints.slice(0, 5);
         const recentBookings = bookings.slice(0, 5);
-        const ownerCount = residents.filter(r => (r.role || r.occupancy_type) === 'Owner').length;
-        const tenantCount = residents.filter(r => (r.role || r.occupancy_type) === 'Tenant').length;
+        const activeResidents = residents.filter(r => (r.status || 'Active') === 'Active');
+        const ownerCount = activeResidents.filter(r => (r.role || r.occupancy_type) === 'Owner').length;
+        const tenantCount = activeResidents.filter(r => (r.role || r.occupancy_type) === 'Tenant').length;
+        const totalActiveResidentsCount = activeResidents.length;
+        
+        // Find notice count for card replacement
+        // Note: notices are fetched in NoticeBoard, but here we might not have them.
+        // I'll check if we have a societyService call to get count or just use a placeholder if not passed.
+        // Actually, I should probably pass notices to AdminDashboard if I want to show count.
+        // But for now, let's just fix the active resident count.
 
         return (
           <div className="flex flex-col gap-6 w-full">
-            {/* 1. SOCIETY OVERVIEW HERO BANNER (Requirement 7 & 8) */}
-            <div className="bg-gradient-to-r from-[#0F172A] via-[#1E1B4B] to-[#172554] p-6 sm:p-8 rounded-3xl text-white shadow-xl relative overflow-hidden border border-indigo-900/60 flex flex-col lg:flex-row items-center justify-between gap-6">
-              <div className="absolute top-0 right-0 w-80 h-80 bg-blue-500/10 rounded-full -mr-32 -mt-32 blur-3xl pointer-events-none"></div>
+            {/* 1. SOCIETY OVERVIEW HERO BANNER */}
+            <div className="bg-gradient-to-r from-[#6339CA] via-[#7c3aed] to-[#8b5cf6] p-6 sm:p-8 rounded-3xl text-white shadow-xl relative overflow-hidden border border-purple-400/30 flex flex-col lg:flex-row items-center justify-between gap-6">
+              <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full -mr-32 -mt-32 blur-3xl pointer-events-none"></div>
               
               {/* Left Content */}
               <div className="space-y-4 max-w-2xl relative z-10 text-left">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/30 text-xs font-black uppercase tracking-wider">
-                  <Building2 className="w-3.5 h-3.5 text-blue-400" />
-                  <span>Green Park Residency • TowerTech System</span>
+                <div className="flex items-center gap-4 mb-2">
+                  <div className="w-16 h-16 rounded-2xl bg-white flex items-center justify-center shadow-2xl p-2 shrink-0">
+                    <TowerTechLogo className="w-full h-full" type="icon" />
+                  </div>
+                  <div>
+                    <div className="inline-flex items-center gap-2 px-2 py-0.5 rounded-full bg-white/20 text-white border border-white/30 text-[10px] font-black uppercase tracking-wider mb-1">
+                       <Building2 className="w-3 h-3 text-white" />
+                       <span>Green Park Residency</span>
+                    </div>
+                    <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-white leading-tight">
+                      TowerTech <span className="text-[#FAA928]">Portal</span>
+                    </h2>
+                  </div>
                 </div>
 
-                <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-white leading-tight">
-                  Welcome to Green Park Residency
-                </h2>
-
-                <p className="text-slate-300 text-xs sm:text-sm font-medium leading-relaxed">
-                  Official portal for Green Park Residency. Manage residents, maintenance payments, complaints, visitor passes, notices and amenities.
+                <p className="text-purple-50 text-xs sm:text-sm font-bold opacity-90 leading-relaxed uppercase tracking-wide">
+                  Official Management System • Welcome back, {user.admin_role || 'Chairman'}
                 </p>
 
                 {/* Quick User Badges */}
                 <div className="flex flex-wrap gap-2.5 pt-1">
                   <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-xl border border-white/10 text-xs font-bold text-white">
-                    <UserIcon className="w-3.5 h-3.5 text-blue-300" />
-                    <span>Admin: {user.name}</span>
+                    <UserIcon className="w-3.5 h-3.5 text-white" />
+                    <span>Role: {user.admin_role || 'Chairman'}</span>
                   </div>
                   <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-xl border border-white/10 text-xs font-bold text-white">
-                    <Star className="w-3.5 h-3.5 text-amber-300" />
-                    <span>Role: Chairman</span>
-                  </div>
-                  <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-xl border border-white/10 text-xs font-bold text-white">
-                    <Shield className="w-3.5 h-3.5 text-emerald-300" />
-                    <span>Authorized Access</span>
+                    <Megaphone className="w-3.5 h-3.5 text-gold" />
+                    <span>Notices: {(notices || []).length} Active</span>
                   </div>
                 </div>
 
@@ -1056,27 +1071,44 @@ export default function AdminDashboard({
                 <div className="flex flex-wrap items-center gap-3 pt-2">
                   <button
                     onClick={() => setActiveTab('residents')}
-                    className="px-5 py-2.5 bg-[#2563EB] hover:bg-blue-700 text-white rounded-xl text-xs font-extrabold shadow-lg shadow-blue-600/30 transition-all cursor-pointer uppercase tracking-wider flex items-center gap-2"
+                    className="px-5 py-2.5 bg-[#FAA928] hover:bg-[#FBAE17] text-slate-950 rounded-xl text-xs font-black shadow-lg shadow-gold/30 transition-all cursor-pointer uppercase tracking-wider flex items-center gap-2"
                   >
                     <Users className="w-4 h-4" />
-                    <span>View Residents</span>
+                    <span>Manage Residents</span>
                   </button>
                   <button
                     onClick={() => setActiveTab('maintenance')}
-                    className="px-5 py-2.5 bg-[#059669] hover:bg-emerald-700 text-white rounded-xl text-xs font-extrabold shadow-lg shadow-emerald-600/30 transition-all cursor-pointer uppercase tracking-wider flex items-center gap-2"
+                    className="px-5 py-2.5 bg-white hover:bg-purple-50 text-[#6339CA] rounded-xl text-xs font-black shadow-lg shadow-purple-600/10 transition-all cursor-pointer uppercase tracking-wider flex items-center gap-2"
                   >
                     <CreditCard className="w-4 h-4" />
-                    <span>Maintenance</span>
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('notices')}
-                    className="px-5 py-2.5 bg-[#6D28D9] hover:bg-purple-800 text-white rounded-xl text-xs font-extrabold shadow-lg shadow-purple-600/30 transition-all cursor-pointer uppercase tracking-wider flex items-center gap-2"
-                  >
-                    <Megaphone className="w-4 h-4" />
-                    <span>Publish Notice</span>
+                    <span>Maintenance Ledger</span>
                   </button>
                 </div>
               </div>
+
+              {/* Right Content: Stats Grid */}
+              <div className="grid grid-cols-2 gap-4 w-full lg:w-72 relative z-10">
+                <div className="bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-2xl flex flex-col items-center justify-center text-center">
+                  <span className="text-[10px] font-black text-white/80 uppercase tracking-widest block mb-1">Active Residents</span>
+                  <span className="text-2xl font-black text-white">{activeResidents.length}</span>
+                </div>
+                <div className="bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-2xl flex flex-col items-center justify-center text-center">
+                  <span className="text-[10px] font-black text-amber-300 uppercase tracking-widest block mb-1">Notice Count</span>
+                  <span className="text-2xl font-black text-white">{(notices || []).length}</span>
+                </div>
+                <div className="bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-2xl flex flex-col items-center justify-center text-center">
+                  <span className="text-[10px] font-black text-emerald-300 uppercase tracking-widest block mb-1">Total Owners</span>
+                  <span className="text-2xl font-black text-white">{ownerCount}</span>
+                </div>
+                <div className="bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-2xl flex flex-col items-center justify-center text-center">
+                  <span className="text-[10px] font-black text-rose-300 uppercase tracking-widest block mb-1">Total Tenants</span>
+                  <span className="text-2xl font-black text-white">{tenantCount}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* 2. MANAGEMENT STATS ROW */}
+            <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
 
               {/* Right Society Image Visual (Requirement 7) */}
               <div className="relative z-10 shrink-0 w-full lg:w-auto flex justify-center">
@@ -1088,7 +1120,7 @@ export default function AdminDashboard({
                     className="rounded-2xl border-2 border-white/20 shadow-2xl w-full lg:w-80 h-52 sm:h-60 object-cover transform transition-transform group-hover:scale-[1.02]"
                   />
                   <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-slate-950/80 via-transparent to-transparent flex items-end p-3.5">
-                    <span className="text-[11px] font-black text-white bg-slate-900/80 backdrop-blur-md px-2.5 py-1 rounded-lg border border-white/20">
+                    <span className="text-[11px] font-black text-white bg-[#6339CA]/80 backdrop-blur-md px-2.5 py-1 rounded-lg border border-white/20">
                       🏢 Green Park Residency • 4 Towers
                     </span>
                   </div>
@@ -1098,10 +1130,10 @@ export default function AdminDashboard({
 
             {/* 2. 5 SOLID COLOURED SUMMARY CARDS (Requirement 9) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-              {/* CARD 1: TOTAL RESIDENTS (Solid Blue #2563EB) */}
+              {/* CARD 1: TOTAL RESIDENTS (Solid Blue #6339CA) */}
               <button
                 onClick={() => setActiveTab('residents')}
-                className="bg-[#2563EB] rounded-2xl p-5 shadow-lg shadow-blue-500/20 text-white text-left flex flex-col justify-between transition-all hover:scale-[1.02] cursor-pointer"
+                className="bg-[#6339CA] rounded-2xl p-5 shadow-lg shadow-[#6339CA]/20 text-white text-left flex flex-col justify-between transition-all hover:scale-[1.02] cursor-pointer"
               >
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] font-black uppercase tracking-wider text-white">TOTAL RESIDENTS</span>
@@ -1110,15 +1142,15 @@ export default function AdminDashboard({
                   </div>
                 </div>
                 <div className="mt-3">
-                  <h3 className="text-3xl sm:text-4xl font-black text-white font-mono tracking-tight">{totalResidentsCount}</h3>
-                  <p className="text-xs font-bold text-white/90 mt-0.5">Active resident units</p>
+                  <h3 className="text-3xl sm:text-4xl font-black text-white font-mono tracking-tight">{totalActiveResidentsCount}</h3>
+                  <p className="text-xs font-bold text-white/90 mt-0.5">Active residents only</p>
                 </div>
               </button>
 
-              {/* CARD 2: TOTAL COLLECTION (Solid Green #059669) */}
+              {/* CARD 2: TOTAL COLLECTION (Solid Green #44D080) */}
               <button
                 onClick={() => setActiveTab('maintenance')}
-                className="bg-[#059669] rounded-2xl p-5 shadow-lg shadow-emerald-500/20 text-white text-left flex flex-col justify-between transition-all hover:scale-[1.02] cursor-pointer"
+                className="bg-[#44D080] rounded-2xl p-5 shadow-lg shadow-#44D080/20 text-white text-left flex flex-col justify-between transition-all hover:scale-[1.02] cursor-pointer"
               >
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] font-black uppercase tracking-wider text-white">TOTAL COLLECTION</span>
@@ -1132,27 +1164,27 @@ export default function AdminDashboard({
                 </div>
               </button>
 
-              {/* CARD 3: PENDING AMOUNT (Solid Orange #EA580C) */}
+              {/* CARD 3: NOTICE BOARD COUNT (Solid Orange #FAA928) */}
               <button
-                onClick={() => setActiveTab('maintenance')}
-                className="bg-[#EA580C] rounded-2xl p-5 shadow-lg shadow-orange-500/20 text-white text-left flex flex-col justify-between transition-all hover:scale-[1.02] cursor-pointer"
+                onClick={() => setActiveTab('notices')}
+                className="bg-[#FAA928] rounded-2xl p-5 shadow-lg shadow-orange-500/20 text-white text-left flex flex-col justify-between transition-all hover:scale-[1.02] cursor-pointer"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-black uppercase tracking-wider text-white">PENDING AMOUNT</span>
+                  <span className="text-[11px] font-black uppercase tracking-wider text-white">ACTIVE NOTICES</span>
                   <div className="w-9 h-9 rounded-xl bg-white/20 text-white flex items-center justify-center font-black backdrop-blur-xs">
-                    <AlertCircle className="w-5 h-5 text-white" />
+                    <Megaphone className="w-5 h-5 text-white" />
                   </div>
                 </div>
                 <div className="mt-3">
-                  <h3 className="text-3xl sm:text-4xl font-black text-white font-mono tracking-tight">₹{totalPendingAmount.toLocaleString('en-IN')}</h3>
-                  <p className="text-xs font-bold text-white/90 mt-0.5">Outstanding maintenance</p>
+                  <h3 className="text-3xl sm:text-4xl font-black text-white font-mono tracking-tight">{notices.filter(n => n.status === 'Active').length}</h3>
+                  <p className="text-xs font-bold text-white/90 mt-0.5">Active announcements</p>
                 </div>
               </button>
 
-              {/* CARD 4: PAID BILLS (Solid Teal #0D9488) */}
+              {/* CARD 4: PAID BILLS (Solid Teal #44D080) */}
               <button
                 onClick={() => setActiveTab('maintenance')}
-                className="bg-[#0D9488] rounded-2xl p-5 shadow-lg shadow-teal-500/20 text-white text-left flex flex-col justify-between transition-all hover:scale-[1.02] cursor-pointer"
+                className="bg-[#44D080] rounded-2xl p-5 shadow-lg shadow-teal-500/20 text-white text-left flex flex-col justify-between transition-all hover:scale-[1.02] cursor-pointer"
               >
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] font-black uppercase tracking-wider text-white">PAID BILLS</span>
@@ -1166,10 +1198,10 @@ export default function AdminDashboard({
                 </div>
               </button>
 
-              {/* CARD 5: UNPAID BILLS (Solid Red #DC2626) */}
+              {/* CARD 5: UNPAID BILLS (Solid Red #FAA928) */}
               <button
                 onClick={() => setActiveTab('maintenance')}
-                className="bg-[#DC2626] rounded-2xl p-5 shadow-lg shadow-red-500/20 text-white text-left flex flex-col justify-between transition-all hover:scale-[1.02] cursor-pointer"
+                className="bg-[#FAA928] rounded-2xl p-5 shadow-lg shadow-red-500/20 text-white text-left flex flex-col justify-between transition-all hover:scale-[1.02] cursor-pointer"
               >
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] font-black uppercase tracking-wider text-white">UNPAID BILLS</span>
@@ -1190,8 +1222,8 @@ export default function AdminDashboard({
               <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
                 <div>
                   <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                    <h3 className="text-base font-black text-slate-900 tracking-tight flex items-center gap-2">
-                      <CreditCard className="w-4 h-4 text-[#059669]" />
+                    <h3 className="text-base font-black text-[#6339CA] tracking-tight flex items-center gap-2">
+                      <CreditCard className="w-4 h-4 text-[#44D080]" />
                       <span>Maintenance Collection</span>
                     </h3>
                     <span className="text-xs font-black text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
@@ -1200,27 +1232,27 @@ export default function AdminDashboard({
                   </div>
 
                   <div className="mt-4 space-y-3">
-                    <div className="flex items-center justify-between text-xs font-extrabold text-slate-800">
+                    <div className="flex items-center justify-between text-xs font-extrabold text-purple-900">
                       <span>Paid ({paidMaintenanceCount} bills)</span>
                       <span className="text-emerald-700 font-mono font-black">₹{totalCollectionAmount.toLocaleString('en-IN')}</span>
                     </div>
                     <div className="w-full bg-slate-100 h-3.5 rounded-full overflow-hidden p-0.5 border border-slate-200">
-                      <div className="bg-[#059669] h-full rounded-full w-[80%] transition-all"></div>
+                      <div className="bg-[#44D080] h-full rounded-full w-[80%] transition-all"></div>
                     </div>
 
-                    <div className="flex items-center justify-between text-xs font-extrabold text-slate-800 pt-1">
+                    <div className="flex items-center justify-between text-xs font-extrabold text-purple-900 pt-1">
                       <span>Pending ({unpaidMaintenanceCount} bills)</span>
                       <span className="text-orange-700 font-mono font-black">₹{totalPendingAmount.toLocaleString('en-IN')}</span>
                     </div>
                     <div className="w-full bg-slate-100 h-3.5 rounded-full overflow-hidden p-0.5 border border-slate-200">
-                      <div className="bg-[#EA580C] h-full rounded-full w-[20%] transition-all"></div>
+                      <div className="bg-[#FAA928] h-full rounded-full w-[20%] transition-all"></div>
                     </div>
                   </div>
                 </div>
 
                 <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between text-xs">
                   <span className="font-bold text-slate-500">Target Collection: ₹{(totalCollectionAmount + totalPendingAmount).toLocaleString('en-IN')}</span>
-                  <button onClick={() => setActiveTab('maintenance')} className="font-black text-[#2563EB] hover:underline">
+                  <button onClick={() => setActiveTab('maintenance')} className="font-black text-[#6339CA] hover:underline">
                     Manage Bills →
                   </button>
                 </div>
@@ -1230,11 +1262,11 @@ export default function AdminDashboard({
               <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
                 <div>
                   <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                    <h3 className="text-base font-black text-slate-900 tracking-tight flex items-center gap-2">
-                      <Users className="w-4 h-4 text-[#2563EB]" />
+                    <h3 className="text-base font-black text-[#6339CA] tracking-tight flex items-center gap-2">
+                      <Users className="w-4 h-4 text-[#6339CA]" />
                       <span>Resident Breakdown</span>
                     </h3>
-                    <span className="text-xs font-black text-blue-700 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200">
+                    <span className="text-xs font-black text-[#6339CA] bg-[#6339CA]/10 px-2.5 py-1 rounded-lg border border-purple-200">
                       {totalResidentsCount} Total Units
                     </span>
                   </div>
@@ -1242,29 +1274,29 @@ export default function AdminDashboard({
                   <div className="mt-4 space-y-4">
                     {/* Owner Bar */}
                     <div>
-                      <div className="flex items-center justify-between text-xs font-extrabold text-slate-800 mb-1">
+                      <div className="flex items-center justify-between text-xs font-extrabold text-purple-900 mb-1">
                         <span className="flex items-center gap-1.5">
-                          <span className="w-3 h-3 rounded-full bg-[#2563EB]"></span>
+                          <span className="w-3 h-3 rounded-full bg-[#6339CA]"></span>
                           <span>Owners</span>
                         </span>
-                        <span className="font-mono font-black text-slate-900">{ownerCount} ({Math.round((ownerCount / (totalResidentsCount || 1)) * 100)}%)</span>
+                        <span className="font-mono font-black text-[#6339CA]">{ownerCount} ({Math.round((ownerCount / (totalResidentsCount || 1)) * 100)}%)</span>
                       </div>
                       <div className="w-full bg-slate-100 h-3.5 rounded-full overflow-hidden p-0.5 border border-slate-200">
-                        <div className="bg-[#2563EB] h-full rounded-full" style={{ width: `${Math.round((ownerCount / (totalResidentsCount || 1)) * 100)}%` }}></div>
+                        <div className="bg-[#6339CA] h-full rounded-full" style={{ width: `${Math.round((ownerCount / (totalResidentsCount || 1)) * 100)}%` }}></div>
                       </div>
                     </div>
 
                     {/* Tenant Bar */}
                     <div>
-                      <div className="flex items-center justify-between text-xs font-extrabold text-slate-800 mb-1">
+                      <div className="flex items-center justify-between text-xs font-extrabold text-purple-900 mb-1">
                         <span className="flex items-center gap-1.5">
-                          <span className="w-3 h-3 rounded-full bg-[#0D9488]"></span>
+                          <span className="w-3 h-3 rounded-full bg-[#44D080]"></span>
                           <span>Tenants</span>
                         </span>
-                        <span className="font-mono font-black text-slate-900">{tenantCount} ({Math.round((tenantCount / (totalResidentsCount || 1)) * 100)}%)</span>
+                        <span className="font-mono font-black text-[#6339CA]">{tenantCount} ({Math.round((tenantCount / (totalResidentsCount || 1)) * 100)}%)</span>
                       </div>
                       <div className="w-full bg-slate-100 h-3.5 rounded-full overflow-hidden p-0.5 border border-slate-200">
-                        <div className="bg-[#0D9488] h-full rounded-full" style={{ width: `${Math.round((tenantCount / (totalResidentsCount || 1)) * 100)}%` }}></div>
+                        <div className="bg-[#44D080] h-full rounded-full" style={{ width: `${Math.round((tenantCount / (totalResidentsCount || 1)) * 100)}%` }}></div>
                       </div>
                     </div>
                   </div>
@@ -1272,7 +1304,7 @@ export default function AdminDashboard({
 
                 <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between text-xs">
                   <span className="font-bold text-slate-500">100% Occupancy Recorded</span>
-                  <button onClick={() => setActiveTab('residents')} className="font-black text-[#2563EB] hover:underline">
+                  <button onClick={() => setActiveTab('residents')} className="font-black text-[#6339CA] hover:underline">
                     Resident Directory →
                   </button>
                 </div>
@@ -1282,7 +1314,7 @@ export default function AdminDashboard({
               <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
                 <div>
                   <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                    <h3 className="text-base font-black text-slate-900 tracking-tight flex items-center gap-2">
+                    <h3 className="text-base font-black text-[#6339CA] tracking-tight flex items-center gap-2">
                       <IndianRupee className="w-4 h-4 text-[#6D28D9]" />
                       <span>Monthly Outlays</span>
                     </h3>
@@ -1294,23 +1326,23 @@ export default function AdminDashboard({
                   <div className="mt-3 space-y-2.5 text-xs font-bold">
                     <div className="flex items-center justify-between">
                       <span className="text-slate-600">⚡ Electricity & Power</span>
-                      <span className="font-mono font-black text-slate-900">₹45,000</span>
+                      <span className="font-mono font-black text-[#6339CA]">₹45,000</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-slate-600">🛡️ Security Services (24x7)</span>
-                      <span className="font-mono font-black text-slate-900">₹65,000</span>
+                      <span className="font-mono font-black text-[#6339CA]">₹65,000</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-slate-600">🧹 Housekeeping & Cleaning</span>
-                      <span className="font-mono font-black text-slate-900">₹32,000</span>
+                      <span className="font-mono font-black text-[#6339CA]">₹32,000</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-slate-600">🛗 Lift Maintenance AMC</span>
-                      <span className="font-mono font-black text-slate-900">₹22,000</span>
+                      <span className="font-mono font-black text-[#6339CA]">₹22,000</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-slate-600">💧 Water Supply & Plumbing</span>
-                      <span className="font-mono font-black text-slate-900">₹18,000</span>
+                      <span className="font-mono font-black text-[#6339CA]">₹18,000</span>
                     </div>
                   </div>
                 </div>
@@ -1328,30 +1360,30 @@ export default function AdminDashboard({
             <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div>
-                  <h3 className="text-lg font-black text-slate-900 tracking-tight flex items-center gap-2">
-                    <Building2 className="w-5 h-5 text-[#2563EB]" />
+                  <h3 className="text-lg font-black text-[#6339CA] tracking-tight flex items-center gap-2">
+                    <Building2 className="w-5 h-5 text-[#6339CA]" />
                     <span>Green Park Residency — Society at a Glance</span>
                   </h3>
                   <p className="text-xs font-semibold text-slate-500 mt-0.5">
                     Official infrastructure and operational assets overview.
                   </p>
                 </div>
-                <span className="px-3 py-1 bg-blue-50 text-blue-800 text-xs font-extrabold rounded-xl border border-blue-200">
+                <span className="px-3 py-1 bg-[#6339CA]/10 text-[#6339CA] text-xs font-extrabold rounded-xl border border-purple-200">
                   GV2026
                 </span>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
-                <div className="p-3.5 bg-blue-50/80 rounded-xl border border-blue-100 text-center">
+                <div className="p-3.5 bg-[#6339CA]/10/80 rounded-xl border border-purple-100 text-center">
                   <span className="text-xl font-black block text-blue-900">🏢 TOWERS</span>
-                  <span className="text-2xl font-black text-blue-700 font-mono mt-1 block">4</span>
-                  <span className="text-[10px] font-bold text-blue-600/80">Towers A, B, C, D</span>
+                  <span className="text-2xl font-black text-[#6339CA] font-mono mt-1 block">4</span>
+                  <span className="text-[10px] font-bold text-[#6339CA]/80">Towers A, B, C, D</span>
                 </div>
 
-                <div className="p-3.5 bg-indigo-50/80 rounded-xl border border-indigo-100 text-center">
-                  <span className="text-xl font-black block text-indigo-900">👥 RESIDENTS</span>
-                  <span className="text-2xl font-black text-indigo-700 font-mono mt-1 block">{totalResidentsCount}</span>
-                  <span className="text-[10px] font-bold text-indigo-600/80">{ownerCount} Owners, {tenantCount} Tenants</span>
+                <div className="p-3.5 bg-[#6339CA]/10/80 rounded-xl border border-[#6339CA]/20 text-center">
+                  <span className="text-xl font-black block text-[#6339CA]">👥 RESIDENTS</span>
+                  <span className="text-2xl font-black text-[#6339CA] font-mono mt-1 block">{totalResidentsCount}</span>
+                  <span className="text-[10px] font-bold text-[#6339CA]/80">{ownerCount} Owners, {tenantCount} Tenants</span>
                 </div>
 
                 <div className="p-3.5 bg-teal-50/80 rounded-xl border border-teal-100 text-center">
@@ -1369,7 +1401,7 @@ export default function AdminDashboard({
                 <div className="p-3.5 bg-emerald-50/80 rounded-xl border border-emerald-100 text-center">
                   <span className="text-xl font-black block text-emerald-900">🛡️ SECURITY</span>
                   <span className="text-2xl font-black text-emerald-700 font-mono mt-1 block">24x7</span>
-                  <span className="text-[10px] font-bold text-emerald-600/80">2 Gate Desks</span>
+                  <span className="text-[10px] font-bold text-#44D080/80">2 Gate Desks</span>
                 </div>
 
                 <div className="p-3.5 bg-amber-50/80 rounded-xl border border-amber-100 text-center">
@@ -1385,17 +1417,17 @@ export default function AdminDashboard({
               {/* Recent Bookings */}
               <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
                 <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50/80">
-                  <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-[#2563EB]" />
+                  <h3 className="text-sm font-black text-[#6339CA] uppercase tracking-wider flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-[#6339CA]" />
                     <span>Recent Bookings</span>
                   </h3>
-                  <button onClick={() => setActiveTab('bookings')} className="text-[#2563EB] font-black text-xs uppercase tracking-wider hover:underline">
+                  <button onClick={() => setActiveTab('bookings')} className="text-[#6339CA] font-black text-xs uppercase tracking-wider hover:underline">
                     View All →
                   </button>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left">
-                    <thead className="bg-slate-100/80 text-slate-700 text-[10.5px] font-black uppercase tracking-wider border-b border-slate-200">
+                    <thead className="bg-slate-100/80 text-purple-800 text-[10.5px] font-black uppercase tracking-wider border-b border-slate-200">
                       <tr>
                         <th className="px-5 py-3">Booking ID</th>
                         <th className="px-5 py-3">Amenity</th>
@@ -1406,14 +1438,14 @@ export default function AdminDashboard({
                     <tbody className="divide-y divide-slate-100 text-xs">
                       {recentBookings.map((b, idx) => (
                         <tr key={b.id || idx} className="hover:bg-slate-50 transition-colors">
-                          <td className="px-5 py-3.5 font-mono font-extrabold text-[#2563EB]">{b.booking_id}</td>
-                          <td className="px-5 py-3.5 font-black text-slate-900">{b.amenity_name}</td>
-                          <td className="px-5 py-3.5 text-slate-700 font-bold">{format(new Date(b.booking_date), 'dd MMM yyyy')}</td>
+                          <td className="px-5 py-3.5 font-mono font-extrabold text-[#6339CA]">{b.booking_id}</td>
+                          <td className="px-5 py-3.5 font-black text-[#6339CA]">{b.amenity_name}</td>
+                          <td className="px-5 py-3.5 text-purple-800 font-bold">{format(new Date(b.booking_date), 'dd MMM yyyy')}</td>
                           <td className="px-5 py-3.5">
                             <span className={`px-3 py-1 rounded-xl font-black text-[10px] uppercase tracking-wider ${
-                              b.status === 'Approved' ? 'bg-[#059669] text-white' : 
-                              b.status === 'Pending' ? 'bg-[#EA580C] text-white' : 
-                              'bg-[#DC2626] text-white'
+                              b.status === 'Approved' ? 'bg-[#44D080] text-white' : 
+                              b.status === 'Pending' ? 'bg-[#FAA928] text-white' : 
+                              'bg-[#FAA928] text-white'
                             }`}>{b.status}</span>
                           </td>
                         </tr>
@@ -1426,17 +1458,17 @@ export default function AdminDashboard({
               {/* Recent Complaints */}
               <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
                 <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50/80">
-                  <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                    <MessageSquare className="w-4 h-4 text-[#EA580C]" />
+                  <h3 className="text-sm font-black text-[#6339CA] uppercase tracking-wider flex items-center gap-2">
+                    <MessageSquare className="w-4 h-4 text-[#FAA928]" />
                     <span>Recent Complaints</span>
                   </h3>
-                  <button onClick={() => setActiveTab('complaints')} className="text-[#EA580C] font-black text-xs uppercase tracking-wider hover:underline">
+                  <button onClick={() => setActiveTab('complaints')} className="text-[#FAA928] font-black text-xs uppercase tracking-wider hover:underline">
                     View All →
                   </button>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left">
-                    <thead className="bg-slate-100/80 text-slate-700 text-[10.5px] font-black uppercase tracking-wider border-b border-slate-200">
+                    <thead className="bg-slate-100/80 text-purple-800 text-[10.5px] font-black uppercase tracking-wider border-b border-slate-200">
                       <tr>
                         <th className="px-5 py-3">Complaint ID</th>
                         <th className="px-5 py-3">Category</th>
@@ -1446,14 +1478,14 @@ export default function AdminDashboard({
                     <tbody className="divide-y divide-slate-100 text-xs">
                       {recentComplaints.map((c, idx) => (
                         <tr key={c.id || idx} className="hover:bg-slate-50 transition-colors">
-                          <td className="px-5 py-3.5 font-mono font-extrabold text-indigo-700">{c.complaint_id}</td>
-                          <td className="px-5 py-3.5 font-black text-slate-900">{c.category}</td>
+                          <td className="px-5 py-3.5 font-mono font-extrabold text-[#6339CA]">{c.complaint_id}</td>
+                          <td className="px-5 py-3.5 font-black text-[#6339CA]">{c.category}</td>
                           <td className="px-5 py-3.5">
                             <span className={`px-3 py-1 rounded-xl font-black text-[10px] uppercase tracking-wider ${
-                              c.status === 'Done' ? 'bg-[#059669] text-white' : 
-                              c.status === 'Pending' ? 'bg-[#EA580C] text-white' : 
-                              c.status === 'Process' ? 'bg-[#2563EB] text-white' :
-                              'bg-[#DC2626] text-white'
+                              c.status === 'Done' ? 'bg-[#44D080] text-white' : 
+                              c.status === 'Pending' ? 'bg-[#FAA928] text-white' : 
+                              c.status === 'Process' ? 'bg-[#6339CA] text-white' :
+                              'bg-[#FAA928] text-white'
                             }`}>{c.status}</span>
                           </td>
                         </tr>
@@ -1540,15 +1572,15 @@ export default function AdminDashboard({
         return (
           <div className="flex flex-col gap-5 w-full">
             {/* Header Bar with Blue/Purple Accent */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gradient-to-r from-blue-50/70 via-purple-50/40 to-slate-50/60 p-4 rounded-2xl border border-blue-100/80">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gradient-to-r from-purple-50/70 via-purple-50/40 to-slate-50/60 p-4 rounded-2xl border border-purple-100/80">
               <div className="flex items-center gap-3.5">
-                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 text-white flex items-center justify-center shadow-md shadow-blue-500/20 shrink-0">
+                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-purple-600 to-[#5D31C7] text-white flex items-center justify-center shadow-md shadow-[#6339CA]/20 shrink-0">
                   <Users className="w-5 h-5 text-white" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-2xl font-black text-slate-900 tracking-tight">Residents</h2>
-                    <span className="px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-blue-100 text-blue-800 border border-blue-200">
+                    <h2 className="text-2xl font-black text-[#6339CA] tracking-tight">Residents</h2>
+                    <span className="px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-[#6339CA]/10 text-[#6339CA] border border-purple-200">
                       Directory
                     </span>
                   </div>
@@ -1579,7 +1611,7 @@ export default function AdminDashboard({
                     });
                     setResidentWorkspace('add');
                   }}
-                  className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-blue-500/25 hover:shadow-lg flex items-center gap-2 cursor-pointer"
+                  className="px-4 py-2.5 bg-[#6339CA] hover:bg-[#5D31C7] active:bg-blue-800 text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-[#6339CA]/25 hover:shadow-lg flex items-center gap-2 cursor-pointer"
                 >
                   <UserPlus className="w-4 h-4" />
                   + Add Resident
@@ -1599,13 +1631,13 @@ export default function AdminDashboard({
             <div className="bg-white rounded-2xl p-4.5 border border-slate-200 shadow-sm space-y-4">
               {/* Search bar */}
               <div className="relative w-full">
-                <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-blue-500" />
+                <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#6339CA]" />
                 <input
                   type="text"
                   placeholder="Search residents by ID, name, email, phone, tower, or flat..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-9 py-2.5 rounded-xl border border-slate-300 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-xs font-medium text-slate-800 placeholder-slate-400 bg-slate-50/50 focus:bg-white"
+                  className="w-full pl-10 pr-9 py-2.5 rounded-xl border border-slate-300 outline-none focus:ring-2 focus:ring-[#6339CA] focus:border-[#6339CA] transition-all text-xs font-medium text-purple-900 placeholder-slate-400 bg-slate-50/50 focus:bg-white"
                 />
                 {searchTerm && (
                   <button
@@ -1628,8 +1660,8 @@ export default function AdminDashboard({
                       onClick={() => setResidentRoleFilter('All')}
                       className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                         residentRoleFilter === 'All'
-                          ? 'bg-blue-600 text-white shadow-sm shadow-blue-500/30'
-                          : 'text-slate-700 hover:text-blue-700 hover:bg-white/80'
+                          ? 'bg-[#6339CA] text-white shadow-sm shadow-[#6339CA]/30'
+                          : 'text-purple-800 hover:text-[#6339CA] hover:bg-white/80'
                       }`}
                     >
                       All Residents ({residents.length})
@@ -1639,8 +1671,8 @@ export default function AdminDashboard({
                       onClick={() => setResidentRoleFilter('Owner')}
                       className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                         residentRoleFilter === 'Owner'
-                          ? 'bg-blue-600 text-white shadow-sm shadow-blue-500/30'
-                          : 'bg-blue-50 text-blue-800 border border-blue-200/80 hover:bg-blue-100'
+                          ? 'bg-[#6339CA] text-white shadow-sm shadow-[#6339CA]/30'
+                          : 'bg-[#6339CA]/10 text-[#6339CA] border border-purple-200/80 hover:bg-[#6339CA]/10'
                       }`}
                     >
                       Owners ({residents.filter(r => (r.role || r.occupancy_type || 'Owner') === 'Owner').length})
@@ -1665,8 +1697,8 @@ export default function AdminDashboard({
                       onClick={() => setResidentStatusFilter('All')}
                       className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                         residentStatusFilter === 'All'
-                          ? 'bg-slate-800 text-white shadow-sm'
-                          : 'text-slate-700 hover:text-slate-900 hover:bg-white/80'
+                          ? 'bg-purple-900 text-white shadow-sm'
+                          : 'text-purple-800 hover:text-[#6339CA] hover:bg-white/80'
                       }`}
                     >
                       All Status
@@ -1676,11 +1708,11 @@ export default function AdminDashboard({
                       onClick={() => setResidentStatusFilter('Active')}
                       className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
                         residentStatusFilter === 'Active'
-                          ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-500/30'
+                          ? 'bg-#44D080 text-white shadow-sm shadow-#44D080/30'
                           : 'bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100'
                       }`}
                     >
-                      <span className={`w-1.5 h-1.5 rounded-full ${residentStatusFilter === 'Active' ? 'bg-white' : 'bg-emerald-500'}`}></span>
+                      <span className={`w-1.5 h-1.5 rounded-full ${residentStatusFilter === 'Active' ? 'bg-white' : 'bg-#44D080'}`}></span>
                       Active
                     </button>
                     <button
@@ -1688,7 +1720,7 @@ export default function AdminDashboard({
                       onClick={() => setResidentStatusFilter('Inactive')}
                       className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
                         residentStatusFilter === 'Inactive'
-                          ? 'bg-rose-600 text-white shadow-sm shadow-rose-500/30'
+                          ? 'bg-#FAA928 text-white shadow-sm shadow-rose-500/30'
                           : 'bg-rose-50 text-rose-800 border border-rose-200 hover:bg-rose-100'
                       }`}
                     >
@@ -1699,8 +1731,8 @@ export default function AdminDashboard({
 
                   {/* Tower & Flat Quick Selects */}
                   <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1.5 bg-blue-50/70 px-3 py-1.5 rounded-xl border border-blue-200 text-xs shadow-2xs">
-                      <span className="text-[10px] font-black text-blue-600 uppercase tracking-wider">Tower</span>
+                    <div className="flex items-center gap-1.5 bg-[#6339CA]/10 px-3 py-1.5 rounded-xl border border-purple-200 text-xs shadow-2xs">
+                      <span className="text-[10px] font-black text-[#6339CA] uppercase tracking-wider">Tower</span>
                       <select 
                         value={residentTowerFilter}
                         onChange={(e) => setResidentTowerFilter(e.target.value)}
@@ -1725,7 +1757,7 @@ export default function AdminDashboard({
                 </div>
 
                 <div className="text-xs font-bold text-slate-600 bg-slate-100/80 px-3 py-1.5 rounded-xl border border-slate-200">
-                  Showing <span className="text-blue-700 font-extrabold">{filteredResidents.length}</span> of {residents.length} residents
+                  Showing <span className="text-[#6339CA] font-extrabold">{filteredResidents.length}</span> of {residents.length} residents
                 </div>
               </div>
             </div>
@@ -1746,13 +1778,13 @@ export default function AdminDashboard({
                       key={r.resident_id}
                       className={`w-full rounded-2xl transition-all p-4.5 flex flex-col justify-between border-t-4 shadow-sm hover:shadow-md ${
                         isOwner 
-                          ? 'bg-[#f0f6ff] hover:bg-[#e8f1ff] border border-blue-200/90 border-t-blue-600' 
+                          ? 'bg-[#f0f6ff] hover:bg-[#e8f1ff] border border-purple-200/90 border-t-purple-600' 
                           : 'bg-[#faf5ff] hover:bg-[#f3e8ff] border border-purple-200/90 border-t-purple-600'
                       }`}
                     >
                       {/* Top row: Avatar + Occupancy Badge + Status Badge */}
                       <div className="w-full flex flex-col">
-                        <div className={`flex items-start justify-between gap-2.5 pb-3 border-b ${isOwner ? 'border-blue-100' : 'border-purple-100'}`}>
+                        <div className={`flex items-start justify-between gap-2.5 pb-3 border-b ${isOwner ? 'border-purple-100' : 'border-purple-100'}`}>
                           <div className="flex items-center gap-3 min-w-0">
                             {r.profile_photo || (r as any).avatar ? (
                               <img 
@@ -1762,7 +1794,7 @@ export default function AdminDashboard({
                               />
                             ) : (
                               <div className={`w-11 h-11 rounded-xl flex items-center justify-center font-black text-base border-2 shrink-0 shadow-2xs ${
-                                isOwner ? 'bg-blue-100 text-blue-700 border-blue-300' : 'bg-purple-100 text-purple-700 border-purple-300'
+                                isOwner ? 'bg-[#6339CA]/10 text-[#6339CA] border-blue-300' : 'bg-purple-100 text-purple-700 border-purple-300'
                               }`}>
                                 {r.name ? r.name.charAt(0).toUpperCase() : 'R'}
                               </div>
@@ -1770,7 +1802,7 @@ export default function AdminDashboard({
                             <div className="min-w-0">
                               <span className={`inline-block px-2.5 py-0.5 rounded-md text-[10px] font-black tracking-wider uppercase border shadow-2xs truncate ${
                                 isOwner 
-                                  ? 'bg-blue-100/90 text-blue-800 border-blue-300' 
+                                  ? 'bg-[#6339CA]/10/90 text-[#6339CA] border-blue-300' 
                                   : 'bg-purple-100/90 text-purple-800 border-purple-300'
                               }`}>
                                 {isOwner ? 'OWNER OCCUPIED' : 'TENANT OCCUPIED'}
@@ -1801,20 +1833,20 @@ export default function AdminDashboard({
                             }`}
                             title="Click to toggle status"
                           >
-                            <span className={`w-2 h-2 rounded-full ${isActive ? 'bg-emerald-500' : 'bg-rose-500'}`}></span>
+                            <span className={`w-2 h-2 rounded-full ${isActive ? 'bg-#44D080' : 'bg-rose-500'}`}></span>
                             {isActive ? 'ACTIVE' : 'INACTIVE'}
                           </button>
                         </div>
 
                         {/* Resident Name & ID */}
                         <div className="mt-3">
-                          <h3 className="text-base font-black text-slate-900 tracking-tight leading-snug truncate">
+                          <h3 className="text-base font-black text-[#6339CA] tracking-tight leading-snug truncate">
                             {r.name}
                           </h3>
                           <div className="flex items-center gap-1.5 mt-1">
                             <span className="text-[11px] font-bold text-slate-500">Resident ID:</span>
                             <span className={`px-2 py-0.5 rounded text-xs font-mono font-bold border ${
-                              isOwner ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-purple-50 text-purple-700 border-purple-200'
+                              isOwner ? 'bg-[#6339CA]/10 text-[#6339CA] border-purple-200' : 'bg-purple-50 text-purple-700 border-purple-200'
                             }`}>
                               {r.resident_id}
                             </span>
@@ -1828,26 +1860,26 @@ export default function AdminDashboard({
 
                         {/* Flat Location & Specs Box */}
                         <div className={`mt-3 space-y-2 bg-white/95 p-3 rounded-xl border shadow-2xs text-xs ${
-                          isOwner ? 'border-blue-100' : 'border-purple-100'
+                          isOwner ? 'border-purple-100' : 'border-purple-100'
                         }`}>
                           {/* Location with Blue Icon */}
-                          <div className="flex items-center gap-2 text-slate-800 font-bold">
-                            <div className="w-5 h-5 rounded-md bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+                          <div className="flex items-center gap-2 text-purple-900 font-bold">
+                            <div className="w-5 h-5 rounded-md bg-[#6339CA]/10 text-[#6339CA] flex items-center justify-center shrink-0">
                               <MapPin className="w-3.5 h-3.5" />
                             </div>
                             <span>Tower {r.tower}</span>
                             <span className="text-slate-300">•</span>
                             <span>Floor {r.floor ?? '—'}</span>
                             <span className="text-slate-300">•</span>
-                            <span className={isOwner ? "text-blue-700 font-extrabold" : "text-purple-700 font-extrabold"}>Flat {r.flat}</span>
+                            <span className={isOwner ? "text-[#6339CA] font-extrabold" : "text-purple-700 font-extrabold"}>Flat {r.flat}</span>
                           </div>
 
                           {/* BHK / Flat Type with Purple Icon */}
-                          <div className="flex items-center gap-2 text-slate-700 font-semibold">
+                          <div className="flex items-center gap-2 text-purple-800 font-semibold">
                             <div className="w-5 h-5 rounded-md bg-purple-100 text-purple-600 flex items-center justify-center shrink-0">
                               <Home className="w-3.5 h-3.5" />
                             </div>
-                            <span className={isOwner ? "text-blue-800 font-bold" : "text-purple-800 font-bold"}>{flatType}</span>
+                            <span className={isOwner ? "text-[#6339CA] font-bold" : "text-purple-800 font-bold"}>{flatType}</span>
                             <span className="text-slate-300">•</span>
                             <span className="text-slate-600 font-mono">{sqft} sq.ft.</span>
                           </div>
@@ -1868,18 +1900,18 @@ export default function AdminDashboard({
 
                         {/* Contact Information with Teal and Green Icons */}
                         <div className={`mt-2.5 space-y-1.5 bg-white/95 p-3 rounded-xl border shadow-2xs text-xs ${
-                          isOwner ? 'border-blue-100' : 'border-purple-100'
+                          isOwner ? 'border-purple-100' : 'border-purple-100'
                         }`}>
                           {r.email && (
-                            <div className="flex items-center gap-2 text-slate-700">
+                            <div className="flex items-center gap-2 text-purple-800">
                               <div className="w-5 h-5 rounded-md bg-teal-100 text-teal-600 flex items-center justify-center shrink-0">
                                 <Mail className="w-3.5 h-3.5" />
                               </div>
                               <span className="truncate font-medium">{r.email}</span>
                             </div>
                           )}
-                          <div className="flex items-center gap-2 text-slate-900 font-bold">
-                            <div className="w-5 h-5 rounded-md bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+                          <div className="flex items-center gap-2 text-[#6339CA] font-bold">
+                            <div className="w-5 h-5 rounded-md bg-emerald-100 text-#44D080 flex items-center justify-center shrink-0">
                               <Phone className="w-3.5 h-3.5" />
                             </div>
                             <span className="font-mono">{r.phone || '—'}</span>
@@ -1889,7 +1921,7 @@ export default function AdminDashboard({
 
                       {/* Actions Divider & Coordinated Action Buttons */}
                       <div className={`mt-3.5 pt-3 border-t flex items-center justify-between gap-2 ${
-                        isOwner ? 'border-blue-100' : 'border-purple-100'
+                        isOwner ? 'border-purple-100' : 'border-purple-100'
                       }`}>
                         {/* View Button: Blue */}
                         <button
@@ -1898,9 +1930,9 @@ export default function AdminDashboard({
                             setSelectedResidentDetails(r);
                             setResidentWorkspace('view');
                           }}
-                          className="flex-1 py-2 px-2.5 bg-blue-100 hover:bg-blue-200 active:bg-blue-300 text-blue-800 font-bold rounded-xl text-xs transition-colors border border-blue-300 flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer"
+                          className="flex-1 py-2 px-2.5 bg-[#6339CA]/10 hover:bg-purple-200 active:bg-blue-300 text-[#6339CA] font-bold rounded-xl text-xs transition-colors border border-blue-300 flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer"
                         >
-                          <Eye className="w-3.5 h-3.5 text-blue-700" />
+                          <Eye className="w-3.5 h-3.5 text-[#6339CA]" />
                           View Profile
                         </button>
 
@@ -1947,7 +1979,7 @@ export default function AdminDashboard({
                           className="py-2 px-2.5 bg-rose-100 hover:bg-rose-200 active:bg-rose-300 text-rose-700 font-bold rounded-xl text-xs transition-colors border border-rose-300 flex items-center justify-center shadow-2xs"
                           title="Delete Resident"
                         >
-                          <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                          <Trash2 className="w-3.5 h-3.5 text-#FAA928" />
                         </button>
                       </div>
                     </div>
@@ -1957,11 +1989,11 @@ export default function AdminDashboard({
             ) : (
               /* Empty State */
               <div className="bg-white rounded-2xl p-12 border border-slate-200 text-center space-y-3">
-                <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 border border-blue-200 flex items-center justify-center mx-auto">
+                <div className="w-12 h-12 rounded-2xl bg-[#6339CA]/10 text-[#6339CA] border border-purple-200 flex items-center justify-center mx-auto">
                   <Users className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-slate-900">No residents found</h3>
+                  <h3 className="text-base font-bold text-[#6339CA]">No residents found</h3>
                   <p className="text-xs text-slate-500 mt-1">Try changing your search or filter.</p>
                 </div>
                 {(searchTerm || residentRoleFilter !== 'All' || residentStatusFilter !== 'All' || residentTowerFilter !== 'All' || residentFlatFilter !== 'All') && (
@@ -1974,7 +2006,7 @@ export default function AdminDashboard({
                       setResidentFlatFilter('All');
                       setResidentFloorFilter('All');
                     }}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-colors inline-block shadow-sm shadow-blue-500/20"
+                    className="px-4 py-2 bg-[#6339CA] hover:bg-[#5D31C7] text-white text-xs font-bold rounded-xl transition-colors inline-block shadow-sm shadow-[#6339CA]/20"
                   >
                     Clear Filters
                   </button>
@@ -2142,15 +2174,15 @@ export default function AdminDashboard({
             {/* 1. Maintenance Page Header */}
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 shrink-0 bg-white p-5 md:p-6 rounded-2xl border border-slate-200/80 shadow-xs">
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 text-white flex items-center justify-center shadow-md shadow-blue-500/20 shrink-0">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-600 via-purple-600 to-[#5D31C7] text-white flex items-center justify-center shadow-md shadow-[#6339CA]/20 shrink-0">
                   <CreditCard className="w-6 h-6 text-white" />
                 </div>
                 <div>
                   <div className="flex items-center gap-3">
-                    <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+                    <h2 className="text-2xl font-black text-[#6339CA] tracking-tight">
                       Maintenance Management
                     </h2>
-                    <span className="px-3 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-800 border border-blue-200">
+                    <span className="px-3 py-0.5 rounded-full text-xs font-bold bg-[#6339CA]/10 text-[#6339CA] border border-purple-200">
                       {selectedMonth}
                     </span>
                   </div>
@@ -2177,7 +2209,7 @@ export default function AdminDashboard({
                       }
                       setMaintenancePage(1);
                     }}
-                    className="bg-transparent outline-none font-bold text-slate-700 cursor-pointer"
+                    className="bg-transparent outline-none font-bold text-purple-800 cursor-pointer"
                   >
                     <option value="All">All Months</option>
                     {monthsList.map(m => (
@@ -2193,7 +2225,7 @@ export default function AdminDashboard({
                       setSelectedMonth(`${m} ${yr}`);
                       setMaintenancePage(1);
                     }}
-                    className="bg-transparent outline-none font-bold text-slate-700 cursor-pointer border-l border-slate-200 pl-2"
+                    className="bg-transparent outline-none font-bold text-purple-800 cursor-pointer border-l border-slate-200 pl-2"
                   >
                     {availableYears.map(y => (
                       <option key={y} value={String(y)}>{y}</option>
@@ -2204,7 +2236,7 @@ export default function AdminDashboard({
                 {/* Single / Custom Bill Generation */}
                 <button 
                   onClick={() => setMaintenanceWorkspace('generate')}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-blue-500/20 flex items-center gap-1.5 cursor-pointer"
+                  className="px-4 py-2 bg-[#6339CA] hover:bg-[#5D31C7] active:bg-blue-800 text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-[#6339CA]/20 flex items-center gap-1.5 cursor-pointer"
                 >
                   <Plus className="w-4 h-4" />
                   <span>+ Generate Bill</span>
@@ -2214,8 +2246,8 @@ export default function AdminDashboard({
 
             {/* 2. 5 Summary KPI Cards (Solid Vibrant Colors) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-              {/* CARD 1: TOTAL RESIDENTS (Solid Blue #2563EB) */}
-              <div className="bg-[#2563EB] rounded-2xl p-5 shadow-lg shadow-blue-500/20 text-white flex flex-col justify-between transition-transform hover:-translate-y-0.5">
+              {/* CARD 1: TOTAL RESIDENTS (Solid Blue #6339CA) */}
+              <div className="bg-[#6339CA] rounded-2xl p-5 shadow-lg shadow-[#6339CA]/20 text-white flex flex-col justify-between transition-transform hover:-translate-y-0.5">
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] font-black uppercase tracking-wider text-white/90">TOTAL RESIDENTS</span>
                   <div className="w-9 h-9 rounded-xl bg-white/20 text-white flex items-center justify-center font-black backdrop-blur-xs">
@@ -2228,8 +2260,8 @@ export default function AdminDashboard({
                 </div>
               </div>
 
-              {/* CARD 2: TOTAL COLLECTION (Solid Green #059669) */}
-              <div className="bg-[#059669] rounded-2xl p-5 shadow-lg shadow-emerald-500/20 text-white flex flex-col justify-between transition-transform hover:-translate-y-0.5">
+              {/* CARD 2: TOTAL COLLECTION (Solid Green #44D080) */}
+              <div className="bg-[#44D080] rounded-2xl p-5 shadow-lg shadow-#44D080/20 text-white flex flex-col justify-between transition-transform hover:-translate-y-0.5">
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] font-black uppercase tracking-wider text-white/90">TOTAL COLLECTION</span>
                   <div className="w-9 h-9 rounded-xl bg-white/20 text-white flex items-center justify-center font-black backdrop-blur-xs">
@@ -2242,8 +2274,8 @@ export default function AdminDashboard({
                 </div>
               </div>
 
-              {/* CARD 3: PENDING AMOUNT (Solid Orange #EA580C) */}
-              <div className="bg-[#EA580C] rounded-2xl p-5 shadow-lg shadow-orange-500/20 text-white flex flex-col justify-between transition-transform hover:-translate-y-0.5">
+              {/* CARD 3: PENDING AMOUNT (Solid Orange #FAA928) */}
+              <div className="bg-[#FAA928] rounded-2xl p-5 shadow-lg shadow-orange-500/20 text-white flex flex-col justify-between transition-transform hover:-translate-y-0.5">
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] font-black uppercase tracking-wider text-white/90">PENDING AMOUNT</span>
                   <div className="w-9 h-9 rounded-xl bg-white/20 text-white flex items-center justify-center font-black backdrop-blur-xs">
@@ -2256,8 +2288,8 @@ export default function AdminDashboard({
                 </div>
               </div>
 
-              {/* CARD 4: PAID BILLS (Solid Teal #0D9488) */}
-              <div className="bg-[#0D9488] rounded-2xl p-5 shadow-lg shadow-teal-500/20 text-white flex flex-col justify-between transition-transform hover:-translate-y-0.5">
+              {/* CARD 4: PAID BILLS (Solid Teal #44D080) */}
+              <div className="bg-[#44D080] rounded-2xl p-5 shadow-lg shadow-teal-500/20 text-white flex flex-col justify-between transition-transform hover:-translate-y-0.5">
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] font-black uppercase tracking-wider text-white/90">PAID BILLS</span>
                   <div className="w-9 h-9 rounded-xl bg-white/20 text-white flex items-center justify-center font-black backdrop-blur-xs">
@@ -2270,8 +2302,8 @@ export default function AdminDashboard({
                 </div>
               </div>
 
-              {/* CARD 5: UNPAID BILLS (Solid Red #DC2626) */}
-              <div className="bg-[#DC2626] rounded-2xl p-5 shadow-lg shadow-red-500/20 text-white flex flex-col justify-between transition-transform hover:-translate-y-0.5">
+              {/* CARD 5: UNPAID BILLS (Solid Red #FAA928) */}
+              <div className="bg-[#FAA928] rounded-2xl p-5 shadow-lg shadow-red-500/20 text-white flex flex-col justify-between transition-transform hover:-translate-y-0.5">
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] font-black uppercase tracking-wider text-white/90">UNPAID BILLS</span>
                   <div className="w-9 h-9 rounded-xl bg-white/20 text-white flex items-center justify-center font-black backdrop-blur-xs">
@@ -2289,11 +2321,11 @@ export default function AdminDashboard({
             <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-5">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-emerald-600" />
-                  <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider">MONTHLY COLLECTION</h4>
+                  <TrendingUp className="w-4 h-4 text-#44D080" />
+                  <h4 className="text-xs font-black text-[#6339CA] uppercase tracking-wider">MONTHLY COLLECTION</h4>
                 </div>
-                <p className="text-sm font-extrabold text-slate-800">
-                  <span className="text-emerald-600">₹{totalCollectionAmount.toLocaleString()}</span> collected of <span className="text-slate-900">₹{totalBilled.toLocaleString()}</span>
+                <p className="text-sm font-extrabold text-purple-900">
+                  <span className="text-#44D080">₹{totalCollectionAmount.toLocaleString()}</span> collected of <span className="text-[#6339CA]">₹{totalBilled.toLocaleString()}</span>
                 </p>
               </div>
 
@@ -2301,7 +2333,7 @@ export default function AdminDashboard({
                 <div className="flex items-center justify-between text-xs font-bold text-slate-600">
                   <div className="flex items-center gap-4">
                     <span className="inline-flex items-center gap-1.5 text-emerald-700">
-                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                      <span className="w-2.5 h-2.5 rounded-full bg-#44D080"></span>
                       Paid: <strong>{paidMaintenanceCount} bills</strong>
                     </span>
                     <span className="inline-flex items-center gap-1.5 text-amber-700">
@@ -2313,11 +2345,11 @@ export default function AdminDashboard({
                       Overdue: <strong>{overdueCount} bills</strong>
                     </span>
                   </div>
-                  <span className="text-blue-600 font-black text-sm">{progressPercent}%</span>
+                  <span className="text-[#6339CA] font-black text-sm">{progressPercent}%</span>
                 </div>
                 <div className="w-full bg-slate-100 rounded-full h-3.5 overflow-hidden p-0.5 border border-slate-200">
                   <div 
-                    className="bg-gradient-to-r from-emerald-500 via-teal-500 to-blue-600 h-full rounded-full transition-all duration-500" 
+                    className="bg-gradient-to-r from-#44D080 via-teal-500 to-[#5D31C7] h-full rounded-full transition-all duration-500" 
                     style={{ width: `${progressPercent}%` }}
                   />
                 </div>
@@ -2329,7 +2361,7 @@ export default function AdminDashboard({
               <div className="p-5 border-b border-slate-200 bg-slate-50/70 space-y-4">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
                   <div>
-                    <h3 className="text-lg font-black text-slate-900 tracking-tight">Maintenance Bills</h3>
+                    <h3 className="text-lg font-black text-[#6339CA] tracking-tight">Maintenance Bills</h3>
                     <p className="text-xs font-medium text-slate-500">Search and manage resident maintenance bills.</p>
                   </div>
 
@@ -2340,8 +2372,8 @@ export default function AdminDashboard({
                       onClick={() => setMaintenanceViewMode('cards')}
                       className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer ${
                         maintenanceViewMode === 'cards'
-                          ? 'bg-blue-600 text-white shadow-xs'
-                          : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
+                          ? 'bg-[#6339CA] text-white shadow-xs'
+                          : 'text-slate-600 hover:text-[#6339CA] hover:bg-white/80'
                       }`}
                     >
                       <span>▦</span>
@@ -2352,8 +2384,8 @@ export default function AdminDashboard({
                       onClick={() => setMaintenanceViewMode('list')}
                       className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer ${
                         maintenanceViewMode === 'list'
-                          ? 'bg-blue-600 text-white shadow-xs'
-                          : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
+                          ? 'bg-[#6339CA] text-white shadow-xs'
+                          : 'text-slate-600 hover:text-[#6339CA] hover:bg-white/80'
                       }`}
                     >
                       <span>☷</span>
@@ -2375,7 +2407,7 @@ export default function AdminDashboard({
                         setSearchTerm(e.target.value);
                         setMaintenancePage(1);
                       }}
-                      className="pl-9 pr-4 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 text-xs font-semibold w-full bg-white text-slate-800 placeholder:text-slate-400"
+                      className="pl-9 pr-4 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-[#6339CA] text-xs font-semibold w-full bg-white text-purple-900 placeholder:text-slate-400"
                     />
                   </div>
 
@@ -2389,7 +2421,7 @@ export default function AdminDashboard({
                           setMaintenanceFilter(e.target.value);
                           setMaintenancePage(1);
                         }}
-                        className="bg-transparent outline-none text-xs font-bold text-slate-700 cursor-pointer"
+                        className="bg-transparent outline-none text-xs font-bold text-purple-800 cursor-pointer"
                       >
                         <option value="All">All Statuses</option>
                         <option value="Paid">Paid</option>
@@ -2409,7 +2441,7 @@ export default function AdminDashboard({
                           setMaintenanceTowerFilter(e.target.value);
                           setMaintenancePage(1);
                         }}
-                        className="bg-transparent outline-none text-xs font-bold text-slate-700 cursor-pointer"
+                        className="bg-transparent outline-none text-xs font-bold text-purple-800 cursor-pointer"
                       >
                         <option value="All">All Towers</option>
                         {Array.from(new Set(residents.map(r => r.tower))).sort().map(t => (
@@ -2427,7 +2459,7 @@ export default function AdminDashboard({
                           setMaintenanceFlatFilter(e.target.value);
                           setMaintenancePage(1);
                         }}
-                        className="bg-transparent outline-none text-xs font-bold text-slate-700 cursor-pointer max-w-[110px]"
+                        className="bg-transparent outline-none text-xs font-bold text-purple-800 cursor-pointer max-w-[110px]"
                       >
                         <option value="All">All Flats</option>
                         {Array.from(new Set(residents.map(r => r.flat))).sort().map(f => (
@@ -2445,7 +2477,7 @@ export default function AdminDashboard({
                           setSelectedMonth(e.target.value);
                           setMaintenancePage(1);
                         }}
-                        className="bg-transparent outline-none text-xs font-bold text-slate-700 cursor-pointer"
+                        className="bg-transparent outline-none text-xs font-bold text-purple-800 cursor-pointer"
                       >
                         <option value="All">All Months</option>
                         {monthsList.map(m => {
@@ -2476,22 +2508,22 @@ export default function AdminDashboard({
                             key={m.id || m.maintenance_id || `mcard-${index}`}
                             className={`bg-white rounded-2xl border shadow-xs hover:shadow-md transition-all overflow-hidden flex flex-col justify-between p-5 relative font-sans ${
                               effectiveStatus === 'Paid' 
-                                ? 'border-emerald-200/90 border-t-4 border-t-emerald-500' 
+                                ? 'border-emerald-200/90 border-t-4 border-t-#44D080' 
                                 : effectiveStatus === 'Overdue'
                                 ? 'border-rose-200/90 border-t-4 border-t-rose-500'
                                 : effectiveStatus === 'Partial'
                                 ? 'border-amber-200/90 border-t-4 border-t-amber-500'
-                                : 'border-blue-200/90 border-t-4 border-t-blue-500'
+                                : 'border-purple-200/90 border-t-4 border-t-#6339CA'
                             }`}
                           >
                             {/* Card Top Row: Bill ID & Status Badge */}
                             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                               <div className="flex items-center gap-2">
-                                <span className="px-2.5 py-0.5 rounded-lg text-xs font-mono font-black bg-blue-50 text-blue-700 border border-blue-200">
+                                <span className="px-2.5 py-0.5 rounded-lg text-xs font-mono font-black bg-[#6339CA]/10 text-[#6339CA] border border-purple-200">
                                   {m.maintenance_id || m.bill_no || `M${561 + index}`}
                                 </span>
                                 <span className={`px-2 py-0.5 rounded text-[10px] font-black font-mono uppercase ${
-                                  residentRole === 'Owner' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'
+                                  residentRole === 'Owner' ? 'bg-[#6339CA]/10 text-[#6339CA]' : 'bg-purple-100 text-purple-800'
                                 }`}>
                                   {residentRole}
                                 </span>
@@ -2501,12 +2533,12 @@ export default function AdminDashboard({
                               <div>
                                 {effectiveStatus === 'Paid' ? (
                                   <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 border border-emerald-300">
-                                    <Check className="w-3 h-3 text-emerald-600" />
+                                    <Check className="w-3 h-3 text-#44D080" />
                                     PAID
                                   </span>
                                 ) : effectiveStatus === 'Overdue' ? (
                                   <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider inline-flex items-center gap-1 bg-rose-100 text-rose-800 border border-rose-300 animate-pulse">
-                                    <AlertCircle className="w-3 h-3 text-rose-600" />
+                                    <AlertCircle className="w-3 h-3 text-#FAA928" />
                                     OVERDUE
                                   </span>
                                 ) : effectiveStatus === 'Partial' ? (
@@ -2525,12 +2557,12 @@ export default function AdminDashboard({
                             <div className="py-3.5 space-y-3">
                               <div className="flex items-start gap-2.5">
                                 <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-black text-white shrink-0 text-sm shadow-xs ${
-                                  residentRole === 'Owner' ? 'bg-blue-600' : 'bg-purple-600'
+                                  residentRole === 'Owner' ? 'bg-[#6339CA]' : 'bg-purple-600'
                                 }`}>
                                   {displayResidentName.charAt(0).toUpperCase()}
                                 </div>
                                 <div>
-                                  <h3 className="text-base font-black text-slate-900 leading-snug truncate max-w-[200px]">
+                                  <h3 className="text-base font-black text-[#6339CA] leading-snug truncate max-w-[200px]">
                                     {displayResidentName}
                                   </h3>
                                   <p className="text-xs font-mono font-bold text-slate-500">
@@ -2540,9 +2572,9 @@ export default function AdminDashboard({
                               </div>
 
                               {/* Location Details Box */}
-                              <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 flex items-center justify-between text-xs font-bold text-slate-800">
+                              <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 flex items-center justify-between text-xs font-bold text-purple-900">
                                 <div className="flex items-center gap-1.5">
-                                  <Building2 className="w-3.5 h-3.5 text-blue-600" />
+                                  <Building2 className="w-3.5 h-3.5 text-[#6339CA]" />
                                   <span>Tower {m.tower}</span>
                                 </div>
                                 <span className="text-slate-300">•</span>
@@ -2556,11 +2588,11 @@ export default function AdminDashboard({
                               <div className="grid grid-cols-2 gap-2 pt-0.5 text-xs">
                                 <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
                                   <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider block">Billing Month</span>
-                                  <span className="font-extrabold text-slate-800 text-xs mt-0.5 block truncate">{m.month || selectedMonth}</span>
+                                  <span className="font-extrabold text-purple-900 text-xs mt-0.5 block truncate">{m.month || selectedMonth}</span>
                                 </div>
                                 <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
                                   <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider block">Amount Due</span>
-                                  <span className="font-black text-slate-900 font-mono text-sm mt-0.5 block">₹{m.amount.toLocaleString()}</span>
+                                  <span className="font-black text-[#6339CA] font-mono text-sm mt-0.5 block">₹{m.amount.toLocaleString()}</span>
                                 </div>
                               </div>
 
@@ -2568,11 +2600,11 @@ export default function AdminDashboard({
                               <div className="flex items-center justify-between text-[11px] font-medium text-slate-500 pt-1">
                                 <div className="flex items-center gap-1">
                                   <Calendar className="w-3 h-3 text-slate-400" />
-                                  <span>Due: <strong className={effectiveStatus === 'Overdue' ? 'text-rose-600 font-bold' : 'text-slate-700'}>{m.due_date ? format(new Date(m.due_date), 'dd MMM yyyy') : '15 Oct 2026'}</strong></span>
+                                  <span>Due: <strong className={effectiveStatus === 'Overdue' ? 'text-#FAA928 font-bold' : 'text-purple-800'}>{m.due_date ? format(new Date(m.due_date), 'dd MMM yyyy') : '15 Oct 2026'}</strong></span>
                                 </div>
                                 {m.payment_date && (
                                   <div className="flex items-center gap-1 text-emerald-700 font-semibold">
-                                    <Check className="w-3 h-3 text-emerald-600" />
+                                    <Check className="w-3 h-3 text-#44D080" />
                                     <span>Paid: {format(new Date(m.payment_date), 'dd MMM')}</span>
                                   </div>
                                 )}
@@ -2587,9 +2619,9 @@ export default function AdminDashboard({
                                   setSelectedBillForInvoice(m);
                                   setMaintenanceWorkspace('view_bill');
                                 }}
-                                className="py-2 px-3 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold rounded-xl text-xs transition-colors border border-blue-200 flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+                                className="py-2 px-3 bg-[#6339CA]/10 hover:bg-[#6339CA]/10 text-[#6339CA] font-bold rounded-xl text-xs transition-colors border border-purple-200 flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
                               >
-                                <Eye className="w-3.5 h-3.5 text-blue-600" />
+                                <Eye className="w-3.5 h-3.5 text-[#6339CA]" />
                                 <span>View Details</span>
                               </button>
 
@@ -2602,7 +2634,7 @@ export default function AdminDashboard({
                                   }}
                                   className="py-2 px-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold rounded-xl text-xs transition-colors border border-emerald-200 flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
                                 >
-                                  <Receipt className="w-3.5 h-3.5 text-emerald-600" />
+                                  <Receipt className="w-3.5 h-3.5 text-#44D080" />
                                   <span>View Receipt</span>
                                 </button>
                               ) : (
@@ -2612,7 +2644,7 @@ export default function AdminDashboard({
                                     setSelectedBillForPay(m);
                                     setMaintenanceWorkspace('mark_paid');
                                   }}
-                                  className="py-2 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition-colors shadow-md shadow-emerald-500/20 flex items-center justify-center gap-1.5 cursor-pointer"
+                                  className="py-2 px-3 bg-#44D080 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition-colors shadow-md shadow-#44D080/20 flex items-center justify-center gap-1.5 cursor-pointer"
                                 >
                                   <Check className="w-3.5 h-3.5" />
                                   <span>Mark Paid</span>
@@ -2649,12 +2681,12 @@ export default function AdminDashboard({
 
                             return (
                               <tr key={m.id || m.maintenance_id || `mlist-${index}`} className="hover:bg-slate-50">
-                                <td className="px-4 py-3 font-mono font-bold text-blue-600">{m.maintenance_id || `M${561 + index}`}</td>
+                                <td className="px-4 py-3 font-mono font-bold text-[#6339CA]">{m.maintenance_id || `M${561 + index}`}</td>
                                 <td className="px-4 py-3 font-mono text-slate-500">{m.resident_id}</td>
-                                <td className="px-4 py-3 font-bold text-slate-800">{displayResidentName}</td>
+                                <td className="px-4 py-3 font-bold text-purple-900">{displayResidentName}</td>
                                 <td className="px-4 py-3">Tower {m.tower}</td>
                                 <td className="px-4 py-3 font-bold">Flat {m.flat_no}</td>
-                                <td className="px-4 py-3 font-mono font-black text-slate-900">₹{m.amount.toLocaleString()}</td>
+                                <td className="px-4 py-3 font-mono font-black text-[#6339CA]">₹{m.amount.toLocaleString()}</td>
                                 <td className="px-4 py-3 text-slate-600">{m.month || selectedMonth}</td>
                                 <td className="px-4 py-3 font-mono text-slate-600">{m.due_date ? format(new Date(m.due_date), 'dd MMM yyyy') : '—'}</td>
                                 <td className="px-4 py-3">
@@ -2673,7 +2705,7 @@ export default function AdminDashboard({
                                         setSelectedBillForInvoice(m);
                                         setMaintenanceWorkspace('view_bill');
                                       }}
-                                      className="px-2.5 py-1 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg font-bold text-[10px] uppercase"
+                                      className="px-2.5 py-1 bg-[#6339CA]/10 text-[#6339CA] hover:bg-[#6339CA]/10 rounded-lg font-bold text-[10px] uppercase"
                                     >
                                       View
                                     </button>
@@ -2683,7 +2715,7 @@ export default function AdminDashboard({
                                           setSelectedBillForPay(m);
                                           setMaintenanceWorkspace('mark_paid');
                                         }}
-                                        className="px-2.5 py-1 bg-emerald-600 text-white hover:bg-emerald-700 rounded-lg font-bold text-[10px] uppercase"
+                                        className="px-2.5 py-1 bg-#44D080 text-white hover:bg-emerald-700 rounded-lg font-bold text-[10px] uppercase"
                                       >
                                         Pay
                                       </button>
@@ -2700,16 +2732,16 @@ export default function AdminDashboard({
                 ) : (
                   /* EMPTY STATE CARD */
                   <div className="bg-white rounded-2xl p-12 border border-slate-200 text-center flex flex-col items-center justify-center gap-3">
-                    <div className="w-14 h-14 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+                    <div className="w-14 h-14 rounded-2xl bg-[#6339CA]/10 text-[#6339CA] flex items-center justify-center font-bold">
                       <CreditCard className="w-7 h-7" />
                     </div>
-                    <h3 className="text-lg font-black text-slate-900">No Maintenance Bills Found</h3>
+                    <h3 className="text-lg font-black text-[#6339CA]">No Maintenance Bills Found</h3>
                     <p className="text-xs text-slate-500 max-w-md font-medium">
                       No maintenance bills match your selected filter or search criteria for {selectedMonth}.
                     </p>
                     <button
                       onClick={() => setMaintenanceWorkspace('generate')}
-                      className="mt-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md shadow-blue-500/20 flex items-center gap-2 cursor-pointer"
+                      className="mt-2 px-5 py-2.5 bg-[#6339CA] hover:bg-[#5D31C7] text-white font-bold text-xs rounded-xl shadow-md shadow-[#6339CA]/20 flex items-center gap-2 cursor-pointer"
                     >
                       <Plus className="w-4 h-4" />
                       <span>+ Generate Maintenance Bill</span>
@@ -2729,7 +2761,7 @@ export default function AdminDashboard({
                         type="button"
                         disabled={maintenancePage === 1}
                         onClick={() => setMaintenancePage(p => Math.max(1, p - 1))}
-                        className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 text-xs font-bold text-slate-700 flex items-center gap-1 cursor-pointer transition-all"
+                        className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 text-xs font-bold text-purple-800 flex items-center gap-1 cursor-pointer transition-all"
                       >
                         <ChevronLeft className="w-4 h-4" />
                         <span>Previous</span>
@@ -2742,8 +2774,8 @@ export default function AdminDashboard({
                           onClick={() => setMaintenancePage(page)}
                           className={`w-8 h-8 rounded-xl text-xs font-black transition-all cursor-pointer ${
                             maintenancePage === page
-                              ? 'bg-blue-600 text-white shadow-xs'
-                              : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
+                              ? 'bg-[#6339CA] text-white shadow-xs'
+                              : 'bg-white hover:bg-slate-100 text-purple-800 border border-slate-200'
                           }`}
                         >
                           {page}
@@ -2754,7 +2786,7 @@ export default function AdminDashboard({
                         type="button"
                         disabled={maintenancePage === totalPages}
                         onClick={() => setMaintenancePage(p => Math.min(totalPages, p + 1))}
-                        className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 text-xs font-bold text-slate-700 flex items-center gap-1 cursor-pointer transition-all"
+                        className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 text-xs font-bold text-purple-800 flex items-center gap-1 cursor-pointer transition-all"
                       >
                         <span>Next</span>
                         <ChevronRight className="w-4 h-4" />
@@ -2771,29 +2803,40 @@ export default function AdminDashboard({
       case 'complaints': {
         return (
           <div className="flex flex-col gap-6">
-            <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-              <div className="p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-50/50">
+            <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden flex flex-col flex-1 min-h-0">
+              <div className="p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-50/50 shrink-0">
                 <div>
-                  <h3 className="text-xl font-extrabold text-slate-900 tracking-tight">Complaint Management</h3>
+                  <h3 className="text-xl font-extrabold text-[#6339CA] tracking-tight">Complaint Management</h3>
                   <p className="text-xs font-medium text-slate-500 mt-1">Track and resolve resident issues reported by residents.</p>
                 </div>
-                <div className="flex items-center gap-3">
-                  <div className="relative w-full md:w-64">
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="relative w-full md:w-56">
                     <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                     <input
                       type="text"
-                      placeholder="Search complaints..."
+                      placeholder="Search..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-9 pr-4 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-500 text-xs font-medium w-full bg-white shadow-sm"
+                      className="pl-9 pr-4 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-[#6339CA] text-xs font-medium w-full bg-white shadow-sm"
                     />
                   </div>
-                  <div className="flex items-center gap-3 bg-white p-1.5 rounded-2xl shadow-sm border border-slate-200">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-3">Filter</span>
+                  <div className="flex items-center gap-2 bg-white p-1 rounded-xl shadow-sm border border-slate-200">
+                    <select 
+                      value={complaintCategoryFilter}
+                      onChange={(e) => setComplaintCategoryFilter(e.target.value)}
+                      className="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-slate-50 outline-none text-slate-600 hover:text-[#6339CA] cursor-pointer border-none"
+                    >
+                      <option value="All">All Categories</option>
+                      {Array.from(new Set(complaints.map(c => c.category))).sort().map(cat => (
+                        <option key={cat} value={cat}>{cat}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="flex items-center gap-2 bg-white p-1 rounded-xl shadow-sm border border-slate-200">
                     <select 
                       value={complaintFilter}
-                      onChange={(e) => setComplaintFilter(e.target.value as 'All' | 'Pending' | 'Process' | 'Done' | 'Rejected')}
-                      className="px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest bg-slate-50 outline-none text-slate-600 hover:text-indigo-600 cursor-pointer border border-slate-100"
+                      onChange={(e) => setComplaintFilter(e.target.value as any)}
+                      className="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-slate-50 outline-none text-slate-600 hover:text-[#6339CA] cursor-pointer border-none"
                     >
                       <option value="All">All Status</option>
                       <option value="Pending">Pending</option>
@@ -2804,15 +2847,15 @@ export default function AdminDashboard({
                   </div>
                   <button 
                     onClick={handleDeleteAllComplaints}
-                    className="px-4 py-2 bg-rose-50 text-rose-600 text-[10px] font-black rounded-xl hover:bg-rose-100 transition-all border border-rose-100 flex items-center gap-2 uppercase tracking-widest"
+                    className="p-2 bg-rose-50 text-#FAA928 rounded-xl hover:bg-rose-100 transition-all border border-rose-100 flex items-center gap-2"
+                    title="Delete All"
                   >
                     <Trash2 className="w-4 h-4" />
-                    Delete All
                   </button>
                 </div>
               </div>
 
-              <div className="overflow-x-auto">
+              <div className="overflow-auto flex-1 custom-scrollbar">
                 <table className="w-full text-left border-collapse">
                   <thead className="bg-slate-50 border-b border-slate-100">
                     <tr className="text-slate-400 text-[9px] font-black uppercase tracking-widest">
@@ -2830,26 +2873,26 @@ export default function AdminDashboard({
                     {filteredComplaints.map((c, idx) => (
                       <tr key={c.id || idx} className="hover:bg-slate-50 transition-colors group text-[11px]">
                         <td className="px-6 py-4">
-                          <span className="font-black text-indigo-600 tracking-tight">{c.complaint_id}</span>
+                          <span className="font-black text-[#6339CA] tracking-tight">{c.complaint_id}</span>
                         </td>
                         <td className="px-6 py-4">
-                          <p className="font-bold text-slate-800">{c.category}</p>
+                          <p className="font-bold text-purple-900">{c.category}</p>
                         </td>
                         <td className="px-6 py-4">
                           <p className="font-black text-slate-400">T-{c.tower} / {c.flat_no}</p>
                         </td>
                         <td className="px-6 py-4">
-                          <p className="font-bold text-slate-800">{c.resident_name || 'Resident'}</p>
+                          <p className="font-bold text-purple-900">{c.resident_name || 'Resident'}</p>
                           <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{c.resident_id}</p>
                         </td>
-                        <td className="px-6 py-4 font-bold text-slate-800">
+                        <td className="px-6 py-4 font-bold text-purple-900">
                           {new Date(c.complaint_date || Date.now()).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
                         </td>
                         <td className="px-6 py-4">
                           {c.media && c.media.length > 0 ? (
                             <button 
                               onClick={() => setSelectedImage(c.media![0].file_url)}
-                              className="text-indigo-600 text-[10px] font-black hover:underline flex items-center gap-1"
+                              className="text-[#6339CA] text-[10px] font-black hover:underline flex items-center gap-1"
                             >
                               <ImageIcon className="w-3 h-3" />
                               View Media
@@ -2862,7 +2905,7 @@ export default function AdminDashboard({
                           <span className={`text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider ${
                             c.status === 'Done' || c.status === 'Resolved' ? 'bg-emerald-100 text-emerald-700' : 
                             c.status === 'Pending' ? 'bg-amber-100 text-amber-700' : 
-                            c.status === 'Process' ? 'bg-indigo-100 text-indigo-700' : 
+                            c.status === 'Process' ? 'bg-indigo-100 text-[#6339CA]' : 
                             'bg-rose-100 text-rose-700'
                           }`}>
                             {c.status}
@@ -2872,7 +2915,7 @@ export default function AdminDashboard({
                           <div className="flex items-center justify-center gap-2">
                             <button 
                               onClick={() => setSelectedComplaint(c)}
-                              className="px-3 py-1 rounded-lg border border-slate-200 text-indigo-600 text-[9px] font-black uppercase tracking-widest hover:bg-indigo-50 transition-all"
+                              className="px-3 py-1 rounded-lg border border-slate-200 text-[#6339CA] text-[9px] font-black uppercase tracking-widest hover:bg-[#6339CA]/10 transition-all"
                               title="View Details"
                             >
                               View
@@ -2890,20 +2933,20 @@ export default function AdminDashboard({
                                 {c.status !== 'Process' && (
                                   <button 
                                     onClick={() => setComplaintToComment({ id: c.complaint_id || c.id!, status: 'Process' })}
-                                    className="px-3 py-1 rounded-lg bg-indigo-600 text-white text-[9px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-sm"
+                                    className="px-3 py-1 rounded-lg bg-[#6339CA] text-white text-[9px] font-black uppercase tracking-widest hover:bg-[#5D31C7] transition-all shadow-sm"
                                   >
                                     Process
                                   </button>
                                 )}
                                 <button 
                                   onClick={() => setComplaintToComment({ id: c.complaint_id || c.id!, status: 'Done' })}
-                                  className="px-3 py-1 rounded-lg bg-emerald-600 text-white text-[9px] font-black uppercase tracking-widest hover:bg-emerald-700 transition-all shadow-sm"
+                                  className="px-3 py-1 rounded-lg bg-#44D080 text-white text-[9px] font-black uppercase tracking-widest hover:bg-emerald-700 transition-all shadow-sm"
                                 >
                                   Done
                                 </button>
                                 <button 
                                   onClick={() => setComplaintToComment({ id: c.complaint_id || c.id!, status: 'Rejected' })}
-                                  className="px-3 py-1 rounded-lg bg-rose-600 text-white text-[9px] font-black uppercase tracking-widest hover:bg-rose-700 transition-all shadow-sm"
+                                  className="px-3 py-1 rounded-lg bg-#FAA928 text-white text-[9px] font-black uppercase tracking-widest hover:bg-rose-700 transition-all shadow-sm"
                                 >
                                   Reject
                                 </button>
@@ -2911,7 +2954,7 @@ export default function AdminDashboard({
                             )}
                             <button 
                               onClick={() => handleDeleteComplaint(c.complaint_id || c.id!)}
-                              className="p-1 text-rose-600 hover:bg-rose-50 rounded-lg border border-rose-100"
+                              className="p-1 text-#FAA928 hover:bg-rose-50 rounded-lg border border-rose-100"
                               title="Delete Complaint"
                             >
                               <Trash2 className="w-3 h-3" />
@@ -2940,7 +2983,7 @@ export default function AdminDashboard({
           <div className="flex flex-col gap-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 shrink-0">
               <div>
-                <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">Amenity Bookings</h2>
+                <h2 className="text-2xl font-extrabold text-[#6339CA] tracking-tight">Amenity Bookings</h2>
                 <p className="text-xs font-medium text-slate-500 mt-1">Manage and approve resident facility requests.</p>
               </div>
               <div className="flex items-center gap-3">
@@ -2951,7 +2994,7 @@ export default function AdminDashboard({
                     placeholder="Search bookings..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-9 pr-4 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-500 text-xs font-medium w-full bg-white shadow-sm"
+                    className="pl-9 pr-4 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-[#6339CA] text-xs font-medium w-full bg-white shadow-sm"
                   />
                 </div>
                 <div className="flex items-center gap-2 bg-white p-1.5 rounded-2xl shadow-sm border border-slate-200">
@@ -2959,7 +3002,7 @@ export default function AdminDashboard({
                   <select 
                     value={bookingFilter}
                     onChange={(e) => setBookingFilter(e.target.value as 'All' | 'Pending' | 'Approved' | 'Rejected')}
-                    className="px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest bg-slate-50 outline-none text-slate-600 hover:text-indigo-600 cursor-pointer border border-slate-100"
+                    className="px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest bg-slate-50 outline-none text-slate-600 hover:text-[#6339CA] cursor-pointer border border-slate-100"
                   >
                     <option value="All">All Status</option>
                     <option value="Pending">Pending</option>
@@ -2969,14 +3012,14 @@ export default function AdminDashboard({
                 </div>
                 <button 
                   onClick={() => setShowAmenityForm(true)}
-                  className="px-4 py-2 bg-indigo-600 text-white text-[10px] font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 flex items-center gap-2 uppercase tracking-widest"
+                  className="px-4 py-2 bg-[#6339CA] text-white text-[10px] font-bold rounded-xl hover:bg-[#5D31C7] transition-all shadow-lg shadow-[#6339CA]/10 flex items-center gap-2 uppercase tracking-widest"
                 >
                   <Plus className="w-4 h-4" />
                   Update Rates
                 </button>
                 <button 
                   onClick={handleDeleteAllBookings}
-                  className="px-4 py-2 bg-rose-50 text-rose-600 text-[10px] font-black rounded-xl hover:bg-rose-100 transition-all border border-rose-100 flex items-center gap-2 uppercase tracking-widest"
+                  className="px-4 py-2 bg-rose-50 text-#FAA928 text-[10px] font-black rounded-xl hover:bg-rose-100 transition-all border border-rose-100 flex items-center gap-2 uppercase tracking-widest"
                 >
                   <Trash2 className="w-4 h-4" />
                   Delete All
@@ -2987,12 +3030,12 @@ export default function AdminDashboard({
             <div className="flex flex-wrap gap-3 overflow-x-auto no-scrollbar pb-2 shrink-0">
               {amenities.map(amenity => (
                 <div key={amenity.amenity_id} className="flex items-center gap-3 bg-white px-4 py-2 rounded-2xl border border-slate-200 shadow-sm shrink-0">
-                  <div className="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600">
+                  <div className="w-8 h-8 rounded-full bg-[#6339CA]/10 flex items-center justify-center text-[#6339CA]">
                     <Star className="w-4 h-4" />
                   </div>
                   <div>
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">{amenity.name}</p>
-                    <p className="text-sm font-black text-slate-900 leading-none">₹{amenity.price}</p>
+                    <p className="text-sm font-black text-[#6339CA] leading-none">₹{amenity.price}</p>
                   </div>
                 </div>
               ))}
@@ -3018,30 +3061,30 @@ export default function AdminDashboard({
                     {filteredBookings.map((b, index) => (
                       <tr key={b.booking_id || b.id || index} className="hover:bg-slate-50/80 transition-colors group text-[11px]">
                         <td className="px-6 py-3">
-                          <span className="font-extrabold text-indigo-600 tracking-tight">
+                          <span className="font-extrabold text-[#6339CA] tracking-tight">
                             {b.booking_id}
                           </span>
                         </td>
                         <td className="px-6 py-3">
                           <div className="space-y-0.5">
-                            <p className="font-bold text-slate-800">{b.name}</p>
+                            <p className="font-bold text-purple-900">{b.name}</p>
                             <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">T-{b.tower} / {b.flat}</p>
                           </div>
                         </td>
                         <td className="px-6 py-3">
-                          <p className="font-bold text-slate-700">{b.amenity_name}</p>
+                          <p className="font-bold text-purple-800">{b.amenity_name}</p>
                         </td>
                         <td className="px-6 py-3 font-medium text-slate-600">
                           {b.event_name || 'N/A'}
                         </td>
-                        <td className="px-6 py-3 font-bold text-slate-800">
+                        <td className="px-6 py-3 font-bold text-purple-900">
                           {format(new Date(b.booking_date), 'dd MMM yyyy')}
                         </td>
                         <td className="px-6 py-3 text-slate-500">
                           {b.start_time} - {b.end_time}
                         </td>
                         <td className="px-6 py-3">
-                          <p className="font-black text-slate-900">₹{b.charges || 0}</p>
+                          <p className="font-black text-[#6339CA]">₹{b.charges || 0}</p>
                         </td>
                         <td className="px-6 py-3">
                           <span className={`text-[9px] font-black px-2 py-0.5 rounded-full uppercase ${
@@ -3056,7 +3099,7 @@ export default function AdminDashboard({
                           <div className="flex justify-end gap-1">
                             <button 
                               onClick={() => setSelectedBooking(b)}
-                              className="text-indigo-600 hover:text-indigo-800 font-black uppercase text-[9px] px-2 py-1 rounded-lg border border-indigo-100 hover:bg-indigo-50"
+                              className="text-[#6339CA] hover:text-[#6339CA] font-black uppercase text-[9px] px-2 py-1 rounded-lg border border-[#6339CA]/20 hover:bg-[#6339CA]/10"
                             >
                               View
                             </button>
@@ -3065,14 +3108,14 @@ export default function AdminDashboard({
                                 <button 
                                   onClick={() => setBookingToComment({ id: b.booking_id || b.id!, status: 'Approved' })}
                                   disabled={updating === (b.booking_id || b.id)}
-                                  className="text-emerald-600 hover:text-emerald-800 font-black uppercase text-[9px] px-2 py-1 rounded-lg border border-emerald-100 hover:bg-emerald-50"
+                                  className="text-#44D080 hover:text-emerald-800 font-black uppercase text-[9px] px-2 py-1 rounded-lg border border-emerald-100 hover:bg-emerald-50"
                                 >
                                   Approve
                                 </button>
                                 <button 
                                   onClick={() => setBookingToComment({ id: b.booking_id || b.id!, status: 'Rejected' })}
                                   disabled={updating === (b.booking_id || b.id)}
-                                  className="text-rose-600 hover:text-rose-800 font-black uppercase text-[9px] px-2 py-1 rounded-lg border border-rose-100 hover:bg-rose-50"
+                                  className="text-#FAA928 hover:text-rose-800 font-black uppercase text-[9px] px-2 py-1 rounded-lg border border-rose-100 hover:bg-rose-50"
                                 >
                                   Reject
                                 </button>
@@ -3080,7 +3123,7 @@ export default function AdminDashboard({
                             )}
                             <button 
                               onClick={() => handleDeleteBooking(b.booking_id || b.id!)}
-                              className="p-1 text-rose-600 hover:bg-rose-50 rounded-lg transition-all border border-rose-100"
+                              className="p-1 text-#FAA928 hover:bg-rose-50 rounded-lg transition-all border border-rose-100"
                               title="Delete Booking"
                             >
                               <Trash2 className="w-3 h-3" />
@@ -3112,7 +3155,7 @@ export default function AdminDashboard({
           <div className="pb-8">
             <div className="max-w-2xl mx-auto">
               <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
-                <div className="bg-emerald-600 p-8 text-white relative overflow-hidden">
+                <div className="bg-#44D080 p-8 text-white relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
                   <div className="relative z-10 flex items-center gap-6">
                     <div className="w-20 h-20 rounded-3xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white font-black text-3xl border border-white/30">
@@ -3133,7 +3176,7 @@ export default function AdminDashboard({
                         type="text"
                         value={profileFormData.name}
                         onChange={(e) => setProfileFormData({ ...profileFormData, name: e.target.value })}
-                        className="w-full px-5 py-3.5 rounded-2xl bg-slate-50 border border-slate-100 outline-none focus:ring-2 focus:ring-emerald-500 font-bold text-sm transition-all"
+                        className="w-full px-5 py-3.5 rounded-2xl bg-slate-50 border border-slate-100 outline-none focus:ring-2 focus:ring-#44D080 font-bold text-sm transition-all"
                       />
                     </div>
                     <div className="space-y-2">
@@ -3160,7 +3203,7 @@ export default function AdminDashboard({
                         type="tel"
                         value={profileFormData.phone}
                         onChange={(e) => setProfileFormData({ ...profileFormData, phone: e.target.value })}
-                        className="w-full px-5 py-3.5 rounded-2xl bg-slate-50 border border-slate-100 outline-none focus:ring-2 focus:ring-emerald-500 font-bold text-sm transition-all"
+                        className="w-full px-5 py-3.5 rounded-2xl bg-slate-50 border border-slate-100 outline-none focus:ring-2 focus:ring-#44D080 font-bold text-sm transition-all"
                       />
                     </div>
                     <div className="space-y-2 md:col-span-2">
@@ -3169,7 +3212,7 @@ export default function AdminDashboard({
                         type="email"
                         value={profileFormData.email}
                         onChange={(e) => setProfileFormData({ ...profileFormData, email: e.target.value })}
-                        className="w-full px-5 py-3.5 rounded-2xl bg-slate-50 border border-slate-100 outline-none focus:ring-2 focus:ring-emerald-500 font-bold text-sm transition-all"
+                        className="w-full px-5 py-3.5 rounded-2xl bg-slate-50 border border-slate-100 outline-none focus:ring-2 focus:ring-#44D080 font-bold text-sm transition-all"
                       />
                     </div>
                   </div>
@@ -3184,7 +3227,7 @@ export default function AdminDashboard({
                     </button>
                     <button 
                       type="submit"
-                      className="w-full bg-emerald-600 text-white font-black py-4 rounded-2xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100 flex items-center justify-center gap-2 uppercase tracking-widest text-xs"
+                      className="w-full bg-#44D080 text-white font-black py-4 rounded-2xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100 flex items-center justify-center gap-2 uppercase tracking-widest text-xs"
                     >
                       <Check className="w-4 h-4" />
                       Save Changes
@@ -3232,12 +3275,12 @@ export default function AdminDashboard({
   const renderProfileModal = () => (
     <div>
       {showProfileModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-[#6339CA]/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden">
-            <div className="p-8 bg-indigo-600 text-white flex justify-between items-center">
+            <div className="p-8 bg-[#6339CA] text-white flex justify-between items-center">
               <div>
                 <h3 className="text-2xl font-black tracking-tight">Admin Profile</h3>
-                <p className="text-indigo-100 text-xs font-black uppercase tracking-widest mt-1">Edit your personal details</p>
+                <p className="text-white/60 text-xs font-black uppercase tracking-widest mt-1">Edit your personal details</p>
               </div>
               <button onClick={() => setShowProfileModal(false)} className="p-2 hover:bg-white/10 rounded-full transition-colors">
                 <X className="w-6 h-6" />
@@ -3259,7 +3302,7 @@ export default function AdminDashboard({
                   type="text" 
                   value={profileFormData.name} 
                   onChange={(e) => setProfileFormData({ ...profileFormData, name: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none font-bold" 
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#6339CA] outline-none font-bold" 
                 />
               </div>
               <div className="space-y-2">
@@ -3268,7 +3311,7 @@ export default function AdminDashboard({
                   type="tel" 
                   value={profileFormData.phone} 
                   onChange={(e) => setProfileFormData({ ...profileFormData, phone: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none font-bold" 
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#6339CA] outline-none font-bold" 
                 />
               </div>
               <div className="space-y-2">
@@ -3277,7 +3320,7 @@ export default function AdminDashboard({
                   type="email" 
                   value={profileFormData.email} 
                   onChange={(e) => setProfileFormData({ ...profileFormData, email: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none font-bold" 
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#6339CA] outline-none font-bold" 
                 />
               </div>
               <div className="pt-4 border-t border-slate-100 flex flex-col gap-3">
@@ -3294,7 +3337,7 @@ export default function AdminDashboard({
               </div>
               <button 
                 type="submit"
-                className="w-full bg-indigo-600 text-white font-black py-4 rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 uppercase tracking-widest text-xs"
+                className="w-full bg-[#6339CA] text-white font-black py-4 rounded-xl hover:bg-[#5D31C7] transition-all shadow-lg shadow-[#6339CA]/10 uppercase tracking-widest text-xs"
               >
                 Save Changes
               </button>
@@ -3314,12 +3357,12 @@ export default function AdminDashboard({
 
       {/* Maintenance Bill Form Modal */}
       {showBillForm && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-[#6339CA]/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white w-full max-w-xl rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
-            <div className="p-6 bg-blue-600 text-white flex justify-between items-center shrink-0">
+            <div className="p-6 bg-[#6339CA] text-white flex justify-between items-center shrink-0">
               <div>
                 <h3 className="text-xl font-black">Generate Maintenance Bill</h3>
-                <p className="text-blue-100 text-xs font-medium uppercase tracking-wider">Select calculation method & generate bills</p>
+                <p className="text-white/60 text-xs font-medium uppercase tracking-wider">Select calculation method & generate bills</p>
               </div>
               <button onClick={() => setShowBillForm(false)} className="p-2 hover:bg-white/10 rounded-full transition-colors">
                 <X className="w-6 h-6" />
@@ -3343,12 +3386,12 @@ export default function AdminDashboard({
                     }}
                     className={`p-3 rounded-2xl border text-xs font-black transition-all text-left flex flex-col gap-1 ${
                       calcMethod === 'Flat/BHK Maintenance'
-                        ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-100'
+                        ? 'bg-[#6339CA] text-white border-purple-600 shadow-md shadow-[#6339CA]/10'
                         : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
                     }`}
                   >
                     <span className="uppercase tracking-wider">1. Flat / BHK Maintenance</span>
-                    <span className={`text-[10px] font-normal ${calcMethod === 'Flat/BHK Maintenance' ? 'text-blue-100' : 'text-gray-500'}`}>
+                    <span className={`text-[10px] font-normal ${calcMethod === 'Flat/BHK Maintenance' ? 'text-white/60' : 'text-gray-500'}`}>
                       Fixed amount per Flat Type
                     </span>
                   </button>
@@ -3366,12 +3409,12 @@ export default function AdminDashboard({
                     }}
                     className={`p-3 rounded-2xl border text-xs font-black transition-all text-left flex flex-col gap-1 ${
                       calcMethod === 'Square Foot Maintenance'
-                        ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-100'
+                        ? 'bg-[#6339CA] text-white border-purple-600 shadow-md shadow-[#6339CA]/10'
                         : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
                     }`}
                   >
                     <span className="uppercase tracking-wider">2. Square Foot Maintenance</span>
-                    <span className={`text-[10px] font-normal ${calcMethod === 'Square Foot Maintenance' ? 'text-blue-100' : 'text-gray-500'}`}>
+                    <span className={`text-[10px] font-normal ${calcMethod === 'Square Foot Maintenance' ? 'text-white/60' : 'text-gray-500'}`}>
                       Area × Rate per sq.ft
                     </span>
                   </button>
@@ -3380,8 +3423,8 @@ export default function AdminDashboard({
 
               {/* Maintenance Rate Configuration */}
               {calcMethod === 'Flat/BHK Maintenance' ? (
-                <div className="bg-indigo-50/70 p-4 rounded-2xl border border-indigo-100 space-y-3">
-                  <p className="text-[10px] font-black text-indigo-900 uppercase tracking-widest">
+                <div className="bg-[#6339CA]/10 p-4 rounded-2xl border border-[#6339CA]/20 space-y-3">
+                  <p className="text-[10px] font-black text-[#6339CA] uppercase tracking-widest">
                     Flat/BHK Maintenance Amounts Configuration (₹)
                   </p>
                   <div className="grid grid-cols-2 gap-3 text-xs">
@@ -3392,7 +3435,7 @@ export default function AdminDashboard({
                         min="0"
                         value={flatTypeRates['Smart 1 BHK'] || 2500}
                         onChange={(e) => setFlatTypeRates({ ...flatTypeRates, 'Smart 1 BHK': parseInt(e.target.value) || 0 })}
-                        className="w-full px-3 py-1.5 rounded-xl border border-indigo-200 font-bold bg-white outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full px-3 py-1.5 rounded-xl border border-[#6339CA]/20 font-bold bg-white outline-none focus:ring-2 focus:ring-[#6339CA]"
                       />
                     </div>
                     <div>
@@ -3402,7 +3445,7 @@ export default function AdminDashboard({
                         min="0"
                         value={flatTypeRates['Smart 2 BHK'] || 3200}
                         onChange={(e) => setFlatTypeRates({ ...flatTypeRates, 'Smart 2 BHK': parseInt(e.target.value) || 0 })}
-                        className="w-full px-3 py-1.5 rounded-xl border border-indigo-200 font-bold bg-white outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full px-3 py-1.5 rounded-xl border border-[#6339CA]/20 font-bold bg-white outline-none focus:ring-2 focus:ring-[#6339CA]"
                       />
                     </div>
                     <div>
@@ -3412,7 +3455,7 @@ export default function AdminDashboard({
                         min="0"
                         value={flatTypeRates['Premium 2 BHK'] || 4000}
                         onChange={(e) => setFlatTypeRates({ ...flatTypeRates, 'Premium 2 BHK': parseInt(e.target.value) || 0 })}
-                        className="w-full px-3 py-1.5 rounded-xl border border-indigo-200 font-bold bg-white outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full px-3 py-1.5 rounded-xl border border-[#6339CA]/20 font-bold bg-white outline-none focus:ring-2 focus:ring-[#6339CA]"
                       />
                     </div>
                     <div>
@@ -3422,14 +3465,14 @@ export default function AdminDashboard({
                         min="0"
                         value={flatTypeRates['Premium 3 BHK'] || 5000}
                         onChange={(e) => setFlatTypeRates({ ...flatTypeRates, 'Premium 3 BHK': parseInt(e.target.value) || 0 })}
-                        className="w-full px-3 py-1.5 rounded-xl border border-indigo-200 font-bold bg-white outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full px-3 py-1.5 rounded-xl border border-[#6339CA]/20 font-bold bg-white outline-none focus:ring-2 focus:ring-[#6339CA]"
                       />
                     </div>
                   </div>
                 </div>
               ) : (
-                <div className="bg-indigo-50/70 p-4 rounded-2xl border border-indigo-100 space-y-2">
-                  <label className="text-[10px] font-black text-indigo-900 uppercase tracking-widest block">
+                <div className="bg-[#6339CA]/10 p-4 rounded-2xl border border-[#6339CA]/20 space-y-2">
+                  <label className="text-[10px] font-black text-[#6339CA] uppercase tracking-widest block">
                     Square Foot Maintenance Rate (₹ per sq.ft)
                   </label>
                   <div className="flex items-center gap-3">
@@ -3448,9 +3491,9 @@ export default function AdminDashboard({
                           setBillFormData(prev => ({ ...prev, amount: Math.round(sqft * newRate) }));
                         }
                       }}
-                      className="w-32 px-3 py-2 rounded-xl border border-indigo-200 font-bold bg-white outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                      className="w-32 px-3 py-2 rounded-xl border border-[#6339CA]/20 font-bold bg-white outline-none focus:ring-2 focus:ring-[#6339CA] text-sm"
                     />
-                    <span className="text-xs font-bold text-indigo-700">₹{sqftRate} / sq.ft</span>
+                    <span className="text-xs font-bold text-[#6339CA]">₹{sqftRate} / sq.ft</span>
                   </div>
                 </div>
               )}
@@ -3475,7 +3518,7 @@ export default function AdminDashboard({
                     }
                     setBillFormData({ ...billFormData, resident_id: selId, amount: newAmount });
                   }}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none font-bold"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#6339CA] outline-none font-bold"
                 >
                   <option value="all">All Residents ({residents.length})</option>
                   <optgroup label="Towers">
@@ -3529,7 +3572,7 @@ export default function AdminDashboard({
                     required
                     value={billFormData.month}
                     onChange={(e) => setBillFormData({ ...billFormData, month: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none font-bold"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#6339CA] outline-none font-bold"
                   >
                     {["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"].map(m => (
                       <option key={m} value={m}>{m}</option>
@@ -3542,7 +3585,7 @@ export default function AdminDashboard({
                     required
                     value={billFormData.year}
                     onChange={(e) => setBillFormData({ ...billFormData, year: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none font-bold"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#6339CA] outline-none font-bold"
                   >
                     {[new Date().getFullYear(), new Date().getFullYear() + 1].map(y => (
                       <option key={y} value={y.toString()}>{y}</option>
@@ -3564,7 +3607,7 @@ export default function AdminDashboard({
                     min="1"
                     value={isNaN(billFormData.amount) || billFormData.amount === 0 ? '' : billFormData.amount}
                     onChange={(e) => setBillFormData({ ...billFormData, amount: parseInt(e.target.value) || 0 })}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none font-bold text-sm"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#6339CA] outline-none font-bold text-sm"
                   />
                 </div>
                 <div className="space-y-2">
@@ -3574,7 +3617,7 @@ export default function AdminDashboard({
                     required
                     value={billFormData.due_date}
                     onChange={(e) => setBillFormData({ ...billFormData, due_date: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none font-bold text-sm"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#6339CA] outline-none font-bold text-sm"
                   />
                 </div>
               </div>
@@ -3585,14 +3628,14 @@ export default function AdminDashboard({
                   rows={2}
                   value={billFormData.description}
                   onChange={(e) => setBillFormData({ ...billFormData, description: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none font-medium text-sm"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#6339CA] outline-none font-medium text-sm"
                 />
               </div>
 
               <button 
                 type="submit"
                 disabled={updating === 'generating-bill'}
-                className="w-full bg-blue-600 text-white font-black py-4 rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 disabled:opacity-50 flex items-center justify-center gap-2 uppercase tracking-widest text-xs mt-2"
+                className="w-full bg-[#6339CA] text-white font-black py-4 rounded-xl hover:bg-[#5D31C7] transition-all shadow-lg shadow-[#6339CA]/10 disabled:opacity-50 flex items-center justify-center gap-2 uppercase tracking-widest text-xs mt-2"
               >
                 {updating === 'generating-bill' ? (
                   <>
@@ -3613,12 +3656,12 @@ export default function AdminDashboard({
 
       {/* Booking Edit Modal */}
       {showBookingEditModal && editingBooking && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-[#6339CA]/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden">
-            <div className="p-6 bg-blue-600 text-white flex justify-between items-center">
+            <div className="p-6 bg-[#6339CA] text-white flex justify-between items-center">
               <div>
                 <h3 className="text-xl font-black">Update Booking Times</h3>
-                <p className="text-blue-100 text-xs font-medium uppercase tracking-wider">
+                <p className="text-white/60 text-xs font-medium uppercase tracking-wider">
                   {editingBooking.amenity_name} - {format(new Date(editingBooking.booking_date), 'dd MMM yyyy')}
                 </p>
               </div>
@@ -3635,7 +3678,7 @@ export default function AdminDashboard({
                     required
                     value={bookingEditData.start_time}
                     onChange={(e) => setBookingEditData({ ...bookingEditData, start_time: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none font-bold"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#6339CA] outline-none font-bold"
                   />
                 </div>
                 <div className="space-y-2">
@@ -3645,7 +3688,7 @@ export default function AdminDashboard({
                     required
                     value={bookingEditData.end_time}
                     onChange={(e) => setBookingEditData({ ...bookingEditData, end_time: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none font-bold"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#6339CA] outline-none font-bold"
                   />
                 </div>
               </div>
@@ -3678,7 +3721,7 @@ export default function AdminDashboard({
               <button 
                 type="submit"
                 disabled={updating === (editingBooking.booking_id || editingBooking.id)}
-                className="w-full bg-blue-600 text-white font-black py-4 rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 disabled:opacity-50 flex items-center justify-center gap-2 uppercase tracking-widest text-xs"
+                className="w-full bg-[#6339CA] text-white font-black py-4 rounded-xl hover:bg-[#5D31C7] transition-all shadow-lg shadow-[#6339CA]/10 disabled:opacity-50 flex items-center justify-center gap-2 uppercase tracking-widest text-xs"
               >
                 {updating === (editingBooking.booking_id || editingBooking.id) ? (
                   <>
@@ -3699,12 +3742,12 @@ export default function AdminDashboard({
 
       {/* Amenity Price Management Modal */}
       {showAmenityForm && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-[#6339CA]/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden">
-            <div className="p-6 bg-blue-600 text-white flex justify-between items-center">
+            <div className="p-6 bg-[#6339CA] text-white flex justify-between items-center">
               <div>
                 <h3 className="text-xl font-black">Amenity Price Management</h3>
-                <p className="text-blue-100 text-xs font-medium uppercase tracking-wider">Set and update booking amounts</p>
+                <p className="text-white/60 text-xs font-medium uppercase tracking-wider">Set and update booking amounts</p>
               </div>
               <button onClick={() => setShowAmenityForm(false)} className="p-2 hover:bg-white/10 rounded-full transition-colors">
                 <X className="w-6 h-6" />
@@ -3717,19 +3760,19 @@ export default function AdminDashboard({
                     <AlertCircle className="w-4 h-4" />
                     Database Setup Required
                   </div>
-                  <p className="text-xs text-rose-600 font-medium">{dbError}</p>
+                  <p className="text-xs text-#FAA928 font-medium">{dbError}</p>
                   <p className="text-[10px] text-rose-500">Please run the SQL script in your Supabase SQL Editor to create the necessary tables.</p>
                   <button 
                     onClick={() => setShowSqlModal(true)}
-                    className="mt-2 bg-rose-600 text-white text-[10px] font-black px-3 py-1.5 rounded-lg hover:bg-rose-700 transition-colors uppercase tracking-widest w-fit"
+                    className="mt-2 bg-#FAA928 text-white text-[10px] font-black px-3 py-1.5 rounded-lg hover:bg-rose-700 transition-colors uppercase tracking-widest w-fit"
                   >
                     View SQL Fix
                   </button>
                 </div>
               )}
               {/* Add New Amenity Form */}
-              <div className="bg-blue-50/50 p-4 rounded-2xl border border-blue-100">
-                <h4 className="text-sm font-black text-blue-800 uppercase tracking-widest mb-4">Manage Amenity</h4>
+              <div className="bg-[#6339CA]/10/50 p-4 rounded-2xl border border-purple-100">
+                <h4 className="text-sm font-black text-[#6339CA] uppercase tracking-widest mb-4">Manage Amenity</h4>
                 <form onSubmit={handleAddAmenity} className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1">
@@ -3784,7 +3827,7 @@ export default function AdminDashboard({
                             setAmenityFormData({ ...amenityFormData, name, ...defaults });
                           }
                         }}
-                        className="w-full px-4 py-2 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-blue-500 font-bold text-sm"
+                        className="w-full px-4 py-2 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-[#6339CA] font-bold text-sm"
                       />
                       <datalist id="amenity-suggestions">
                         <option value="Clubhouse Hall" />
@@ -3800,7 +3843,7 @@ export default function AdminDashboard({
                         placeholder="Price (₹)"
                         value={isNaN(amenityFormData.price) || amenityFormData.price === 0 ? '' : amenityFormData.price}
                         onChange={(e) => setAmenityFormData({ ...amenityFormData, price: parseInt(e.target.value) || 0 })}
-                        className="w-full px-4 py-2 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-blue-500 font-bold text-sm"
+                        className="w-full px-4 py-2 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-[#6339CA] font-bold text-sm"
                       />
                     </div>
                   </div>
@@ -3813,7 +3856,7 @@ export default function AdminDashboard({
                         min="1"
                         value={isNaN(amenityFormData.base_hours) || amenityFormData.base_hours === 0 ? '' : amenityFormData.base_hours}
                         onChange={(e) => setAmenityFormData({ ...amenityFormData, base_hours: parseInt(e.target.value) || 0 })}
-                        className="w-full px-4 py-2 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-blue-500 font-bold text-sm"
+                        className="w-full px-4 py-2 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-[#6339CA] font-bold text-sm"
                       />
                     </div>
                     <div className="space-y-1">
@@ -3824,7 +3867,7 @@ export default function AdminDashboard({
                         min="0"
                         value={isNaN(amenityFormData.extra_hour_charge) || amenityFormData.extra_hour_charge === 0 ? '' : amenityFormData.extra_hour_charge}
                         onChange={(e) => setAmenityFormData({ ...amenityFormData, extra_hour_charge: parseInt(e.target.value) || 0 })}
-                        className="w-full px-4 py-2 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-blue-500 font-bold text-sm"
+                        className="w-full px-4 py-2 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-[#6339CA] font-bold text-sm"
                       />
                     </div>
                   </div>
@@ -3835,13 +3878,13 @@ export default function AdminDashboard({
                       value={amenityFormData.facilities}
                       onChange={(e) => setAmenityFormData({ ...amenityFormData, facilities: e.target.value })}
                       placeholder="e.g. AC Hall, 30 Chairs, Tables"
-                      className="w-full px-4 py-2 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-blue-500 font-bold text-sm"
+                      className="w-full px-4 py-2 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-[#6339CA] font-bold text-sm"
                     />
                   </div>
                   <button 
                     type="submit"
                     disabled={updating === 'adding-amenity'}
-                    className="w-full bg-blue-600 text-white font-black py-3 rounded-xl hover:bg-blue-700 transition-all disabled:opacity-50 text-xs uppercase tracking-widest shadow-lg shadow-blue-100"
+                    className="w-full bg-[#6339CA] text-white font-black py-3 rounded-xl hover:bg-[#5D31C7] transition-all disabled:opacity-50 text-xs uppercase tracking-widest shadow-lg shadow-[#6339CA]/10"
                   >
                     {amenities.find(a => a.name === amenityFormData.name) ? 'Update Amenity Price' : 'Save Amenity Price'}
                   </button>
@@ -3884,7 +3927,7 @@ export default function AdminDashboard({
                       }
                     }}
                     disabled={updating === 'resetting-amenities'}
-                    className="text-[10px] font-black text-blue-600 hover:text-blue-700 uppercase tracking-widest flex items-center gap-1 disabled:opacity-50"
+                    className="text-[10px] font-black text-[#6339CA] hover:text-[#6339CA] uppercase tracking-widest flex items-center gap-1 disabled:opacity-50"
                   >
                     {updating === 'resetting-amenities' ? 'Resetting...' : 'Reset to Defaults'}
                   </button>
@@ -3903,7 +3946,7 @@ export default function AdminDashboard({
                       {amenities.map((a) => (
                         <tr key={a.amenity_id} className="hover:bg-gray-50/50 transition-colors">
                           <td className="px-4 py-3 font-bold text-gray-800">{a.name}</td>
-                          <td className="px-4 py-3 font-black text-blue-600">₹{a.price}</td>
+                          <td className="px-4 py-3 font-black text-[#6339CA]">₹{a.price}</td>
                           <td className="px-4 py-3 text-gray-500">{a.base_hours}</td>
                           <td className="px-4 py-3 text-gray-500">₹{a.extra_hour_charge}</td>
                         </tr>
@@ -3926,7 +3969,7 @@ export default function AdminDashboard({
       {/* Image Preview Modal */}
       {selectedImage && (
         <div 
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm"
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#6339CA]/90 backdrop-blur-sm"
           onClick={() => setSelectedImage(null)}
         >
           <button 
@@ -3946,9 +3989,9 @@ export default function AdminDashboard({
       )}
 
       {showSqlModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+        <div className="fixed inset-0 bg-[#6339CA]/50 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
           <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden">
-            <div className="p-6 bg-rose-600 text-white flex justify-between items-center">
+            <div className="p-6 bg-#FAA928 text-white flex justify-between items-center">
               <div>
                 <h3 className="text-xl font-black">SQL Database Fix</h3>
                 <p className="text-rose-100 text-xs font-medium uppercase tracking-wider">Run this in your Supabase SQL Editor</p>
@@ -3958,7 +4001,7 @@ export default function AdminDashboard({
               </button>
             </div>
             <div className="p-6 space-y-4">
-              <div className="bg-gray-900 rounded-xl p-4 overflow-x-auto">
+              <div className="bg-[#6339CA] rounded-xl p-4 overflow-x-auto">
                 <pre className="text-green-400 text-xs font-mono leading-relaxed">
 {`-- 1. Create or Fix the amenities table
 CREATE TABLE IF NOT EXISTS public.amenities (
@@ -4156,7 +4199,7 @@ CREATE POLICY "Allow all on booking" ON public.booking FOR ALL USING (true);
 NOTIFY pgrst, 'reload schema';`);
                     toast.success('SQL script copied to clipboard!');
                   }}
-                  className="bg-rose-600 text-white font-black px-4 py-2 rounded-lg hover:bg-rose-700 transition-all text-xs uppercase tracking-widest"
+                  className="bg-#FAA928 text-white font-black px-4 py-2 rounded-lg hover:bg-rose-700 transition-all text-xs uppercase tracking-widest"
                 >
                   Copy SQL
                 </button>
@@ -4168,9 +4211,9 @@ NOTIFY pgrst, 'reload schema';`);
 
       {/* Edit/Add Resident Modal */}
       {showEditResidentModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-[100] p-3 sm:p-4 animate-in fade-in duration-150">
+        <div className="fixed inset-0 bg-[#6339CA]/60 backdrop-blur-xs flex items-center justify-center z-[100] p-3 sm:p-4 animate-in fade-in duration-150">
           <div className="bg-white w-full max-w-[490px] rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[88vh] border border-slate-200 animate-in zoom-in-95 duration-150">
-            <div className="px-5 py-3 bg-slate-900 text-white flex justify-between items-center shrink-0 border-b border-slate-800">
+            <div className="px-5 py-3 bg-[#6339CA] text-white flex justify-between items-center shrink-0 border-b border-purple-900">
               <div>
                 <h3 className="text-sm font-bold text-white leading-tight">{editingResident ? 'Edit Resident Profile' : 'Add New Resident'}</h3>
                 <p className="text-slate-400 text-[10px] font-medium">{editingResident ? 'Update resident credentials & unit details' : 'Register a new member'}</p>
@@ -4194,7 +4237,7 @@ NOTIFY pgrst, 'reload schema';`);
                     required
                     value={residentEditData.name}
                     onChange={(e) => setResidentEditData({ ...residentEditData, name: e.target.value })}
-                    className="w-full px-3 py-1.5 rounded-xl border border-slate-200 outline-none focus:ring-1 focus:ring-blue-500 font-bold text-xs bg-slate-50/70"
+                    className="w-full px-3 py-1.5 rounded-xl border border-slate-200 outline-none focus:ring-1 focus:ring-[#6339CA] font-bold text-xs bg-slate-50/70"
                     placeholder="Resident Name"
                   />
                 </div>
@@ -4206,7 +4249,7 @@ NOTIFY pgrst, 'reload schema';`);
                       required
                       value={residentEditData.password}
                       onChange={(e) => setResidentEditData({ ...residentEditData, password: e.target.value })}
-                      className="w-full px-3 py-1.5 rounded-xl border border-slate-200 outline-none focus:ring-1 focus:ring-blue-500 font-bold text-xs bg-slate-50/70 pr-8"
+                      className="w-full px-3 py-1.5 rounded-xl border border-slate-200 outline-none focus:ring-1 focus:ring-[#6339CA] font-bold text-xs bg-slate-50/70 pr-8"
                       placeholder="Password"
                     />
                     <button 
@@ -4229,7 +4272,7 @@ NOTIFY pgrst, 'reload schema';`);
                     required
                     value={residentEditData.tower}
                     onChange={(e) => setResidentEditData({ ...residentEditData, tower: e.target.value })}
-                    className="w-full px-3 py-1.5 rounded-xl border border-slate-200 outline-none focus:ring-1 focus:ring-blue-500 font-bold text-xs bg-slate-50/70"
+                    className="w-full px-3 py-1.5 rounded-xl border border-slate-200 outline-none focus:ring-1 focus:ring-[#6339CA] font-bold text-xs bg-slate-50/70"
                     placeholder="Tower A"
                   />
                 </div>
@@ -4240,7 +4283,7 @@ NOTIFY pgrst, 'reload schema';`);
                     required
                     value={isNaN(residentEditData.floor) || residentEditData.floor === 0 ? '' : residentEditData.floor}
                     onChange={(e) => setResidentEditData({ ...residentEditData, floor: parseInt(e.target.value) || 0 })}
-                    className="w-full px-3 py-1.5 rounded-xl border border-slate-200 outline-none focus:ring-1 focus:ring-blue-500 font-bold text-xs bg-slate-50/70"
+                    className="w-full px-3 py-1.5 rounded-xl border border-slate-200 outline-none focus:ring-1 focus:ring-[#6339CA] font-bold text-xs bg-slate-50/70"
                     placeholder="1"
                   />
                 </div>
@@ -4251,16 +4294,16 @@ NOTIFY pgrst, 'reload schema';`);
                     required
                     value={residentEditData.flat}
                     onChange={(e) => setResidentEditData({ ...residentEditData, flat: e.target.value })}
-                    className="w-full px-3 py-1.5 rounded-xl border border-slate-200 outline-none focus:ring-1 focus:ring-blue-500 font-bold text-xs bg-slate-50/70"
+                    className="w-full px-3 py-1.5 rounded-xl border border-slate-200 outline-none focus:ring-1 focus:ring-[#6339CA] font-bold text-xs bg-slate-50/70"
                     placeholder="101"
                   />
                 </div>
               </div>
 
               {/* Row 3: BHK, Flat Type & Square Feet Configuration */}
-              <div className="grid grid-cols-3 gap-2 bg-indigo-50/60 p-2.5 rounded-xl border border-indigo-100">
+              <div className="grid grid-cols-3 gap-2 bg-[#6339CA]/10/60 p-2.5 rounded-xl border border-[#6339CA]/20">
                 <div className="space-y-0.5">
-                  <label className="text-[9px] font-black text-indigo-900 uppercase tracking-wider">BHK</label>
+                  <label className="text-[9px] font-black text-[#6339CA] uppercase tracking-wider">BHK</label>
                   <select 
                     value={residentEditData.bhk}
                     onChange={(e) => {
@@ -4282,7 +4325,7 @@ NOTIFY pgrst, 'reload schema';`);
                         square_feet: newSqft
                       });
                     }}
-                    className="w-full px-2.5 py-1.5 rounded-lg border border-indigo-200 outline-none focus:ring-1 focus:ring-indigo-500 font-bold text-xs bg-white text-slate-800"
+                    className="w-full px-2.5 py-1.5 rounded-lg border border-[#6339CA]/20 outline-none focus:ring-1 focus:ring-[#6339CA] font-bold text-xs bg-white text-purple-900"
                   >
                     <option value="1 BHK">1 BHK</option>
                     <option value="2 BHK">2 BHK</option>
@@ -4291,7 +4334,7 @@ NOTIFY pgrst, 'reload schema';`);
                 </div>
 
                 <div className="space-y-0.5">
-                  <label className="text-[9px] font-black text-indigo-900 uppercase tracking-wider">Flat Type</label>
+                  <label className="text-[9px] font-black text-[#6339CA] uppercase tracking-wider">Flat Type</label>
                   <select 
                     value={residentEditData.flat_type}
                     onChange={(e) => {
@@ -4317,7 +4360,7 @@ NOTIFY pgrst, 'reload schema';`);
                         square_feet: newSqft
                       });
                     }}
-                    className="w-full px-2.5 py-1.5 rounded-lg border border-indigo-200 outline-none focus:ring-1 focus:ring-indigo-500 font-bold text-xs bg-white text-slate-800"
+                    className="w-full px-2.5 py-1.5 rounded-lg border border-[#6339CA]/20 outline-none focus:ring-1 focus:ring-[#6339CA] font-bold text-xs bg-white text-purple-900"
                   >
                     <optgroup label="Standard Types">
                       <option value="Smart">Smart</option>
@@ -4339,14 +4382,14 @@ NOTIFY pgrst, 'reload schema';`);
                 </div>
 
                 <div className="space-y-0.5">
-                  <label className="text-[9px] font-black text-indigo-900 uppercase tracking-wider">Sq. Ft</label>
+                  <label className="text-[9px] font-black text-[#6339CA] uppercase tracking-wider">Sq. Ft</label>
                   <input 
                     type="number"
                     required
                     min="100"
                     value={isNaN(residentEditData.square_feet) || residentEditData.square_feet === 0 ? '' : residentEditData.square_feet}
                     onChange={(e) => setResidentEditData({ ...residentEditData, square_feet: parseInt(e.target.value) || 0 })}
-                    className="w-full px-2.5 py-1.5 rounded-lg border border-indigo-200 outline-none focus:ring-1 focus:ring-indigo-500 font-bold text-xs bg-white text-slate-800"
+                    className="w-full px-2.5 py-1.5 rounded-lg border border-[#6339CA]/20 outline-none focus:ring-1 focus:ring-[#6339CA] font-bold text-xs bg-white text-purple-900"
                   />
                 </div>
               </div>
@@ -4360,7 +4403,7 @@ NOTIFY pgrst, 'reload schema';`);
                     required
                     value={residentEditData.phone}
                     onChange={(e) => setResidentEditData({ ...residentEditData, phone: e.target.value })}
-                    className="w-full px-3 py-1.5 rounded-xl border border-slate-200 outline-none focus:ring-1 focus:ring-blue-500 font-bold text-xs bg-slate-50/70"
+                    className="w-full px-3 py-1.5 rounded-xl border border-slate-200 outline-none focus:ring-1 focus:ring-[#6339CA] font-bold text-xs bg-slate-50/70"
                     placeholder="Mobile Number"
                   />
                 </div>
@@ -4371,7 +4414,7 @@ NOTIFY pgrst, 'reload schema';`);
                     required
                     value={residentEditData.email}
                     onChange={(e) => setResidentEditData({ ...residentEditData, email: e.target.value })}
-                    className="w-full px-3 py-1.5 rounded-xl border border-slate-200 outline-none focus:ring-1 focus:ring-blue-500 font-bold text-xs bg-slate-50/70"
+                    className="w-full px-3 py-1.5 rounded-xl border border-slate-200 outline-none focus:ring-1 focus:ring-[#6339CA] font-bold text-xs bg-slate-50/70"
                     placeholder="Email Address"
                   />
                 </div>
@@ -4403,7 +4446,7 @@ NOTIFY pgrst, 'reload schema';`);
                         });
                       }
                     }}
-                    className="w-full px-3 py-1.5 rounded-xl border border-slate-200 outline-none focus:ring-1 focus:ring-blue-500 font-bold text-xs bg-white"
+                    className="w-full px-3 py-1.5 rounded-xl border border-slate-200 outline-none focus:ring-1 focus:ring-[#6339CA] font-bold text-xs bg-white"
                   >
                     <option value="Owner">Owner</option>
                     <option value="Tenant">Tenant</option>
@@ -4414,7 +4457,7 @@ NOTIFY pgrst, 'reload schema';`);
                   <select 
                     value={residentEditData.status}
                     onChange={(e) => setResidentEditData({ ...residentEditData, status: e.target.value as 'Active' | 'Inactive' })}
-                    className="w-full px-3 py-1.5 rounded-xl border border-slate-200 outline-none focus:ring-1 focus:ring-blue-500 font-bold text-xs bg-white"
+                    className="w-full px-3 py-1.5 rounded-xl border border-slate-200 outline-none focus:ring-1 focus:ring-[#6339CA] font-bold text-xs bg-white"
                   >
                     <option value="Active">Active</option>
                     <option value="Inactive">Inactive</option>
@@ -4431,23 +4474,23 @@ NOTIFY pgrst, 'reload schema';`);
                 );
 
                 return (
-                  <div className="grid grid-cols-12 gap-2 p-2 rounded-xl bg-indigo-50/60 border border-indigo-100 text-xs">
+                  <div className="grid grid-cols-12 gap-2 p-2 rounded-xl bg-[#6339CA]/10/60 border border-[#6339CA]/20 text-xs">
                     <div className="col-span-5 space-y-0.5">
-                      <label className="text-[8px] font-black text-indigo-700 uppercase tracking-wider">Tenant ID</label>
+                      <label className="text-[8px] font-black text-[#6339CA] uppercase tracking-wider">Tenant ID</label>
                       <input 
                         type="text"
                         disabled
                         value={currentTenantId}
-                        className="w-full px-2.5 py-1 rounded-lg border border-indigo-200 bg-white font-mono font-black text-[11px] text-indigo-700 cursor-not-allowed"
+                        className="w-full px-2.5 py-1 rounded-lg border border-[#6339CA]/20 bg-white font-mono font-black text-[11px] text-[#6339CA] cursor-not-allowed"
                       />
                     </div>
                     <div className="col-span-7 space-y-0.5">
-                      <label className="text-[8px] font-black text-indigo-700 uppercase tracking-wider">Assigned Owner</label>
+                      <label className="text-[8px] font-black text-[#6339CA] uppercase tracking-wider">Assigned Owner</label>
                       <select 
                         required
                         value={residentEditData.owner_id || ''}
                         onChange={(e) => setResidentEditData({ ...residentEditData, owner_id: e.target.value })}
-                        className="w-full px-2.5 py-1 rounded-lg border border-indigo-200 outline-none focus:ring-1 focus:ring-indigo-500 font-bold text-[11px] bg-white text-slate-800"
+                        className="w-full px-2.5 py-1 rounded-lg border border-[#6339CA]/20 outline-none focus:ring-1 focus:ring-[#6339CA] font-bold text-[11px] bg-white text-purple-900"
                       >
                         <option value="">-- Choose Owner --</option>
                         {validOwners.map(owner => (
@@ -4465,7 +4508,7 @@ NOTIFY pgrst, 'reload schema';`);
               <button 
                 type="submit"
                 disabled={updating === 'updating-resident'}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-2.5 rounded-xl shadow-md shadow-blue-100 disabled:opacity-50 flex items-center justify-center gap-2 uppercase tracking-widest text-xs cursor-pointer transition-all mt-1"
+                className="w-full bg-[#6339CA] hover:bg-[#5D31C7] text-white font-black py-2.5 rounded-xl shadow-md shadow-[#6339CA]/10 disabled:opacity-50 flex items-center justify-center gap-2 uppercase tracking-widest text-xs cursor-pointer transition-all mt-1"
               >
                 {updating === 'updating-resident' ? (
                   <>
@@ -4497,9 +4540,9 @@ NOTIFY pgrst, 'reload schema';`);
         const wing = r.wing || r.tower;
 
         return (
-          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[100] p-4 animate-in fade-in duration-200">
+          <div className="fixed inset-0 bg-[#6339CA]/60 backdrop-blur-md flex items-center justify-center z-[100] p-4 animate-in fade-in duration-200">
             <div className="bg-white w-full max-w-3xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] border border-slate-100">
-              <div className={`p-6 text-white flex justify-between items-center ${isOwner ? 'bg-blue-600' : 'bg-purple-600'}`}>
+              <div className={`p-6 text-white flex justify-between items-center ${isOwner ? 'bg-[#6339CA]' : 'bg-purple-600'}`}>
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-white/20 text-white">
@@ -4530,7 +4573,7 @@ NOTIFY pgrst, 'reload schema';`);
                             <Home className="w-4 h-4" />
                           </div>
                           <div>
-                            <h4 className="text-sm font-black text-slate-900 uppercase tracking-wider">Owner Profile Details</h4>
+                            <h4 className="text-sm font-black text-[#6339CA] uppercase tracking-wider">Owner Profile Details</h4>
                             <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Property & Ownership Specifications</p>
                           </div>
                         </div>
@@ -4542,49 +4585,49 @@ NOTIFY pgrst, 'reload schema';`);
                       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 text-xs">
                         <div>
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Owner Name</p>
-                          <p className="font-black text-slate-900 mt-0.5">{r.name}</p>
+                          <p className="font-black text-[#6339CA] mt-0.5">{r.name}</p>
                         </div>
                         <div>
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Flat Number</p>
-                          <p className="font-black text-slate-900 mt-0.5">{r.flat}</p>
+                          <p className="font-black text-[#6339CA] mt-0.5">{r.flat}</p>
                         </div>
                         <div>
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Building / Wing</p>
-                          <p className="font-bold text-slate-800 mt-0.5">Tower {r.tower} / Wing {wing}</p>
+                          <p className="font-bold text-purple-900 mt-0.5">Tower {r.tower} / Wing {wing}</p>
                         </div>
                         <div>
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Mobile Number</p>
-                          <p className="font-mono font-bold text-slate-800 mt-0.5">{r.phone || '—'}</p>
+                          <p className="font-mono font-bold text-purple-900 mt-0.5">{r.phone || '—'}</p>
                         </div>
                         <div>
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Email</p>
-                          <p className="font-medium text-slate-700 truncate mt-0.5">{r.email || '—'}</p>
+                          <p className="font-medium text-purple-800 truncate mt-0.5">{r.email || '—'}</p>
                         </div>
                         <div>
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Date of Possession</p>
-                          <p className="font-bold text-slate-800 mt-0.5">{r.possession_date || '15 Jan 2024'}</p>
+                          <p className="font-bold text-purple-900 mt-0.5">{r.possession_date || '15 Jan 2024'}</p>
                         </div>
                         <div>
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Resident Status</p>
-                          <p className={`font-black mt-0.5 ${r.status === 'Active' ? 'text-emerald-600' : 'text-slate-500'}`}>
+                          <p className={`font-black mt-0.5 ${r.status === 'Active' ? 'text-#44D080' : 'text-slate-500'}`}>
                             {r.status || 'Active'}
                           </p>
                         </div>
                         <div>
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Family Members</p>
-                          <p className="font-bold text-slate-800 mt-0.5">{r.family_members ? `${r.family_members} Members` : '3 Members'}</p>
+                          <p className="font-bold text-purple-900 mt-0.5">{r.family_members ? `${r.family_members} Members` : '3 Members'}</p>
                         </div>
                         <div>
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">BHK</p>
-                          <p className="font-bold text-slate-800 mt-0.5">{bhk}</p>
+                          <p className="font-bold text-purple-900 mt-0.5">{bhk}</p>
                         </div>
                         <div>
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Flat Type</p>
-                          <p className="font-bold text-indigo-600 mt-0.5">{flatType}</p>
+                          <p className="font-bold text-[#6339CA] mt-0.5">{flatType}</p>
                         </div>
                         <div>
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Square Feet</p>
-                          <p className="font-mono font-bold text-slate-800 mt-0.5">{sqft} sq.ft.</p>
+                          <p className="font-mono font-bold text-purple-900 mt-0.5">{sqft} sq.ft.</p>
                         </div>
                       </div>
                     </div>
@@ -4601,7 +4644,7 @@ NOTIFY pgrst, 'reload schema';`);
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                           <div>
                             <p className="text-[9px] font-black text-purple-600 uppercase tracking-wider">Tenant Name</p>
-                            <p className="font-bold text-slate-900 mt-0.5">{linkedTenant.name}</p>
+                            <p className="font-bold text-[#6339CA] mt-0.5">{linkedTenant.name}</p>
                           </div>
                           <div>
                             <p className="text-[9px] font-black text-purple-600 uppercase tracking-wider">Tenant ID</p>
@@ -4609,11 +4652,11 @@ NOTIFY pgrst, 'reload schema';`);
                           </div>
                           <div>
                             <p className="text-[9px] font-black text-purple-600 uppercase tracking-wider">Tenant Phone</p>
-                            <p className="font-mono font-bold text-slate-800 mt-0.5">{linkedTenant.phone}</p>
+                            <p className="font-mono font-bold text-purple-900 mt-0.5">{linkedTenant.phone}</p>
                           </div>
                           <div>
                             <p className="text-[9px] font-black text-purple-600 uppercase tracking-wider">Tenant Status</p>
-                            <p className="font-bold text-emerald-600 mt-0.5">{linkedTenant.status || 'Active'}</p>
+                            <p className="font-bold text-#44D080 mt-0.5">{linkedTenant.status || 'Active'}</p>
                           </div>
                         </div>
                       </div>
@@ -4633,11 +4676,11 @@ NOTIFY pgrst, 'reload schema';`);
                     <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-4 font-sans">
                       <div className="flex items-center justify-between pb-3 border-b border-slate-200">
                         <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-800 flex items-center justify-center font-bold text-xs">
+                          <div className="w-8 h-8 rounded-lg bg-indigo-100 text-[#6339CA] flex items-center justify-center font-bold text-xs">
                             <Key className="w-4 h-4" />
                           </div>
                           <div>
-                            <h4 className="text-sm font-black text-slate-900 uppercase tracking-wider">Tenant Profile Details</h4>
+                            <h4 className="text-sm font-black text-[#6339CA] uppercase tracking-wider">Tenant Profile Details</h4>
                             <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Tenancy & Rental Agreement Records</p>
                           </div>
                         </div>
@@ -4649,23 +4692,23 @@ NOTIFY pgrst, 'reload schema';`);
                       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 text-xs">
                         <div>
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Tenant Name</p>
-                          <p className="font-black text-slate-900 mt-0.5">{r.name}</p>
+                          <p className="font-black text-[#6339CA] mt-0.5">{r.name}</p>
                         </div>
                         <div>
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Flat Number</p>
-                          <p className="font-black text-slate-900 mt-0.5">{r.flat}</p>
+                          <p className="font-black text-[#6339CA] mt-0.5">{r.flat}</p>
                         </div>
                         <div>
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Building / Wing</p>
-                          <p className="font-bold text-slate-800 mt-0.5">Tower {r.tower} / Wing {wing}</p>
+                          <p className="font-bold text-purple-900 mt-0.5">Tower {r.tower} / Wing {wing}</p>
                         </div>
                         <div>
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Mobile Number</p>
-                          <p className="font-mono font-bold text-slate-800 mt-0.5">{r.phone || '—'}</p>
+                          <p className="font-mono font-bold text-purple-900 mt-0.5">{r.phone || '—'}</p>
                         </div>
                         <div>
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Email</p>
-                          <p className="font-medium text-slate-700 truncate mt-0.5">{r.email || '—'}</p>
+                          <p className="font-medium text-purple-800 truncate mt-0.5">{r.email || '—'}</p>
                         </div>
                         <div>
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Owner Name</p>
@@ -4673,33 +4716,33 @@ NOTIFY pgrst, 'reload schema';`);
                         </div>
                         <div>
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Tenant Status</p>
-                          <p className={`font-black mt-0.5 ${r.status === 'Active' ? 'text-emerald-600' : 'text-slate-500'}`}>
+                          <p className={`font-black mt-0.5 ${r.status === 'Active' ? 'text-#44D080' : 'text-slate-500'}`}>
                             {r.status || 'Active'}
                           </p>
                         </div>
                         <div>
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Move-in Date</p>
-                          <p className="font-bold text-slate-800 mt-0.5">{r.move_in_date || '01 Mar 2025'}</p>
+                          <p className="font-bold text-purple-900 mt-0.5">{r.move_in_date || '01 Mar 2025'}</p>
                         </div>
                         <div>
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Expected Move-out Date</p>
-                          <p className="font-bold text-slate-800 mt-0.5">{r.expected_move_out_date || '28 Feb 2027'}</p>
+                          <p className="font-bold text-purple-900 mt-0.5">{r.expected_move_out_date || '28 Feb 2027'}</p>
                         </div>
                         <div>
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">BHK</p>
-                          <p className="font-bold text-slate-800 mt-0.5">{bhk}</p>
+                          <p className="font-bold text-purple-900 mt-0.5">{bhk}</p>
                         </div>
                         <div>
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Flat Type</p>
-                          <p className="font-bold text-indigo-600 mt-0.5">{flatType}</p>
+                          <p className="font-bold text-[#6339CA] mt-0.5">{flatType}</p>
                         </div>
                         <div>
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Square Feet</p>
-                          <p className="font-mono font-bold text-slate-800 mt-0.5">{sqft} sq.ft.</p>
+                          <p className="font-mono font-bold text-purple-900 mt-0.5">{sqft} sq.ft.</p>
                         </div>
                         <div className="col-span-2 sm:col-span-3 md:col-span-4 bg-white p-3 rounded-xl border border-slate-200">
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Permanent Address</p>
-                          <p className="font-medium text-slate-800 mt-0.5">{r.permanent_address || '402, Shivam Enclave, Main Road, Pune, Maharashtra 411038'}</p>
+                          <p className="font-medium text-purple-900 mt-0.5">{r.permanent_address || '402, Shivam Enclave, Main Road, Pune, Maharashtra 411038'}</p>
                         </div>
                       </div>
                     </div>
@@ -4718,7 +4761,7 @@ NOTIFY pgrst, 'reload schema';`);
               <div className="p-5 bg-slate-50 border-t border-slate-200 flex justify-end gap-3">
                 <button
                   onClick={() => setSelectedResidentDetails(null)}
-                  className="px-6 py-2.5 bg-white border border-slate-200 text-slate-700 font-bold text-xs uppercase tracking-wider rounded-xl hover:bg-slate-100 transition-all shadow-2xs"
+                  className="px-6 py-2.5 bg-white border border-slate-200 text-purple-800 font-bold text-xs uppercase tracking-wider rounded-xl hover:bg-slate-100 transition-all shadow-2xs"
                 >
                   Close
                 </button>
@@ -4728,12 +4771,12 @@ NOTIFY pgrst, 'reload schema';`);
         );
       })()}
       {selectedBooking && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[100] p-4">
+        <div className="fixed inset-0 bg-[#6339CA]/60 backdrop-blur-md flex items-center justify-center z-[100] p-4">
           <div className="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="p-8 bg-indigo-600 text-white flex justify-between items-center">
+            <div className="p-8 bg-[#6339CA] text-white flex justify-between items-center">
               <div>
                 <h3 className="text-2xl font-black">Booking Details</h3>
-                <p className="text-indigo-100 text-xs font-bold uppercase tracking-widest mt-1">{selectedBooking.booking_id || 'PENDING'}</p>
+                <p className="text-white/60 text-xs font-bold uppercase tracking-widest mt-1">{selectedBooking.booking_id || 'PENDING'}</p>
               </div>
               <button onClick={() => setSelectedBooking(null)} className="p-2 hover:bg-white/10 rounded-full transition-colors">
                 <X className="w-6 h-6" />
@@ -4743,50 +4786,50 @@ NOTIFY pgrst, 'reload schema';`);
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                 <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Resident</p>
-                  <p className="text-sm font-black text-slate-800">{selectedBooking.name}</p>
+                  <p className="text-sm font-black text-purple-900">{selectedBooking.name}</p>
                 </div>
                 <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Tower / Flat</p>
-                  <p className="text-sm font-black text-slate-800">T-{selectedBooking.tower} / {selectedBooking.flat}</p>
+                  <p className="text-sm font-black text-purple-900">T-{selectedBooking.tower} / {selectedBooking.flat}</p>
                 </div>
                 <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Amenity</p>
-                  <p className="text-sm font-black text-slate-800">{selectedBooking.amenity_name}</p>
+                  <p className="text-sm font-black text-purple-900">{selectedBooking.amenity_name}</p>
                 </div>
                 <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Status</p>
                   <p className={`text-sm font-black ${
-                    selectedBooking.status === 'Approved' ? 'text-emerald-600' : 
-                    selectedBooking.status === 'Pending' ? 'text-amber-600' : 'text-rose-600'
+                    selectedBooking.status === 'Approved' ? 'text-#44D080' : 
+                    selectedBooking.status === 'Pending' ? 'text-amber-600' : 'text-#FAA928'
                   }`}>{selectedBooking.status}</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-3">
-                  <h4 className="text-sm font-black text-slate-800 uppercase tracking-widest">Event Information</h4>
+                  <h4 className="text-sm font-black text-purple-900 uppercase tracking-widest">Event Information</h4>
                   <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 space-y-4">
                     <div>
                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Event Name</p>
-                      <p className="text-sm font-bold text-slate-800">{selectedBooking.event_name}</p>
+                      <p className="text-sm font-bold text-purple-900">{selectedBooking.event_name}</p>
                     </div>
                     <div>
                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Booking Date</p>
-                      <p className="text-sm font-bold text-slate-800">{format(new Date(selectedBooking.booking_date), 'dd MMM yyyy')}</p>
+                      <p className="text-sm font-bold text-purple-900">{format(new Date(selectedBooking.booking_date), 'dd MMM yyyy')}</p>
                     </div>
                   </div>
                 </div>
 
                 <div className="space-y-3">
-                  <h4 className="text-sm font-black text-slate-800 uppercase tracking-widest">Time & Charges</h4>
+                  <h4 className="text-sm font-black text-purple-900 uppercase tracking-widest">Time & Charges</h4>
                   <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 space-y-4">
                     <div>
                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Time Slot</p>
-                      <p className="text-sm font-bold text-slate-800">{selectedBooking.start_time} - {selectedBooking.end_time}</p>
+                      <p className="text-sm font-bold text-purple-900">{selectedBooking.start_time} - {selectedBooking.end_time}</p>
                     </div>
                     <div>
                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Charges</p>
-                      <p className="text-lg font-black text-indigo-600">₹{selectedBooking.charges}</p>
+                      <p className="text-lg font-black text-[#6339CA]">₹{selectedBooking.charges}</p>
                     </div>
                   </div>
                 </div>
@@ -4806,12 +4849,12 @@ NOTIFY pgrst, 'reload schema';`);
 
       {/* Complaint Details Modal */}
       {selectedComplaint && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[100] p-4">
+        <div className="fixed inset-0 bg-[#6339CA]/60 backdrop-blur-md flex items-center justify-center z-[100] p-4">
           <div className="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="p-8 bg-indigo-600 text-white flex justify-between items-center">
+            <div className="p-8 bg-[#6339CA] text-white flex justify-between items-center">
               <div>
                 <h3 className="text-2xl font-black">Complaint Details</h3>
-                <p className="text-indigo-100 text-xs font-bold uppercase tracking-widest mt-1">{selectedComplaint.complaint_id}</p>
+                <p className="text-white/60 text-xs font-bold uppercase tracking-widest mt-1">{selectedComplaint.complaint_id}</p>
               </div>
               <button onClick={() => setSelectedComplaint(null)} className="p-2 hover:bg-white/10 rounded-full transition-colors">
                 <X className="w-6 h-6" />
@@ -4821,41 +4864,41 @@ NOTIFY pgrst, 'reload schema';`);
               <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
                 <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Complaint ID</p>
-                  <p className="text-sm font-black text-slate-800">{selectedComplaint.complaint_id}</p>
+                  <p className="text-sm font-black text-purple-900">{selectedComplaint.complaint_id}</p>
                 </div>
                 <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Category</p>
-                  <p className="text-sm font-black text-slate-800">{selectedComplaint.category}</p>
+                  <p className="text-sm font-black text-purple-900">{selectedComplaint.category}</p>
                 </div>
                 <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Tower</p>
-                  <p className="text-sm font-black text-slate-800">{selectedComplaint.tower}</p>
+                  <p className="text-sm font-black text-purple-900">{selectedComplaint.tower}</p>
                 </div>
                 <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Flat Number</p>
-                  <p className="text-sm font-black text-slate-800">{selectedComplaint.flat_no}</p>
+                  <p className="text-sm font-black text-purple-900">{selectedComplaint.flat_no}</p>
                 </div>
                 <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Resident ID</p>
-                  <p className="text-sm font-black text-slate-800">{selectedComplaint.resident_id}</p>
+                  <p className="text-sm font-black text-purple-900">{selectedComplaint.resident_id}</p>
                 </div>
                 <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Date</p>
-                  <p className="text-sm font-black text-slate-800">
+                  <p className="text-sm font-black text-purple-900">
                     {new Date(selectedComplaint.complaint_date || Date.now()).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
                   </p>
                 </div>
               </div>
 
               <div className="space-y-3">
-                <h4 className="text-sm font-black text-slate-800 uppercase tracking-widest">Description</h4>
+                <h4 className="text-sm font-black text-purple-900 uppercase tracking-widest">Description</h4>
                 <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
                   <p className="text-slate-600 font-medium leading-relaxed">{selectedComplaint.description}</p>
                 </div>
               </div>
 
               <div className="space-y-3">
-                <h4 className="text-sm font-black text-slate-800 uppercase tracking-widest">Media Attachment</h4>
+                <h4 className="text-sm font-black text-purple-900 uppercase tracking-widest">Media Attachment</h4>
                 <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
                   {selectedComplaint.media && selectedComplaint.media.length > 0 ? (
                     <div className="relative group overflow-hidden rounded-2xl border border-slate-200 bg-white">
@@ -4889,13 +4932,13 @@ NOTIFY pgrst, 'reload schema';`);
 
       {/* Complaint Comment Modal */}
       {complaintToComment && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-[#6339CA]/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <div className="bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 w-full max-w-md overflow-hidden">
             <div className={`p-8 text-white relative overflow-hidden ${
-              complaintToComment.status === 'Done' ? 'bg-emerald-600' : 
-              complaintToComment.status === 'Process' ? 'bg-indigo-600' :
+              complaintToComment.status === 'Done' ? 'bg-#44D080' : 
+              complaintToComment.status === 'Process' ? 'bg-[#6339CA]' :
               complaintToComment.status === 'Pending' ? 'bg-amber-600' :
-              'bg-rose-600'
+              'bg-#FAA928'
             }`}>
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
               <div className="relative z-10">
@@ -4920,7 +4963,7 @@ NOTIFY pgrst, 'reload schema';`);
                   value={adminComment}
                   onChange={(e) => setAdminComment(e.target.value)}
                   placeholder="Enter resolution details or reason for rejection..."
-                  className="w-full px-5 py-4 rounded-2xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all text-sm font-medium min-h-[120px] resize-none bg-slate-50"
+                  className="w-full px-5 py-4 rounded-2xl border border-slate-200 outline-none focus:ring-2 focus:ring-[#6339CA] focus:border-transparent transition-all text-sm font-medium min-h-[120px] resize-none bg-slate-50"
                 />
               </div>
 
@@ -4939,12 +4982,12 @@ NOTIFY pgrst, 'reload schema';`);
                   disabled={updating === complaintToComment.id}
                   className={`flex-[2] px-6 py-4 rounded-2xl text-white font-black text-xs uppercase tracking-widest shadow-lg transition-all flex items-center justify-center gap-2 ${
                     complaintToComment.status === 'Done' 
-                      ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-100' 
+                      ? 'bg-#44D080 hover:bg-emerald-700 shadow-emerald-100' 
                       : complaintToComment.status === 'Process'
-                      ? 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-100'
+                      ? 'bg-[#6339CA] hover:bg-[#5D31C7] shadow-[#6339CA]/10'
                       : complaintToComment.status === 'Pending'
                       ? 'bg-amber-600 hover:bg-amber-700 shadow-amber-100'
-                      : 'bg-rose-600 hover:bg-rose-700 shadow-rose-100'
+                      : 'bg-#FAA928 hover:bg-rose-700 shadow-rose-100'
                   }`}
                 >
                   {updating === complaintToComment.id ? (
@@ -4961,9 +5004,9 @@ NOTIFY pgrst, 'reload schema';`);
       )}
       {/* Change Password Modal */}
       {showChangePasswordModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-[#6339CA]/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-2xl border border-slate-100 w-full max-w-md overflow-hidden">
-            <div className="p-8 bg-slate-900 text-white flex justify-between items-center">
+            <div className="p-8 bg-[#6339CA] text-white flex justify-between items-center">
               <div>
                 <h3 className="text-2xl font-black tracking-tight">Change Password</h3>
                 <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">Secure your admin account</p>
@@ -4981,7 +5024,7 @@ NOTIFY pgrst, 'reload schema';`);
                     required
                     value={passwordData.oldPassword}
                     onChange={(e) => setPasswordData({ ...passwordData, oldPassword: e.target.value })}
-                    className="w-full px-5 py-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-slate-900 transition-all font-bold text-sm" 
+                    className="w-full px-5 py-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-purple-950 transition-all font-bold text-sm" 
                   />
                   <button 
                     type="button"
@@ -5000,7 +5043,7 @@ NOTIFY pgrst, 'reload schema';`);
                     required
                     value={passwordData.newPassword}
                     onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                    className="w-full px-5 py-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-slate-900 transition-all font-bold text-sm" 
+                    className="w-full px-5 py-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-purple-950 transition-all font-bold text-sm" 
                   />
                   <button 
                     type="button"
@@ -5019,7 +5062,7 @@ NOTIFY pgrst, 'reload schema';`);
                     required
                     value={passwordData.confirmPassword}
                     onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-                    className="w-full px-5 py-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-slate-900 transition-all font-bold text-sm" 
+                    className="w-full px-5 py-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-purple-950 transition-all font-bold text-sm" 
                   />
                   <button 
                     type="button"
@@ -5041,7 +5084,7 @@ NOTIFY pgrst, 'reload schema';`);
                 <button
                   type="submit"
                   disabled={updating === 'changing-password'}
-                  className="flex-[2] px-6 py-4 rounded-xl bg-slate-900 text-white font-black text-xs uppercase tracking-widest shadow-lg hover:bg-slate-800 transition-all flex items-center justify-center gap-2"
+                  className="flex-[2] px-6 py-4 rounded-xl bg-[#6339CA] text-white font-black text-xs uppercase tracking-widest shadow-lg hover:bg-purple-900 transition-all flex items-center justify-center gap-2"
                 >
                   {updating === 'changing-password' ? (
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -5056,19 +5099,19 @@ NOTIFY pgrst, 'reload schema';`);
       )}
 
       {showBillSuccessModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[200] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-[#6339CA]/60 backdrop-blur-md z-[200] flex items-center justify-center p-4">
           <div className="bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-300">
             <div className="p-8 text-center space-y-6">
-              <div className="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
+              <div className="w-20 h-20 bg-emerald-50 text-#44D080 rounded-full flex items-center justify-center mx-auto shadow-inner">
                 <CheckCircle2 className="w-10 h-10" />
               </div>
               <div>
-                <h3 className="text-2xl font-black text-slate-900 tracking-tight">Bills Generated!</h3>
+                <h3 className="text-2xl font-black text-[#6339CA] tracking-tight">Bills Generated!</h3>
                 <p className="text-slate-500 font-medium mt-2">Maintenance bills have been generated and sent to the selected residents successfully.</p>
               </div>
               <button 
                 onClick={() => setShowBillSuccessModal(false)}
-                className="w-full bg-emerald-600 text-white font-black py-4 rounded-2xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100 uppercase tracking-widest text-xs"
+                className="w-full bg-#44D080 text-white font-black py-4 rounded-2xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100 uppercase tracking-widest text-xs"
               >
                 Done
               </button>
@@ -5088,10 +5131,10 @@ NOTIFY pgrst, 'reload schema';`);
         const isOverdue = m.status === 'Unpaid' && m.due_date && new Date(m.due_date) < new Date();
 
         return (
-          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[200] flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200">
+          <div className="fixed inset-0 bg-[#6339CA]/60 backdrop-blur-md z-[200] flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200">
             <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-2xl overflow-hidden flex flex-col max-h-[92vh]">
               {/* Header */}
-              <div className="p-6 bg-gradient-to-r from-blue-700 to-indigo-700 text-white flex justify-between items-start shrink-0">
+              <div className="p-6 bg-gradient-to-r from-[#6339CA] via-[#5D31C7] to-[#6339CA] text-white flex justify-between items-start shrink-0">
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-white/20 text-white">
@@ -5102,7 +5145,7 @@ NOTIFY pgrst, 'reload schema';`);
                     </span>
                   </div>
                   <h3 className="text-xl sm:text-2xl font-black mt-1">TowerTech Residential Society</h3>
-                  <p className="text-blue-100 text-xs font-medium mt-0.5">
+                  <p className="text-white/60 text-xs font-medium mt-0.5">
                     Hinjewadi Phase 1, Pune • Reg: SOC-MH-PUN-2024-8890
                   </p>
                 </div>
@@ -5115,16 +5158,16 @@ NOTIFY pgrst, 'reload schema';`);
               </div>
 
               {/* Printable Body */}
-              <div className="p-6 overflow-y-auto space-y-6 text-slate-800">
+              <div className="p-6 overflow-y-auto space-y-6 text-purple-900">
                 {/* Invoice Meta Grid */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs">
                   <div>
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Billing Month</p>
-                    <p className="font-bold text-slate-900 mt-0.5">{m.month || selectedMonth}</p>
+                    <p className="font-bold text-[#6339CA] mt-0.5">{m.month || selectedMonth}</p>
                   </div>
                   <div>
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Due Date</p>
-                    <p className={`font-bold mt-0.5 ${isOverdue ? 'text-red-600' : 'text-slate-900'}`}>
+                    <p className={`font-bold mt-0.5 ${isOverdue ? 'text-red-600' : 'text-[#6339CA]'}`}>
                       {m.due_date ? format(new Date(m.due_date), 'dd MMM yyyy') : '15 Oct 2026'}
                     </p>
                   </div>
@@ -5132,17 +5175,17 @@ NOTIFY pgrst, 'reload schema';`);
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Payment Status</p>
                     <p className="mt-0.5">
                       {m.status === 'Paid' ? (
-                        <span className="font-black text-emerald-600 uppercase">PAID & SETTLED</span>
+                        <span className="font-black text-#44D080 uppercase">PAID & SETTLED</span>
                       ) : isOverdue ? (
                         <span className="font-black text-red-600 uppercase">OVERDUE</span>
                       ) : (
-                        <span className="font-black text-rose-600 uppercase">UNPAID</span>
+                        <span className="font-black text-#FAA928 uppercase">UNPAID</span>
                       )}
                     </p>
                   </div>
                   <div>
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Payment Date</p>
-                    <p className="font-mono font-bold text-slate-900 mt-0.5">
+                    <p className="font-mono font-bold text-[#6339CA] mt-0.5">
                       {m.payment_date ? format(new Date(m.payment_date), 'dd MMM yyyy') : '—'}
                     </p>
                   </div>
@@ -5151,12 +5194,12 @@ NOTIFY pgrst, 'reload schema';`);
                 {/* Resident Details Box */}
                 <div className="p-5 rounded-2xl border border-slate-200 bg-white space-y-3">
                   <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-                    <h4 className="text-xs font-black uppercase tracking-wider text-slate-900 flex items-center gap-2">
-                      <UserIcon className="w-4 h-4 text-blue-600" />
+                    <h4 className="text-xs font-black uppercase tracking-wider text-[#6339CA] flex items-center gap-2">
+                      <UserIcon className="w-4 h-4 text-[#6339CA]" />
                       Billed To Resident
                     </h4>
                     <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                      residentRole === 'Owner' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'
+                      residentRole === 'Owner' ? 'bg-[#6339CA]/10 text-[#6339CA]' : 'bg-purple-100 text-purple-800'
                     }`}>
                       {residentRole} Occupied
                     </span>
@@ -5164,27 +5207,27 @@ NOTIFY pgrst, 'reload schema';`);
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
                     <div>
                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Resident Name</p>
-                      <p className="font-bold text-slate-900 mt-0.5">{displayResidentName}</p>
+                      <p className="font-bold text-[#6339CA] mt-0.5">{displayResidentName}</p>
                     </div>
                     <div>
                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Resident ID</p>
-                      <p className="font-mono font-bold text-blue-700 mt-0.5">{m.resident_id}</p>
+                      <p className="font-mono font-bold text-[#6339CA] mt-0.5">{m.resident_id}</p>
                     </div>
                     <div>
                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Tower & Flat</p>
-                      <p className="font-bold text-slate-900 mt-0.5">Tower {m.tower} / Flat {m.flat_no}</p>
+                      <p className="font-bold text-[#6339CA] mt-0.5">Tower {m.tower} / Flat {m.flat_no}</p>
                     </div>
                     <div>
                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Flat Type</p>
-                      <p className="font-bold text-slate-800 mt-0.5">{flatType}</p>
+                      <p className="font-bold text-purple-900 mt-0.5">{flatType}</p>
                     </div>
                     <div>
                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Unit Area</p>
-                      <p className="font-mono font-bold text-slate-800 mt-0.5">{sqft} sq.ft.</p>
+                      <p className="font-mono font-bold text-purple-900 mt-0.5">{sqft} sq.ft.</p>
                     </div>
                     <div>
                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Contact Phone</p>
-                      <p className="font-mono font-bold text-slate-800 mt-0.5">{residentObj?.phone || '—'}</p>
+                      <p className="font-mono font-bold text-purple-900 mt-0.5">{residentObj?.phone || '—'}</p>
                     </div>
                   </div>
                 </div>
@@ -5201,18 +5244,18 @@ NOTIFY pgrst, 'reload schema';`);
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       <tr>
-                        <td className="px-4 py-3 font-bold text-slate-900">
+                        <td className="px-4 py-3 font-bold text-[#6339CA]">
                           Society Monthly Maintenance
                           <p className="text-[10px] font-normal text-slate-500">Security, common lighting, water, cleaning, landscaping & elevators</p>
                         </td>
                         <td className="px-4 py-3 text-slate-600">{flatType} ({sqft} sq.ft)</td>
-                        <td className="px-4 py-3 text-right font-mono font-bold text-slate-900">₹{m.amount.toLocaleString()}</td>
+                        <td className="px-4 py-3 text-right font-mono font-bold text-[#6339CA]">₹{m.amount.toLocaleString()}</td>
                       </tr>
                       <tr className="bg-slate-50/50 font-bold">
                         <td colSpan={2} className="px-4 py-3 text-right uppercase text-[10px] tracking-wider text-slate-600">
                           Total Amount Due:
                         </td>
-                        <td className="px-4 py-3 text-right font-mono font-black text-base text-blue-700">
+                        <td className="px-4 py-3 text-right font-mono font-black text-base text-[#6339CA]">
                           ₹{m.amount.toLocaleString()}
                         </td>
                       </tr>
@@ -5255,7 +5298,7 @@ NOTIFY pgrst, 'reload schema';`);
               <div className="p-5 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-3 shrink-0">
                 <button
                   onClick={() => globalThis.print?.()}
-                  className="px-4 py-2.5 bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 font-bold text-xs rounded-xl transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer"
+                  className="px-4 py-2.5 bg-white border border-slate-300 hover:bg-slate-100 text-purple-800 font-bold text-xs rounded-xl transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer"
                 >
                   <Printer className="w-4 h-4 text-slate-600" />
                   Print / Download
@@ -5271,14 +5314,14 @@ NOTIFY pgrst, 'reload schema';`);
                     className={`px-4 py-2.5 font-bold text-xs rounded-xl transition-all cursor-pointer ${
                       m.status === 'Paid'
                         ? 'bg-rose-100 text-rose-800 hover:bg-rose-200 border border-rose-300'
-                        : 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-md shadow-emerald-500/20'
+                        : 'bg-#44D080 text-white hover:bg-emerald-700 shadow-md shadow-#44D080/20'
                     }`}
                   >
                     {m.status === 'Paid' ? 'Mark as Unpaid' : 'Mark as Paid'}
                   </button>
                   <button
                     onClick={() => setSelectedBillForInvoice(null)}
-                    className="px-5 py-2.5 bg-slate-900 text-white font-bold text-xs rounded-xl hover:bg-slate-800 transition-all cursor-pointer"
+                    className="px-5 py-2.5 bg-[#6339CA] text-white font-bold text-xs rounded-xl hover:bg-purple-900 transition-all cursor-pointer"
                   >
                     Close
                   </button>
@@ -5290,10 +5333,10 @@ NOTIFY pgrst, 'reload schema';`);
       })()}
       {/* Booking Comment Modal */}
       {bookingToComment && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-[#6339CA]/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <div className="bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 w-full max-w-md overflow-hidden">
             <div className={`p-8 text-white relative overflow-hidden ${
-              bookingToComment.status === 'Approved' ? 'bg-emerald-600' : 'bg-rose-600'
+              bookingToComment.status === 'Approved' ? 'bg-#44D080' : 'bg-#FAA928'
             }`}>
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
               <div className="relative z-10">
@@ -5312,7 +5355,7 @@ NOTIFY pgrst, 'reload schema';`);
                   value={bookingComment}
                   onChange={(e) => setBookingComment(e.target.value)}
                   placeholder="Enter details or reason for rejection..."
-                  className="w-full px-5 py-4 rounded-2xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all text-sm font-medium min-h-[120px] resize-none bg-slate-50"
+                  className="w-full px-5 py-4 rounded-2xl border border-slate-200 outline-none focus:ring-2 focus:ring-[#6339CA] focus:border-transparent transition-all text-sm font-medium min-h-[120px] resize-none bg-slate-50"
                 />
               </div>
 
@@ -5335,8 +5378,8 @@ NOTIFY pgrst, 'reload schema';`);
                   disabled={updating === bookingToComment.id}
                   className={`flex-[2] px-6 py-4 rounded-2xl text-white font-black text-xs uppercase tracking-widest shadow-lg transition-all flex items-center justify-center gap-2 ${
                     bookingToComment.status === 'Approved' 
-                      ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-100' 
-                      : 'bg-rose-600 hover:bg-rose-700 shadow-rose-100'
+                      ? 'bg-#44D080 hover:bg-emerald-700 shadow-emerald-100' 
+                      : 'bg-#FAA928 hover:bg-rose-700 shadow-rose-100'
                   }`}
                 >
                   {updating === bookingToComment.id ? (

@@ -43,15 +43,14 @@ export function GenerateBillWorkspace({
   currentMonth
 }: GenerateBillWorkspaceProps) {
   const now = new Date();
-  const [billMode, setBillMode] = useState<'single' | 'bulk'>('single');
-  const [selectedResidentId, setSelectedResidentId] = useState<string>(residents[0]?.resident_id || '');
+  const [billMode] = useState<'bulk'>('bulk');
+  const [selectedResidentId] = useState<string>(residents[0]?.resident_id || '');
   const [billingMonth, setBillingMonth] = useState<string>(currentMonth);
   const [billingYear, setBillingYear] = useState<number>(now.getFullYear());
   const [calcMethod, setCalcMethod] = useState<'fixed' | 'flat_type' | 'sqft'>('flat_type');
   
-  // Single bill charges
+  // Bulk bill charges
   const [baseAmount, setBaseAmount] = useState<number>(2500);
-  const [previousDue, setPreviousDue] = useState<number>(0);
   const [sinkingFund, setSinkingFund] = useState<number>(250);
   const [waterCharges, setWaterCharges] = useState<number>(150);
   const [lateFeeRule, setLateFeeRule] = useState<number>(100);
@@ -61,65 +60,26 @@ export function GenerateBillWorkspace({
   const [notes, setNotes] = useState<string>('Monthly maintenance and common facility charges.');
   const [submitting, setSubmitting] = useState(false);
 
-  // Selected resident details
-  const selectedResident = residents.find(r => r.resident_id === selectedResidentId) || residents[0];
+  // Selected resident details (not needed for bulk but keeping for context if needed)
+  const selectedResident = residents[0];
 
   // Auto calculate based on calc method
   const handleCalcMethodChange = (method: 'fixed' | 'flat_type' | 'sqft') => {
     setCalcMethod(method);
-    if (!selectedResident) return;
 
     if (method === 'fixed') {
       setBaseAmount(2500);
     } else if (method === 'flat_type') {
-      const bhk = selectedResident.bhk || '2 BHK';
-      if (bhk === '1 BHK') setBaseAmount(1800);
-      else if (bhk === '3 BHK') setBaseAmount(3500);
-      else setBaseAmount(2500);
+      setBaseAmount(2500);
     } else if (method === 'sqft') {
-      const sqft = selectedResident.square_feet || 620;
-      setBaseAmount(Math.round(sqft * 4)); // ₹4 per sqft
+      setBaseAmount(2500);
     }
   };
-
-  const handleResidentChange = (resId: string) => {
-    setSelectedResidentId(resId);
-    const res = residents.find(r => r.resident_id === resId);
-    if (!res) return;
-
-    if (calcMethod === 'flat_type') {
-      const bhk = res.bhk || '2 BHK';
-      if (bhk === '1 BHK') setBaseAmount(1800);
-      else if (bhk === '3 BHK') setBaseAmount(3500);
-      else setBaseAmount(2500);
-    } else if (calcMethod === 'sqft') {
-      const sqft = res.square_feet || 620;
-      setBaseAmount(Math.round(sqft * 4));
-    }
-  };
-
-  const totalPayable = baseAmount + previousDue + sinkingFund + waterCharges;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     try {
-      if (billMode === 'single') {
-        await onGenerate({
-          mode: 'single',
-          resident_id: selectedResidentId,
-          resident: selectedResident,
-          month: `${billingMonth} ${billingYear}`,
-          amount: totalPayable,
-          base_amount: baseAmount,
-          previous_due: previousDue,
-          sinking_fund: sinkingFund,
-          water_charges: waterCharges,
-          late_fee: lateFeeRule,
-          due_date: dueDate,
-          notes
-        });
-      } else {
         await onGenerate({
           mode: 'bulk',
           month: `${billingMonth} ${billingYear}`,
@@ -131,7 +91,6 @@ export function GenerateBillWorkspace({
           notes,
           calc_method: calcMethod
         });
-      }
     } finally {
       setSubmitting(false);
     }
@@ -157,15 +116,15 @@ export function GenerateBillWorkspace({
           </button>
           <div>
             <div className="flex items-center gap-2.5">
-              <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+              <h1 className="text-2xl font-black text-[#321F5C] tracking-tight">
                 Generate Maintenance Bill
               </h1>
-              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold border uppercase tracking-wider bg-blue-50 text-blue-800 border-blue-200">
-                {billMode === 'single' ? 'Single Flat' : 'Bulk Society'}
+              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold border uppercase tracking-wider bg-purple-50 text-purple-800 border-purple-200">
+                All Resident Bills
               </span>
             </div>
             <p className="text-xs font-semibold text-slate-500 mt-0.5">
-              Create and dispatch official monthly maintenance invoices for society flats.
+              Generate and dispatch official monthly maintenance invoices for all society residents.
             </p>
           </div>
         </div>
@@ -183,14 +142,14 @@ export function GenerateBillWorkspace({
             type="button"
             onClick={handleSubmit}
             disabled={submitting}
-            className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-md shadow-blue-500/25 flex items-center gap-2 cursor-pointer disabled:opacity-50"
+            className="px-5 py-2.5 rounded-xl bg-[#6339CA] hover:bg-[#5D31C7] text-white text-xs font-bold transition-all shadow-md shadow-purple-500/25 flex items-center gap-2 cursor-pointer disabled:opacity-50"
           >
             {submitting ? (
               <span>Generating Bills...</span>
             ) : (
               <>
                 <CreditCard className="w-4 h-4" />
-                <span>Generate Bill</span>
+                <span>Generate All Bills</span>
               </>
             )}
           </button>
@@ -198,37 +157,34 @@ export function GenerateBillWorkspace({
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* SECTION 1: Bill Information */}
+        {/* SECTION 1: Bill Schedule & Generation */}
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="px-6 py-4 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold">
+              <div className="w-8 h-8 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center font-bold">
                 <Calendar className="w-4 h-4" />
               </div>
               <div>
-                <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">
-                  Section 1: Bill Schedule & Generation Type
+                <h3 className="text-sm font-black text-[#321F5C] uppercase tracking-wider">
+                  Section 1: Bill Schedule & Calculation Method
                 </h3>
-                <p className="text-[11px] text-slate-500 font-medium">Select bill period and target units</p>
+                <p className="text-[11px] text-slate-500 font-medium">Configure billing period and rates for all society residents</p>
               </div>
             </div>
-            <span className="text-[11px] font-bold text-slate-400">Step 1 of 5</span>
+            <span className="text-[11px] font-bold text-slate-400">Step 1 of 2</span>
           </div>
 
           <div className="p-6 space-y-6">
-            {/* Mode Selector */}
-            <div className="w-full">
-              <div
-                className="p-4 rounded-xl border-2 border-blue-600 bg-blue-50/50 shadow-xs"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-black uppercase tracking-wider text-slate-800">Single Resident Bill</span>
-                  <div className="w-4 h-4 rounded-full border-2 border-blue-600 bg-blue-600 flex items-center justify-center">
-                    <div className="w-1.5 h-1.5 rounded-full bg-white" />
-                  </div>
-                </div>
-                <p className="text-xs text-slate-500 mt-1">Generate a maintenance invoice for a specific individual flat.</p>
+            <div className="p-4 rounded-xl bg-[#6339CA]/10 border border-[#6339CA]/20 flex items-center justify-between">
+              <div>
+                <h4 className="text-sm font-black text-[#321F5C]">Society Bulk Maintenance Invoicing</h4>
+                <p className="text-xs text-[#321F5C]/80 mt-0.5">
+                  Generates monthly bills for all {residents.length} resident units across all towers for {billingMonth} {billingYear}.
+                </p>
               </div>
+              <span className="px-3.5 py-1.5 rounded-xl bg-[#6339CA] text-white font-black text-xs">
+                {residents.length} Flats Selected
+              </span>
             </div>
 
             {/* Month, Year, and Calculation Method */}
@@ -238,7 +194,7 @@ export function GenerateBillWorkspace({
                 <select
                   value={billingMonth}
                   onChange={(e) => setBillingMonth(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-xs font-bold text-slate-800 bg-white"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-[#6339CA] focus:ring-2 focus:ring-[#6339CA]/10 outline-none text-xs font-bold text-slate-800 bg-white"
                 >
                   {months.map(m => (
                     <option key={m} value={m}>{m}</option>
@@ -251,7 +207,7 @@ export function GenerateBillWorkspace({
                 <select
                   value={billingYear}
                   onChange={(e) => setBillingYear(Number(e.target.value))}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-xs font-bold text-slate-800 bg-white"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-100 outline-none text-xs font-bold text-slate-800 bg-white"
                 >
                   {[now.getFullYear() - 1, now.getFullYear(), now.getFullYear() + 1].map(y => (
                     <option key={y} value={y}>{y}</option>
@@ -264,7 +220,7 @@ export function GenerateBillWorkspace({
                 <select
                   value={calcMethod}
                   onChange={(e) => handleCalcMethodChange(e.target.value as any)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-xs font-bold text-slate-800 bg-white"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-[#6339CA] focus:ring-2 focus:ring-[#6339CA]/10 outline-none text-xs font-bold text-slate-800 bg-white"
                 >
                   <option value="flat_type">BHK / Flat Type Standard Rates</option>
                   <option value="fixed">Fixed Rate (Uniform for all)</option>
@@ -275,146 +231,7 @@ export function GenerateBillWorkspace({
           </div>
         </div>
 
-        {/* SECTION 2: Resident / Property Information */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold">
-                <Building2 className="w-4 h-4" />
-              </div>
-              <div>
-                <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">
-                  Section 2: Resident & Apartment Information
-                </h3>
-                <p className="text-[11px] text-slate-500 font-medium">Target unit specifications</p>
-              </div>
-            </div>
-            <span className="text-[11px] font-bold text-slate-400">Step 2 of 5</span>
-          </div>
-
-          <div className="p-6">
-            {billMode === 'single' ? (
-              <div className="space-y-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-700">Select Resident / Flat *</label>
-                  <select
-                    value={selectedResidentId}
-                    onChange={(e) => handleResidentChange(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-xs font-bold text-slate-800 bg-white"
-                  >
-                    {residents.map(r => (
-                      <option key={r.resident_id} value={r.resident_id}>
-                        Tower {r.tower} - Flat {r.flat} • {r.name} ({r.resident_id}) • {r.bhk || '2 BHK'}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {selectedResident && (
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs">
-                    <div>
-                      <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Resident Name</p>
-                      <p className="font-black text-slate-900 mt-0.5">{selectedResident.name}</p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Unit Number</p>
-                      <p className="font-bold text-slate-800 mt-0.5">Tower {selectedResident.tower}, Flat {selectedResident.flat}</p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Configuration</p>
-                      <p className="font-bold text-slate-800 mt-0.5">{selectedResident.bhk || '2 BHK'} ({selectedResident.square_feet || 620} sq.ft.)</p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Occupancy Type</p>
-                      <p className="font-bold text-indigo-700 mt-0.5">{selectedResident.role || selectedResident.occupancy_type || 'Owner'}</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="p-4 rounded-xl bg-indigo-50/70 border border-indigo-200 flex items-center justify-between">
-                <div>
-                  <h4 className="text-sm font-black text-indigo-950">Bulk Society Invoicing</h4>
-                  <p className="text-xs text-indigo-800/80 mt-0.5">
-                    Will generate bills for all {residents.length} units across all registered towers according to their BHK configuration.
-                  </p>
-                </div>
-                <span className="px-3 py-1 rounded-xl bg-indigo-600 text-white font-black text-xs">
-                  {residents.length} Flats Selected
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* SECTION 3: Billing Information */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
-                <IndianRupee className="w-4 h-4" />
-              </div>
-              <div>
-                <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">
-                  Section 3: Billing Breakdown
-                </h3>
-                <p className="text-[11px] text-slate-500 font-medium">Itemized charges configuration</p>
-              </div>
-            </div>
-            <span className="text-[11px] font-bold text-slate-400">Step 3 of 5</span>
-          </div>
-
-          <div className="p-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700">Base Maintenance (₹) *</label>
-                <input
-                  type="number"
-                  required
-                  min="0"
-                  value={baseAmount}
-                  onChange={(e) => setBaseAmount(Number(e.target.value) || 0)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 outline-none text-xs font-bold text-slate-800 bg-white"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700">Sinking Fund (₹)</label>
-                <input
-                  type="number"
-                  min="0"
-                  value={sinkingFund}
-                  onChange={(e) => setSinkingFund(Number(e.target.value) || 0)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 outline-none text-xs font-bold text-slate-800 bg-white"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700">Water / Sewerage (₹)</label>
-                <input
-                  type="number"
-                  min="0"
-                  value={waterCharges}
-                  onChange={(e) => setWaterCharges(Number(e.target.value) || 0)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 outline-none text-xs font-bold text-slate-800 bg-white"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700">Previous Unpaid Dues (₹)</label>
-                <input
-                  type="number"
-                  min="0"
-                  value={previousDue}
-                  onChange={(e) => setPreviousDue(Number(e.target.value) || 0)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 outline-none text-xs font-bold text-slate-800 bg-white"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* SECTION 4: Payment Information */}
+        {/* SECTION 2: Payment Terms & Due Dates */}
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="px-6 py-4 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -422,17 +239,29 @@ export function GenerateBillWorkspace({
                 <Clock className="w-4 h-4" />
               </div>
               <div>
-                <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">
-                  Section 4: Payment Terms & Due Dates
+                <h3 className="text-sm font-black text-[#321F5C] uppercase tracking-wider">
+                  Section 2: Base Rate & Payment Due Terms
                 </h3>
                 <p className="text-[11px] text-slate-500 font-medium">Timelines and overdue penalties</p>
               </div>
             </div>
-            <span className="text-[11px] font-bold text-slate-400">Step 4 of 5</span>
+            <span className="text-[11px] font-bold text-slate-400">Step 2 of 2</span>
           </div>
 
           <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700">Base Maintenance Rate (₹) *</label>
+                <input
+                  type="number"
+                  required
+                  min="0"
+                  value={baseAmount}
+                  onChange={(e) => setBaseAmount(Number(e.target.value) || 0)}
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-[#6339CA] focus:ring-2 focus:ring-[#6339CA]/10 outline-none text-xs font-bold text-slate-800 bg-white"
+                />
+              </div>
+
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-slate-700">Payment Due Date *</label>
                 <input
@@ -445,7 +274,7 @@ export function GenerateBillWorkspace({
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700">Late Fee Penalty if Unpaid after Due Date (₹)</label>
+                <label className="text-xs font-bold text-slate-700">Late Fee Penalty if Unpaid (₹)</label>
                 <input
                   type="number"
                   min="0"
@@ -454,56 +283,6 @@ export function GenerateBillWorkspace({
                   className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none text-xs font-bold text-slate-800 bg-white"
                 />
               </div>
-            </div>
-          </div>
-        </div>
-
-        {/* SECTION 5: Summary & Instructions */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center font-bold">
-                <FileText className="w-4 h-4" />
-              </div>
-              <div>
-                <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">
-                  Section 5: Summary & Invoice Notes
-                </h3>
-                <p className="text-[11px] text-slate-500 font-medium">Review net payable and add notes</p>
-              </div>
-            </div>
-            <span className="text-[11px] font-bold text-slate-400">Step 5 of 5</span>
-          </div>
-
-          <div className="p-6 space-y-5">
-            {/* Total Highlight Card */}
-            <div className="p-5 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
-              <div>
-                <span className="text-[10px] font-black uppercase tracking-wider bg-white/20 px-2.5 py-0.5 rounded-full">
-                  Total Payable Amount
-                </span>
-                <h2 className="text-3xl font-black mt-2 font-mono">₹{totalPayable.toLocaleString('en-IN')}</h2>
-                <p className="text-white/80 text-xs mt-1">
-                  Billing Period: {billingMonth} {billingYear} • Due on {dueDate}
-                </p>
-              </div>
-              <div className="text-right text-xs space-y-1">
-                <div className="text-white/80">Base: ₹{baseAmount.toLocaleString('en-IN')}</div>
-                <div className="text-white/80">Sinking Fund: ₹{sinkingFund.toLocaleString('en-IN')}</div>
-                <div className="text-white/80">Water/Common: ₹{waterCharges.toLocaleString('en-IN')}</div>
-                {previousDue > 0 && <div className="text-amber-200 font-bold">Previous Due: ₹{previousDue.toLocaleString('en-IN')}</div>}
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700">Invoice Notes / Payment Instructions</label>
-              <textarea
-                rows={2}
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-xs text-slate-800 bg-white"
-                placeholder="Add special instructions, society bank account or UPI details..."
-              />
             </div>
           </div>
         </div>
@@ -530,7 +309,7 @@ export function GenerateBillWorkspace({
             <button
               type="submit"
               disabled={submitting}
-              className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-md shadow-blue-500/25 flex items-center gap-2 cursor-pointer disabled:opacity-50"
+              className="px-6 py-2.5 rounded-xl bg-[#6339CA] hover:bg-[#5D31C7] text-white text-xs font-bold transition-all shadow-md shadow-purple-500/25 flex items-center gap-2 cursor-pointer disabled:opacity-50"
             >
               {submitting ? (
                 <span>Generating...</span>
@@ -588,7 +367,7 @@ export function ViewBillWorkspace({
           </button>
           <div>
             <div className="flex items-center gap-2.5">
-              <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+              <h1 className="text-2xl font-black text-[#321F5C] tracking-tight">
                 Maintenance Bill — {billNo}
               </h1>
               <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border uppercase tracking-wider ${
@@ -624,7 +403,7 @@ export function ViewBillWorkspace({
             <button
               type="button"
               onClick={() => onPrintReceipt(bill)}
-              className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-indigo-500/20 flex items-center gap-2 cursor-pointer"
+              className="px-4 py-2.5 bg-[#6339CA] hover:bg-[#5D31C7] text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-[#6339CA]/20 flex items-center gap-2 cursor-pointer"
             >
               <Printer className="w-4 h-4" />
               <span>Print Receipt</span>
@@ -653,17 +432,17 @@ export function ViewBillWorkspace({
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-5">
             <div className="flex items-center justify-between pb-4 border-b border-slate-100">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold">
+                <div className="w-10 h-10 rounded-xl bg-[#6339CA] text-white flex items-center justify-center font-bold">
                   <Receipt className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-black text-slate-900">Green Valley Housing Society</h3>
+                  <h3 className="text-base font-black text-[#321F5C]">Green Valley Housing Society</h3>
                   <p className="text-xs text-slate-500">Baner Road, Pune • Reg: SOC-MH-PUN-2024-8890</p>
                 </div>
               </div>
               <div className="text-right">
                 <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Invoice ID</span>
-                <p className="font-mono font-bold text-blue-700 text-sm">{billNo}</p>
+                <p className="font-mono font-bold text-purple-700 text-sm">{billNo}</p>
               </div>
             </div>
 
@@ -699,15 +478,15 @@ export function ViewBillWorkspace({
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-5 text-xs">
               <div>
                 <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Resident Name</p>
-                <p className="font-black text-slate-900 mt-0.5 text-sm">{residentName}</p>
+                <p className="font-black text-[#321F5C] mt-0.5 text-sm">{residentName}</p>
               </div>
               <div>
                 <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Resident ID</p>
-                <p className="font-mono font-bold text-blue-700 mt-0.5">{bill.resident_id}</p>
+                <p className="font-mono font-bold text-purple-700 mt-0.5">{bill.resident_id}</p>
               </div>
               <div>
                 <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Unit Number</p>
-                <p className="font-bold text-slate-900 mt-0.5">Tower {bill.tower}, Flat {bill.flat_no}</p>
+                <p className="font-bold text-[#321F5C] mt-0.5">Tower {bill.tower}, Flat {bill.flat_no}</p>
               </div>
               <div>
                 <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Phone</p>
@@ -734,15 +513,15 @@ export function ViewBillWorkspace({
             <div className="divide-y divide-slate-100 text-xs">
               <div className="flex justify-between py-2.5">
                 <span className="text-slate-600 font-medium">Standard Maintenance Charges</span>
-                <span className="font-mono font-bold text-slate-900">₹{(Number(bill.amount) * 0.8).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
+                <span className="font-mono font-bold text-[#321F5C]">₹{(Number(bill.amount) * 0.8).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
               </div>
               <div className="flex justify-between py-2.5">
                 <span className="text-slate-600 font-medium">Sinking Fund & Building Reserve</span>
-                <span className="font-mono font-bold text-slate-900">₹{(Number(bill.amount) * 0.1).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
+                <span className="font-mono font-bold text-[#321F5C]">₹{(Number(bill.amount) * 0.1).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
               </div>
               <div className="flex justify-between py-2.5">
                 <span className="text-slate-600 font-medium">Water & Common Electricity</span>
-                <span className="font-mono font-bold text-slate-900">₹{(Number(bill.amount) * 0.1).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
+                <span className="font-mono font-bold text-[#321F5C]">₹{(Number(bill.amount) * 0.1).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
               </div>
               {bill.late_fee ? (
                 <div className="flex justify-between py-2.5 text-rose-600">
@@ -750,9 +529,9 @@ export function ViewBillWorkspace({
                   <span className="font-mono font-bold">+ ₹{Number(bill.late_fee).toLocaleString('en-IN')}</span>
                 </div>
               ) : null}
-              <div className="flex justify-between py-3 text-sm font-black bg-blue-50/60 p-3 rounded-xl border border-blue-100 text-blue-950 mt-2">
+              <div className="flex justify-between py-3 text-sm font-black bg-purple-50/60 p-3 rounded-xl border border-purple-100 text-purple-950 mt-2">
                 <span>Total Net Payable</span>
-                <span className="font-mono text-blue-700 text-base">₹{Number(bill.amount).toLocaleString('en-IN')}</span>
+                <span className="font-mono text-purple-700 text-base">₹{Number(bill.amount).toLocaleString('en-IN')}</span>
               </div>
             </div>
           </div>
@@ -801,7 +580,7 @@ export function ViewBillWorkspace({
                 <button
                   type="button"
                   onClick={() => onPrintReceipt(bill)}
-                  className="w-full mt-3 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full mt-3 py-2.5 bg-[#6339CA] hover:bg-[#5D31C7] text-white rounded-xl font-bold text-xs transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <Printer className="w-4 h-4" />
                   <span>View Official Receipt</span>
@@ -900,7 +679,7 @@ export function MarkBillPaidWorkspace({
           </button>
           <div>
             <div className="flex items-center gap-2.5">
-              <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+              <h1 className="text-2xl font-black text-[#321F5C] tracking-tight">
                 Record Payment for Bill {billNo}
               </h1>
               <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold border uppercase tracking-wider bg-emerald-50 text-emerald-800 border-emerald-200">
@@ -942,7 +721,7 @@ export function MarkBillPaidWorkspace({
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Bill Summary Strip */}
-        <div className="bg-slate-900 text-white rounded-2xl p-6 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="bg-[#321F5C] text-white rounded-2xl p-6 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <span className="text-[10px] font-black uppercase tracking-wider bg-white/20 px-2.5 py-0.5 rounded-full text-white">
               Target Invoice
@@ -966,7 +745,7 @@ export function MarkBillPaidWorkspace({
                 <CreditCard className="w-4 h-4" />
               </div>
               <div>
-                <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">
+                <h3 className="text-sm font-black text-[#321F5C] uppercase tracking-wider">
                   Payment Details
                 </h3>
                 <p className="text-[11px] text-slate-500 font-medium">Enter transaction verification data</p>
@@ -1129,7 +908,7 @@ export function BillReceiptWorkspace({
           </button>
           <div>
             <div className="flex items-center gap-2.5">
-              <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+              <h1 className="text-2xl font-black text-[#321F5C] tracking-tight">
                 Maintenance Payment Receipt
               </h1>
               <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold border uppercase tracking-wider bg-emerald-50 text-emerald-800 border-emerald-200">
@@ -1154,7 +933,7 @@ export function BillReceiptWorkspace({
           <button
             type="button"
             onClick={handlePrint}
-            className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-all shadow-md shadow-indigo-500/20 flex items-center gap-2 cursor-pointer"
+            className="px-5 py-2.5 rounded-xl bg-[#6339CA] hover:bg-[#5D31C7] text-white text-xs font-bold transition-all shadow-md shadow-purple-500/20 flex items-center gap-2 cursor-pointer"
           >
             <Printer className="w-4 h-4" />
             <span>Print Receipt</span>
@@ -1167,7 +946,7 @@ export function BillReceiptWorkspace({
         {/* Receipt Header */}
         <div className="flex justify-between items-start pb-6 border-b-2 border-slate-900">
           <div>
-            <div className="flex items-center gap-2 text-indigo-700 font-black text-xl tracking-tight">
+            <div className="flex items-center gap-2 text-[#6339CA] font-black text-xl tracking-tight">
               <Building2 className="w-6 h-6" />
               <span>TowerTech Residential Society</span>
             </div>
@@ -1178,7 +957,7 @@ export function BillReceiptWorkspace({
             <span className="text-[11px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full">
               PAYMENT RECEIPT
             </span>
-            <p className="text-xs font-mono font-black text-slate-900 mt-2">NO: {billNo}</p>
+            <p className="text-xs font-mono font-black text-[#321F5C] mt-2">NO: {billNo}</p>
             <p className="text-xs text-slate-500 mt-0.5">Date: {bill.payment_date ? format(new Date(bill.payment_date), 'dd MMMM yyyy') : format(new Date(), 'dd MMMM yyyy')}</p>
           </div>
         </div>
@@ -1187,13 +966,13 @@ export function BillReceiptWorkspace({
         <div className="grid grid-cols-2 gap-6 bg-slate-50 p-6 rounded-2xl border border-slate-200 text-xs">
           <div>
             <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Received With Thanks From</p>
-            <h4 className="text-base font-black text-slate-900 mt-1">{residentName}</h4>
+            <h4 className="text-base font-black text-[#321F5C] mt-1">{residentName}</h4>
             <p className="text-slate-600 mt-0.5 font-medium">Resident ID: {bill.resident_id}</p>
             <p className="text-slate-600 font-medium">Mobile: {resident?.phone || '—'}</p>
           </div>
           <div>
             <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Property / Unit Allocation</p>
-            <h4 className="text-base font-black text-slate-900 mt-1">Tower {bill.tower} — Flat {bill.flat_no}</h4>
+            <h4 className="text-base font-black text-[#321F5C] mt-1">Tower {bill.tower} — Flat {bill.flat_no}</h4>
             <p className="text-slate-600 mt-0.5 font-medium">{resident?.bhk || '2 BHK'} Configuration</p>
             <p className="text-slate-600 font-medium">Billing Period: {bill.month}</p>
           </div>
@@ -1213,17 +992,17 @@ export function BillReceiptWorkspace({
               <tr>
                 <td className="py-3 text-slate-400 font-mono">01</td>
                 <td className="py-3 font-bold text-slate-800">Monthly Society Maintenance ({bill.month})</td>
-                <td className="py-3 font-mono font-bold text-slate-900 text-right">₹{(Number(bill.amount) * 0.8).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</td>
+                <td className="py-3 font-mono font-bold text-[#321F5C] text-right">₹{(Number(bill.amount) * 0.8).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</td>
               </tr>
               <tr>
                 <td className="py-3 text-slate-400 font-mono">02</td>
                 <td className="py-3 font-bold text-slate-800">Sinking Fund Reserve Contribution</td>
-                <td className="py-3 font-mono font-bold text-slate-900 text-right">₹{(Number(bill.amount) * 0.1).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</td>
+                <td className="py-3 font-mono font-bold text-[#321F5C] text-right">₹{(Number(bill.amount) * 0.1).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</td>
               </tr>
               <tr>
                 <td className="py-3 text-slate-400 font-mono">03</td>
                 <td className="py-3 font-bold text-slate-800">Common Amenities & Water Utility Charges</td>
-                <td className="py-3 font-mono font-bold text-slate-900 text-right">₹{(Number(bill.amount) * 0.1).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</td>
+                <td className="py-3 font-mono font-bold text-[#321F5C] text-right">₹{(Number(bill.amount) * 0.1).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</td>
               </tr>
               {bill.late_fee ? (
                 <tr>
@@ -1235,8 +1014,8 @@ export function BillReceiptWorkspace({
             </tbody>
             <tfoot>
               <tr className="border-t-2 border-slate-900 text-sm font-black">
-                <td colSpan={2} className="py-4 text-slate-900 uppercase">Total Received Amount</td>
-                <td className="py-4 text-right font-mono text-indigo-700 text-base">₹{Number(bill.amount).toLocaleString('en-IN')}</td>
+                <td colSpan={2} className="py-4 text-[#321F5C] uppercase">Total Received Amount</td>
+                <td className="py-4 text-right font-mono text-[#6339CA] text-base">₹{Number(bill.amount).toLocaleString('en-IN')}</td>
               </tr>
             </tfoot>
           </table>
@@ -1266,7 +1045,7 @@ export function BillReceiptWorkspace({
           </div>
           <div className="text-center">
             <div className="w-36 h-12 border-b-2 border-slate-800 mb-2"></div>
-            <p className="font-black text-slate-900 text-xs">Authorized Signatory</p>
+            <p className="font-black text-[#321F5C] text-xs">Authorized Signatory</p>
             <p className="text-[10px] text-slate-500">Hon. Treasurer / Secretary</p>
           </div>
         </div>

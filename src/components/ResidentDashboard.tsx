@@ -39,8 +39,9 @@ import {
   IndianRupee
 } from 'lucide-react';
 import AmenityBooking from './AmenityBooking';
-import { Resident, MaintenanceRecord, Complaint, Booking } from '../types';
+import { Resident, MaintenanceRecord, Complaint, Booking, User } from '../types';
 import { societyService } from '../lib/societyService';
+import { visitorService } from '../modules/visitors/services/visitorService';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import NoticeBoard from './NoticeBoard';
@@ -163,6 +164,44 @@ export default function ResidentDashboard({
   });
   const [billSearchTerm, setBillSearchTerm] = useState('');
   const [billsViewMode, setBillsViewMode] = useState<'both' | 'cards' | 'table'>('both');
+
+  const [residentVisitors, setResidentVisitors] = useState<any[]>([]);
+  const [residentNotices, setResidentNotices] = useState<any[]>([]);
+  const [residentComms, setResidentComms] = useState<any[]>([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchPortalData = async () => {
+      try {
+        const [vData, nData, cData] = await Promise.all([
+          visitorService.getVisitors().catch(() => []),
+          societyService.getNotices().catch(() => []),
+          societyService.getCommunications ? societyService.getCommunications(resident.society_id).catch(() => []) : Promise.resolve([])
+        ]);
+
+        if (!isMounted) return;
+
+        const myResId = resident.resident_id || (resident as any).id;
+        const myFlat = resident.flat;
+        const filteredV = (vData || []).filter((v: any) => {
+          const matchRes = myResId && String(v.resident_id) === String(myResId);
+          const matchFlat = myFlat && String(v.flat).toLowerCase().trim() === String(myFlat).toLowerCase().trim();
+          return matchRes || matchFlat;
+        });
+        setResidentVisitors(filteredV);
+
+        const filteredN = (nData || []).filter((n: any) => n.status !== 'Expired' && n.status !== 'Archived');
+        setResidentNotices(filteredN);
+
+        setResidentComms(cData || []);
+      } catch (err) {
+        console.warn('Notice: Could not load supplementary portal metrics:', err);
+      }
+    };
+
+    fetchPortalData();
+    return () => { isMounted = false; };
+  }, [resident.resident_id, resident.flat]);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -643,83 +682,55 @@ export default function ResidentDashboard({
     const isOwner = (profileData.occupancy_type || resident.occupancy_type || 'Owner') === 'Owner';
 
     return (
-      <header className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-gradient-to-r from-blue-800 to-indigo-900 p-8 rounded-[2.5rem] shadow-xl shadow-blue-100 text-white relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-blue-500/10 rounded-full -ml-24 -mb-24 blur-2xl"></div>
+      <header className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-gradient-to-r from-[#321F5C] via-[#5D31C7] to-[#6339CA] p-8 rounded-[2.5rem] shadow-xl border border-purple-900/60 text-white relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-80 h-80 bg-purple-500/10 rounded-full -mr-32 -mt-32 blur-3xl pointer-events-none"></div>
         
-        <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="bg-white/10 backdrop-blur-md p-2 rounded-xl border border-white/10">
-              <Users className="w-5 h-5 text-blue-300" />
-            </div>
-            <h1 className="text-3xl font-black tracking-tight">TowerTech-Society</h1>
+        <div className="relative z-10 text-left">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 border border-purple-400/30 text-xs font-black uppercase tracking-wider mb-4">
+             <Building2 className="w-3.5 h-3.5 text-purple-400" />
+             <span>Green Park Residency • Resident Portal</span>
           </div>
+
           <div className="space-y-2">
-            <div className="flex flex-wrap items-center gap-3">
-              <h2 className="text-4xl font-black tracking-tight">
-                Hello, <span className="text-white drop-shadow-sm">{resident.name}!</span>
-              </h2>
-              <span className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider border flex items-center gap-1.5 shadow-sm ${
+            <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white leading-tight">
+              Welcome back, {resident.name}
+            </h1>
+            <p className="text-slate-300 text-sm font-medium leading-relaxed max-w-2xl">
+              Official Resident portal for Green Park Residency. Manage your maintenance bills, amenity bookings, and service requests efficiently.
+            </p>
+            
+            <div className="flex flex-wrap items-center gap-3 pt-4">
+              <span className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider border flex items-center gap-1.5 shadow-sm ${
                 isOwner 
-                  ? 'bg-amber-400/20 text-amber-200 border-amber-300/40' 
-                  : 'bg-emerald-400/20 text-emerald-200 border-emerald-300/40'
+                  ? 'bg-amber-500/20 text-amber-200 border-amber-400/30' 
+                  : 'bg-emerald-500/20 text-emerald-200 border-emerald-400/30'
               }`}>
                 {isOwner ? <Home className="w-3.5 h-3.5" /> : <Key className="w-3.5 h-3.5" />}
                 {isOwner ? 'Owner' : 'Tenant'}
               </span>
-            </div>
-            <p className="text-blue-100/80 text-lg font-medium max-w-2xl leading-relaxed">
-              Welcome to your TowerTech Resident Dashboard. Here you can manage your maintenance, bookings, and complaints.
-            </p>
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-blue-200 font-medium pt-2">
-              <div className="flex items-center gap-2 bg-white/5 px-3 py-1 rounded-lg border border-white/5">
-                <span className="text-[10px] font-black uppercase tracking-tighter opacity-40">Flat:</span>
-                <span className="text-xs font-black uppercase tracking-widest">{resident.flat} (T-{resident.tower})</span>
-              </div>
-              <div className="flex items-center gap-2 bg-white/5 px-3 py-1 rounded-lg border border-white/5">
-                <span className="text-[10px] font-black uppercase tracking-tighter opacity-40">Resident Type:</span>
-                <span className="text-xs font-black uppercase tracking-widest">{residentRole}</span>
-              </div>
-              <div className="flex items-center gap-2 bg-white/5 px-3 py-1 rounded-lg border border-white/5">
-                <span className="text-[10px] font-black uppercase tracking-tighter opacity-40">Status:</span>
-                <span className={`text-xs font-black uppercase tracking-widest flex items-center gap-1 ${
-                  residentStatus === 'Active' ? 'text-emerald-300' : 'text-rose-300'
-                }`}>
-                  <span className={`w-2 h-2 rounded-full ${residentStatus === 'Active' ? 'bg-emerald-400' : 'bg-rose-400'}`}></span>
-                  {residentStatus}
-                </span>
-              </div>
-              {!isOwner && linkedOwner && (
-                <div className="flex items-center gap-2 bg-white/10 px-3 py-1 rounded-lg border border-white/10 text-amber-200">
-                  <span className="text-[10px] font-black uppercase tracking-tighter opacity-70">Owner:</span>
-                  <span className="text-xs font-black uppercase tracking-widest">{linkedOwner.name}</span>
-                </div>
-              )}
-              <div className="flex items-center gap-2 bg-white/5 px-3 py-1 rounded-lg border border-white/5">
-                <span className="text-[10px] font-black uppercase tracking-tighter opacity-40">Resident ID:</span>
-                <span className="text-xs font-black uppercase tracking-widest">{resident.resident_id}</span>
+              <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-xl border border-white/10 text-xs font-bold text-white">
+                <span className="opacity-70">Flat:</span>
+                <span>{resident.flat} (T-{resident.tower})</span>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="relative z-10 flex flex-col items-end gap-4">
-          <div className="flex items-center gap-3">
-            <button 
-              onClick={() => setShowEditProfile(true)}
-              className="p-3 bg-white/10 hover:bg-white/20 rounded-2xl border border-white/10 transition-all group"
-              title="Edit Profile"
-            >
-              <Edit className="w-5 h-5 text-white group-hover:scale-110 transition-transform" />
-            </button>
-            <button 
-              onClick={onLogout}
-              className="p-3 bg-rose-500/20 hover:bg-rose-500/30 rounded-2xl border border-rose-500/20 transition-all group"
-              title="Logout"
-            >
-              <LogOut className="w-5 h-5 text-rose-300 group-hover:scale-110 transition-transform" />
-            </button>
-          </div>
+        <div className="relative z-10 flex items-center gap-3">
+          <button 
+            onClick={() => setShowEditProfile(true)}
+            className="p-3 bg-white/10 hover:bg-white/20 rounded-2xl border border-white/10 transition-all group"
+            title="Edit Profile"
+          >
+            <Edit className="w-5 h-5 text-white group-hover:scale-110 transition-transform" />
+          </button>
+          <button 
+            onClick={onLogout}
+            className="p-3 bg-rose-500/20 hover:bg-rose-500/30 rounded-2xl border border-rose-500/20 transition-all group"
+            title="Logout"
+          >
+            <LogOut className="w-5 h-5 text-rose-300 group-hover:scale-110 transition-transform" />
+          </button>
         </div>
       </header>
     );
@@ -729,12 +740,12 @@ export default function ResidentDashboard({
     const currentPass = profileData.password || resident.password || 'resident123';
 
     return (
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100] p-3 sm:p-4">
+      <div className="fixed inset-0 bg-[#321F5C]/50 backdrop-blur-sm flex items-center justify-center z-[100] p-3 sm:p-4">
         <div className="bg-white w-full max-w-[500px] rounded-2xl shadow-2xl overflow-hidden flex flex-col border border-slate-100 animate-in zoom-in-95 duration-200">
-          <div className="px-5 py-3 bg-blue-600 text-white flex justify-between items-center shrink-0">
+        <div className="px-5 py-3 bg-[#6339CA] text-white flex justify-between items-center shrink-0">
             <div>
               <h3 className="text-base font-black leading-tight">Edit Resident Profile</h3>
-              <p className="text-blue-100 text-[10px] font-bold uppercase tracking-wider">Update personal details & credentials</p>
+              <p className="text-purple-100 text-[10px] font-bold uppercase tracking-wider">Update personal details & credentials</p>
             </div>
             <button onClick={() => setShowEditProfile(false)} className="p-1.5 hover:bg-white/10 rounded-full transition-colors text-white">
               <X className="w-5 h-5" />
@@ -750,7 +761,7 @@ export default function ResidentDashboard({
                 required
                 value={profileData.name}
                 onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
-                className="w-full px-3 py-1.5 rounded-xl border border-slate-200 focus:ring-1 focus:ring-blue-500 outline-none font-bold text-xs bg-slate-50/70"
+                className="w-full px-3 py-1.5 rounded-xl border border-slate-200 focus:ring-1 focus:ring-[#6339CA] outline-none font-bold text-xs bg-slate-50/70"
                 placeholder="Enter your name"
               />
             </div>
@@ -764,12 +775,12 @@ export default function ResidentDashboard({
                   onClick={() => setProfileData({ ...profileData, occupancy_type: 'Owner', owner_id: null })}
                   className={`p-2 rounded-xl border text-left transition-all flex items-center gap-2 cursor-pointer ${
                     profileData.occupancy_type === 'Owner'
-                      ? 'border-blue-600 bg-blue-50/80 text-blue-900 shadow-sm'
+                      ? 'border-[#6339CA] bg-purple-50/80 text-purple-900 shadow-sm'
                       : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
                   }`}
                 >
                   <div className={`w-6 h-6 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 ${
-                    profileData.occupancy_type === 'Owner' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-500'
+                    profileData.occupancy_type === 'Owner' ? 'bg-[#6339CA] text-white' : 'bg-slate-100 text-slate-500'
                   }`}>
                     <Home className="w-3.5 h-3.5" />
                   </div>
@@ -784,12 +795,12 @@ export default function ResidentDashboard({
                   onClick={() => setProfileData({ ...profileData, occupancy_type: 'Tenant', owner_id: profileData.owner_id || availableOwners[0]?.resident_id || 'R001' })}
                   className={`p-2 rounded-xl border text-left transition-all flex items-center gap-2 cursor-pointer ${
                     profileData.occupancy_type === 'Tenant'
-                      ? 'border-indigo-600 bg-indigo-50/80 text-indigo-900 shadow-sm'
+                      ? 'border-[#321F5C] bg-[#6339CA]/10/80 text-[#321F5C] shadow-sm'
                       : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
                   }`}
                 >
                   <div className={`w-6 h-6 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 ${
-                    profileData.occupancy_type === 'Tenant' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-500'
+                    profileData.occupancy_type === 'Tenant' ? 'bg-[#321F5C] text-white' : 'bg-slate-100 text-slate-500'
                   }`}>
                     <Key className="w-3.5 h-3.5" />
                   </div>
@@ -802,14 +813,14 @@ export default function ResidentDashboard({
 
               {profileData.occupancy_type === 'Tenant' && (
                 <div className="pt-1 space-y-0.5">
-                  <label className="text-[8px] font-black text-indigo-700 uppercase tracking-wider flex items-center gap-1">
+                  <label className="text-[8px] font-black text-[#6339CA] uppercase tracking-wider flex items-center gap-1">
                     <span>Select Owner</span>
                     <span className="text-slate-400 font-normal lowercase">(flat {resident.flat})</span>
                   </label>
                   <select
                     value={profileData.owner_id || ''}
                     onChange={(e) => setProfileData({ ...profileData, owner_id: e.target.value })}
-                    className="w-full px-2.5 py-1.5 rounded-lg border border-indigo-200 bg-indigo-50/30 focus:ring-1 focus:ring-indigo-500 outline-none font-bold text-xs text-slate-800"
+                    className="w-full px-2.5 py-1.5 rounded-lg border border-[#6339CA]/20 bg-purple-50/30 focus:ring-1 focus:ring-[#6339CA] outline-none font-bold text-xs text-slate-800"
                     required
                   >
                     <option value="">-- Choose Flat Owner --</option>
@@ -831,7 +842,7 @@ export default function ResidentDashboard({
                   type="tel"
                   value={profileData.phone}
                   onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
-                  className="w-full px-3 py-1.5 rounded-xl border border-slate-200 focus:ring-1 focus:ring-blue-500 outline-none font-bold text-xs bg-slate-50/70"
+                  className="w-full px-3 py-1.5 rounded-xl border border-slate-200 focus:ring-1 focus:ring-[#6339CA] outline-none font-bold text-xs bg-slate-50/70"
                   placeholder="e.g. 9876543210"
                 />
               </div>
@@ -841,7 +852,7 @@ export default function ResidentDashboard({
                   type="email"
                   value={profileData.email}
                   onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
-                  className="w-full px-3 py-1.5 rounded-xl border border-slate-200 focus:ring-1 focus:ring-blue-500 outline-none font-bold text-xs bg-slate-50/70"
+                  className="w-full px-3 py-1.5 rounded-xl border border-slate-200 focus:ring-1 focus:ring-[#6339CA] outline-none font-bold text-xs bg-slate-50/70"
                   placeholder="e.g. resident@tower.com"
                 />
               </div>
@@ -874,7 +885,7 @@ export default function ResidentDashboard({
                     className="p-1 text-slate-500 hover:text-slate-700 bg-white border border-slate-200 rounded-lg text-[10px] font-bold transition-colors"
                     title="Copy password"
                   >
-                    {copiedPassword ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                    {copiedPassword ? <Check className="w-3 h-3 text-[#44D080]" /> : <Copy className="w-3 h-3" />}
                   </button>
                 </div>
               </div>
@@ -888,7 +899,7 @@ export default function ResidentDashboard({
                     setShowEditProfile(false);
                     setShowChangePassword(true);
                   }}
-                  className="text-[9px] font-black text-blue-600 hover:text-blue-700 uppercase tracking-wider cursor-pointer"
+                  className="text-[9px] font-black text-[#6339CA] hover:text-purple-700 uppercase tracking-wider cursor-pointer"
                 >
                   Change
                 </button>
@@ -898,7 +909,7 @@ export default function ResidentDashboard({
             <button 
               type="submit"
               disabled={updatingProfile}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-2.5 rounded-xl shadow-md shadow-blue-100 disabled:opacity-50 flex items-center justify-center gap-2 uppercase tracking-widest text-xs cursor-pointer transition-all mt-1"
+              className="w-full bg-[#6339CA] hover:bg-[#5D31C7] text-white font-black py-2.5 rounded-xl shadow-md shadow-purple-100 disabled:opacity-50 flex items-center justify-center gap-2 uppercase tracking-widest text-xs cursor-pointer transition-all mt-1"
             >
               {updatingProfile ? (
                 <>
@@ -919,9 +930,9 @@ export default function ResidentDashboard({
   };
 
   const renderChangePasswordModal = () => (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-[#321F5C]/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
       <div className="bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 w-full max-w-md overflow-hidden">
-        <div className="p-8 bg-slate-900 text-white flex justify-between items-center">
+        <div className="p-8 bg-[#321F5C] text-white flex justify-between items-center">
           <div>
             <h3 className="text-2xl font-black tracking-tight">Change Password</h3>
             <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">Check & secure your resident account</p>
@@ -1005,7 +1016,7 @@ export default function ResidentDashboard({
             <button
               type="submit"
               disabled={updatingProfile}
-              className="flex-[2] px-6 py-3.5 rounded-xl bg-slate-900 text-white font-black text-xs uppercase tracking-widest shadow-lg hover:bg-slate-800 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+              className="flex-[2] px-6 py-3.5 rounded-xl bg-[#321F5C] text-white font-black text-xs uppercase tracking-widest shadow-lg hover:bg-[#2d1b54] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
             >
               {updatingProfile ? (
                 <>
@@ -1047,15 +1058,15 @@ export default function ResidentDashboard({
           onClick={(e) => e.stopPropagation()}
         >
           {/* Modal Header */}
-          <div className="p-6 sm:p-7 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white relative shrink-0 border-b border-white/10">
-            <div className="absolute top-0 right-0 w-48 h-48 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="p-6 sm:p-7 bg-gradient-to-r from-slate-900 via-[#321F5C] to-slate-900 text-white relative shrink-0 border-b border-white/10">
+            <div className="absolute top-0 right-0 w-48 h-48 bg-[#6339CA]/100/10 rounded-full blur-3xl pointer-events-none" />
             <div className="flex justify-between items-start relative z-10 gap-4">
               <div className="space-y-1.5">
                 <div className="flex items-center gap-2">
-                  <span className="p-1.5 bg-white/10 rounded-lg text-indigo-300">
+                  <span className="p-1.5 bg-white/10 rounded-lg text-white/80">
                     <Receipt className="w-4 h-4" />
                   </span>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-indigo-200">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-white/80">
                     Official Society Maintenance Bill
                   </span>
                 </div>
@@ -1068,7 +1079,7 @@ export default function ResidentDashboard({
                   </span>
                 </h3>
                 <p className="text-slate-300 text-xs font-medium">
-                  Invoice ID: <span className="font-mono text-indigo-300 font-bold">{selectedBill.maintenance_id}</span>
+                  Invoice ID: <span className="font-mono text-white/80 font-bold">{selectedBill.maintenance_id}</span>
                 </p>
               </div>
 
@@ -1099,7 +1110,7 @@ export default function ResidentDashboard({
             {/* Society & Resident Header Info */}
             <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div className="space-y-1">
-                <div className="flex items-center gap-2 text-indigo-600 font-black text-xs uppercase tracking-wider">
+                <div className="flex items-center gap-2 text-[#6339CA] font-black text-xs uppercase tracking-wider">
                   <Building2 className="w-4 h-4" />
                   <span>TowerTech Society</span>
                 </div>
@@ -1113,7 +1124,7 @@ export default function ResidentDashboard({
                   <UserIcon className="w-4 h-4 text-slate-500" />
                   <span>Billed To Resident</span>
                 </div>
-                <p className="text-sm font-black text-slate-900">{selectedBill.resident_name || resident.name}</p>
+                <p className="text-sm font-black text-[#321F5C]">{selectedBill.resident_name || resident.name}</p>
                 <p className="text-xs font-bold text-slate-600">Tower {selectedBill.tower} • Flat {selectedBill.flat_no}</p>
                 <div className="flex items-center gap-2 pt-1 text-[11px] text-slate-500 font-medium">
                   <span className="bg-slate-100 px-2 py-0.5 rounded text-[10px] font-black uppercase text-slate-600">
@@ -1146,7 +1157,7 @@ export default function ResidentDashboard({
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">
                   {isPaid ? 'Amount Paid' : 'Total Due'}
                 </p>
-                <p className="font-black text-slate-900 text-sm mt-0.5">
+                <p className="font-black text-[#321F5C] text-sm mt-0.5">
                   ₹{(isPaid ? totalPaid : totalPayable).toLocaleString('en-IN')}
                 </p>
               </div>
@@ -1194,10 +1205,10 @@ export default function ResidentDashboard({
                 )}
                 <div className="p-4 bg-slate-50 flex justify-between items-center border-t-2 border-slate-200">
                   <div>
-                    <p className="text-xs font-black text-slate-900 uppercase tracking-wider">Total {isPaid ? 'Settled' : 'Payable'} Amount</p>
+                    <p className="text-xs font-black text-[#321F5C] uppercase tracking-wider">Total {isPaid ? 'Settled' : 'Payable'} Amount</p>
                     <p className="text-[10px] text-slate-500 font-medium">All municipal & society dues inclusive</p>
                   </div>
-                  <span className="text-xl font-black text-indigo-700 font-mono">
+                  <span className="text-xl font-black text-[#6339CA] font-mono">
                     ₹{(isPaid ? totalPaid : totalPayable).toLocaleString('en-IN')}.00
                   </span>
                 </div>
@@ -1268,7 +1279,7 @@ export default function ResidentDashboard({
                     setSelectedBill(null);
                     handleOpenPayBill(billToPay);
                   }}
-                  className="w-full sm:w-auto px-7 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-xl text-xs uppercase tracking-widest transition-all shadow-lg shadow-indigo-100 flex items-center justify-center gap-2"
+                  className="w-full sm:w-auto px-7 py-3.5 bg-[#6339CA] hover:bg-[#5D31C7] text-white font-black rounded-xl text-xs uppercase tracking-widest transition-all shadow-lg shadow-[#6339CA]/10 flex items-center justify-center gap-2"
                 >
                   <CreditCard className="w-4 h-4" />
                   Pay Bill Now (₹{totalPayable.toLocaleString('en-IN')})
@@ -1307,16 +1318,16 @@ export default function ResidentDashboard({
           onClick={(e) => e.stopPropagation()}
         >
           {/* Modal Header */}
-          <div className="p-6 sm:p-7 bg-gradient-to-r from-indigo-700 via-indigo-800 to-violet-900 text-white relative shrink-0 border-b border-indigo-600/30">
+          <div className="p-6 sm:p-7 bg-gradient-to-r from-[#321F5C] via-[#321F5C] to-violet-900 text-white relative shrink-0 border-b border-[#6339CA]/30">
             <div className="absolute top-0 right-0 w-36 h-36 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl pointer-events-none" />
             <div className="flex justify-between items-start relative z-10 gap-3">
               <div>
-                <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-lg bg-white/15 backdrop-blur-md text-[10px] font-black uppercase tracking-widest text-indigo-100 mb-1.5">
+                <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-lg bg-white/15 backdrop-blur-md text-[10px] font-black uppercase tracking-widest text-white/60 mb-1.5">
                   <CreditCard className="w-3.5 h-3.5 text-white" />
                   TowerTech Payment Gateway
                 </div>
                 <h3 className="text-xl sm:text-2xl font-black tracking-tight">Pay Maintenance Bill</h3>
-                <p className="text-indigo-100 text-xs font-medium mt-0.5 opacity-90">
+                <p className="text-white/60 text-xs font-medium mt-0.5 opacity-90">
                   {payingBill.month} • Tower {payingBill.tower} - Flat {payingBill.flat_no}
                 </p>
               </div>
@@ -1345,7 +1356,7 @@ export default function ResidentDashboard({
                 <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
                   <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Bill Summary</span>
-                    <span className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-md">
+                    <span className="text-[10px] font-black text-[#6339CA] bg-[#6339CA]/10 px-2.5 py-1 rounded-md">
                       ID: {payingBill.maintenance_id}
                     </span>
                   </div>
@@ -1381,8 +1392,8 @@ export default function ResidentDashboard({
                       </div>
                     )}
                     <div className="flex justify-between items-center pt-2 border-t border-slate-200">
-                      <span className="text-xs font-black text-slate-900 uppercase tracking-wider">Total Payable Amount:</span>
-                      <span className="text-2xl font-black text-indigo-600 font-mono">₹{totalPayable.toLocaleString('en-IN')}</span>
+                      <span className="text-xs font-black text-[#321F5C] uppercase tracking-wider">Total Payable Amount:</span>
+                      <span className="text-2xl font-black text-[#6339CA] font-mono">₹{totalPayable.toLocaleString('en-IN')}</span>
                     </div>
                   </div>
                 </div>
@@ -1398,12 +1409,12 @@ export default function ResidentDashboard({
                       onClick={() => setPaymentMethod('UPI')}
                       className={`p-4 rounded-2xl border text-left flex items-center gap-3 transition-all ${
                         paymentMethod === 'UPI'
-                          ? 'border-indigo-600 bg-indigo-50/70 text-indigo-900 ring-2 ring-indigo-600/20 shadow-sm'
+                          ? 'border-[#6339CA] bg-[#6339CA]/10 text-[#321F5C] ring-2 ring-[#6339CA]/20 shadow-sm'
                           : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
                       }`}
                     >
                       <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
-                        paymentMethod === 'UPI' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600'
+                        paymentMethod === 'UPI' ? 'bg-[#6339CA] text-white' : 'bg-slate-100 text-slate-600'
                       }`}>
                         <CreditCard className="w-5 h-5" />
                       </div>
@@ -1418,12 +1429,12 @@ export default function ResidentDashboard({
                       onClick={() => setPaymentMethod('Bank')}
                       className={`p-4 rounded-2xl border text-left flex items-center gap-3 transition-all ${
                         paymentMethod === 'Bank'
-                          ? 'border-indigo-600 bg-indigo-50/70 text-indigo-900 ring-2 ring-indigo-600/20 shadow-sm'
+                          ? 'border-[#6339CA] bg-[#6339CA]/10 text-[#321F5C] ring-2 ring-[#6339CA]/20 shadow-sm'
                           : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
                       }`}
                     >
                       <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
-                        paymentMethod === 'Bank' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600'
+                        paymentMethod === 'Bank' ? 'bg-[#6339CA] text-white' : 'bg-slate-100 text-slate-600'
                       }`}>
                         <Building className="w-5 h-5" />
                       </div>
@@ -1437,7 +1448,7 @@ export default function ResidentDashboard({
 
                 {/* 3. Method Specific Flow */}
                 {paymentMethod === 'UPI' ? (
-                  <div className="bg-indigo-50/50 p-5 rounded-2xl border border-indigo-100 space-y-4">
+                  <div className="bg-[#6339CA]/10/50 p-5 rounded-2xl border border-[#6339CA]/20 space-y-4">
                     <div className="grid grid-cols-2 gap-3 text-xs">
                       <div>
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Virtual Payment Address</p>
@@ -1461,10 +1472,10 @@ export default function ResidentDashboard({
                         placeholder="••••"
                         value={demoPin}
                         onChange={(e) => setDemoPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                        className="w-full px-5 py-3.5 rounded-xl border border-slate-200 bg-white font-black text-center tracking-[0.6em] text-xl outline-none focus:ring-2 focus:ring-indigo-600 transition-all placeholder:text-sm placeholder:tracking-normal placeholder:font-medium"
+                        className="w-full px-5 py-3.5 rounded-xl border border-slate-200 bg-white font-black text-center tracking-[0.6em] text-xl outline-none focus:ring-2 focus:ring-[#6339CA] transition-all placeholder:text-sm placeholder:tracking-normal placeholder:font-medium"
                       />
                       <p className="text-[10px] text-slate-400 font-medium mt-1.5 ml-1">
-                        Demo PIN: Enter any 4 numbers (e.g. <span className="font-bold text-indigo-600">1234</span>)
+                        Demo PIN: Enter any 4 numbers (e.g. <span className="font-bold text-[#6339CA]">1234</span>)
                       </p>
                     </div>
                   </div>
@@ -1493,10 +1504,10 @@ export default function ResidentDashboard({
                         placeholder="••••"
                         value={demoPin}
                         onChange={(e) => setDemoPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                        className="w-full px-5 py-3.5 rounded-xl border border-slate-200 bg-white font-black text-center tracking-[0.6em] text-xl outline-none focus:ring-2 focus:ring-indigo-600 transition-all placeholder:text-sm placeholder:tracking-normal placeholder:font-medium"
+                        className="w-full px-5 py-3.5 rounded-xl border border-slate-200 bg-white font-black text-center tracking-[0.6em] text-xl outline-none focus:ring-2 focus:ring-[#6339CA] transition-all placeholder:text-sm placeholder:tracking-normal placeholder:font-medium"
                       />
                       <p className="text-[10px] text-slate-400 font-medium mt-1.5 ml-1">
-                        Demo PIN: Enter any 4 numbers (e.g. <span className="font-bold text-indigo-600">1234</span>)
+                        Demo PIN: Enter any 4 numbers (e.g. <span className="font-bold text-[#6339CA]">1234</span>)
                       </p>
                     </div>
                   </div>
@@ -1518,7 +1529,7 @@ export default function ResidentDashboard({
                   <button
                     type="submit"
                     disabled={demoPin.length !== 4}
-                    className="flex-[2] px-6 py-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-widest transition-all shadow-lg shadow-indigo-100 flex items-center justify-center gap-2"
+                    className="flex-[2] px-6 py-4 rounded-xl bg-[#6339CA] hover:bg-[#5D31C7] disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-widest transition-all shadow-lg shadow-[#6339CA]/10 flex items-center justify-center gap-2"
                   >
                     <Lock className="w-4 h-4" />
                     Pay Now • ₹{totalPayable.toLocaleString('en-IN')}
@@ -1530,17 +1541,17 @@ export default function ResidentDashboard({
             {paymentStep === 'processing' && (
               <div className="py-12 px-4 text-center space-y-6">
                 <div className="relative w-20 h-20 mx-auto flex items-center justify-center">
-                  <div className="w-20 h-20 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin" />
-                  <Lock className="w-7 h-7 text-indigo-600 absolute" />
+                  <div className="w-20 h-20 border-4 border-[#6339CA]/20 border-t-#6339CA rounded-full animate-spin" />
+                  <Lock className="w-7 h-7 text-[#6339CA] absolute" />
                 </div>
                 <div className="space-y-2">
-                  <h4 className="text-xl font-black text-slate-900">Processing Payment...</h4>
+                  <h4 className="text-xl font-black text-[#321F5C]">Processing Payment...</h4>
                   <p className="text-slate-500 text-xs font-medium max-w-xs mx-auto">
                     Authorizing demo transaction with payment gateway.
                   </p>
                 </div>
                 <div className="w-48 h-1.5 bg-slate-100 rounded-full mx-auto overflow-hidden">
-                  <div className="w-full h-full bg-indigo-600 rounded-full animate-pulse" />
+                  <div className="w-full h-full bg-[#6339CA] rounded-full animate-pulse" />
                 </div>
                 <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
                   Please do not refresh or close this window
@@ -1554,7 +1565,7 @@ export default function ResidentDashboard({
                   <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-inner border border-emerald-100">
                     <CheckCircle2 className="w-10 h-10" />
                   </div>
-                  <h4 className="text-2xl font-black text-slate-900 tracking-tight">Payment Successful!</h4>
+                  <h4 className="text-2xl font-black text-[#321F5C] tracking-tight">Payment Successful!</h4>
                   <p className="text-xs text-slate-500 font-medium">
                     Your maintenance bill has been marked as <span className="text-emerald-600 font-black">PAID</span>.
                   </p>
@@ -1563,7 +1574,7 @@ export default function ResidentDashboard({
                 <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-3.5 text-xs">
                   <div className="flex justify-between items-center py-1.5 border-b border-slate-100">
                     <span className="text-slate-400 font-black uppercase text-[10px] tracking-widest">Transaction ID</span>
-                    <span className="font-mono font-black text-indigo-600">{paymentSuccessData.transactionId}</span>
+                    <span className="font-mono font-black text-[#6339CA]">{paymentSuccessData.transactionId}</span>
                   </div>
                   <div className="flex justify-between items-center py-1.5 border-b border-slate-100">
                     <span className="text-slate-400 font-black uppercase text-[10px] tracking-widest">Bill ID</span>
@@ -1589,7 +1600,7 @@ export default function ResidentDashboard({
                     setPaymentSuccessData(null);
                     setPaymentStep('form');
                   }}
-                  className="w-full bg-slate-900 hover:bg-slate-800 text-white font-black py-4 rounded-xl text-xs uppercase tracking-widest transition-all shadow-lg shadow-slate-200 flex items-center justify-center gap-2"
+                  className="w-full bg-[#321F5C] hover:bg-[#2d1b54] text-white font-black py-4 rounded-xl text-xs uppercase tracking-widest transition-all shadow-lg shadow-slate-200 flex items-center justify-center gap-2"
                 >
                   Close & Back to Bills
                 </button>
@@ -1694,7 +1705,7 @@ export default function ResidentDashboard({
               </div>
               <div className="flex justify-between items-center py-1.5 border-b border-slate-100">
                 <span className="text-slate-400 font-black uppercase text-[10px] tracking-widest">Transaction Reference</span>
-                <span className="font-mono font-black text-indigo-600">{txnId}</span>
+                <span className="font-mono font-black text-[#6339CA]">{txnId}</span>
               </div>
               <div className="flex justify-between items-center py-1.5 border-b border-slate-100">
                 <span className="text-slate-400 font-black uppercase text-[10px] tracking-widest">Payment Method</span>
@@ -1711,15 +1722,15 @@ export default function ResidentDashboard({
                 </div>
               )}
               <div className="flex justify-between items-center pt-2">
-                <span className="text-slate-900 font-black uppercase text-xs tracking-wider">Total Amount Settled</span>
-                <span className="text-xl font-black text-slate-900 font-mono">₹{totalPaid.toLocaleString('en-IN')}</span>
+                <span className="text-[#321F5C] font-black uppercase text-xs tracking-wider">Total Amount Settled</span>
+                <span className="text-xl font-black text-[#321F5C] font-mono">₹{totalPaid.toLocaleString('en-IN')}</span>
               </div>
             </div>
 
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setViewingPayment(null)}
-                className="w-full bg-slate-900 hover:bg-slate-800 text-white font-black py-4 rounded-xl text-xs uppercase tracking-widest transition-all shadow-lg shadow-slate-200"
+                className="w-full bg-[#321F5C] hover:bg-[#2d1b54] text-white font-black py-4 rounded-xl text-xs uppercase tracking-widest transition-all shadow-lg shadow-slate-200"
               >
                 Exit Receipt
               </button>
@@ -1738,7 +1749,7 @@ export default function ResidentDashboard({
           return (
             <div className="flex flex-col gap-6 animate-in fade-in duration-200">
               {/* Tenant Hero Welcome Banner */}
-              <div className="bg-gradient-to-r from-purple-950 via-indigo-950 to-slate-900 p-8 rounded-[2.5rem] shadow-xl text-white relative overflow-hidden border border-purple-900/50">
+              <div className="bg-gradient-to-r from-purple-950 via-[#321F5C] to-slate-900 p-8 rounded-[2.5rem] shadow-xl text-white relative overflow-hidden border border-purple-900/50">
                 <div className="absolute top-0 right-0 w-80 h-80 bg-purple-500/15 rounded-full blur-3xl pointer-events-none" />
                 <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                   <div className="space-y-3">
@@ -1812,7 +1823,7 @@ export default function ResidentDashboard({
                           Owner Status: {linkedOwner?.status || 'Active'}
                         </span>
                       </div>
-                      <h3 className="text-2xl font-black text-slate-900 tracking-tight mt-1">
+                      <h3 className="text-2xl font-black text-[#321F5C] tracking-tight mt-1">
                         {linkedOwner ? linkedOwner.name : (resident.owner_name || 'Deepak Yadav')}
                       </h3>
                       <p className="text-xs text-slate-400 font-medium mt-0.5">
@@ -1832,7 +1843,7 @@ export default function ResidentDashboard({
                       </div>
                     </div>
                     <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100 flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-xl bg-indigo-100 flex items-center justify-center text-indigo-800 shrink-0">
+                      <div className="w-8 h-8 rounded-xl bg-purple-100 flex items-center justify-center text-[#321F5C] shrink-0">
                         <Send className="w-4 h-4" />
                       </div>
                       <div>
@@ -1848,7 +1859,7 @@ export default function ResidentDashboard({
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <button 
                   onClick={() => setActiveTab('maintenance')}
-                  className="bg-gradient-to-br from-purple-600 to-indigo-700 p-6 rounded-[2rem] text-white shadow-xl shadow-purple-100 text-left relative overflow-hidden group transition-all hover:scale-[1.02]"
+                  className="bg-gradient-to-br from-purple-600 to-[#321F5C] p-6 rounded-[2rem] text-white shadow-xl shadow-purple-100 text-left relative overflow-hidden group transition-all hover:scale-[1.02]"
                 >
                   <div className="relative z-10">
                     <div className="flex items-center justify-between mb-4">
@@ -1913,7 +1924,7 @@ export default function ResidentDashboard({
                         <Key className="w-5 h-5" />
                       </div>
                       <div>
-                        <h3 className="text-lg font-black text-slate-900 tracking-tight">Tenant Profile</h3>
+                        <h3 className="text-lg font-black text-[#321F5C] tracking-tight">Tenant Profile</h3>
                         <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{resident.name}</p>
                       </div>
                     </div>
@@ -1929,7 +1940,7 @@ export default function ResidentDashboard({
                     </div>
                     <div className="flex justify-between items-center py-2 border-b border-slate-50">
                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Resident ID</span>
-                      <span className="font-mono font-black text-blue-600">{resident.resident_id}</span>
+                      <span className="font-mono font-black text-[#6339CA]">{resident.resident_id}</span>
                     </div>
                     <div className="flex justify-between items-center py-2 border-b border-slate-50">
                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tenant Status</span>
@@ -1940,7 +1951,7 @@ export default function ResidentDashboard({
                     </div>
                     <div className="flex justify-between items-center py-2 border-b border-slate-50">
                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Flat & Tower</span>
-                      <span className="font-bold text-slate-900">Tower {resident.tower} • Flat {resident.flat}</span>
+                      <span className="font-bold text-[#321F5C]">Tower {resident.tower} • Flat {resident.flat}</span>
                     </div>
                     <div className="flex justify-between items-center py-2 border-b border-slate-50">
                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Property Owner</span>
@@ -1952,7 +1963,7 @@ export default function ResidentDashboard({
                 {/* Tenant Maintenance Bills */}
                 <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
                   <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-lg font-black text-slate-900 tracking-tight">Recent Dues</h3>
+                    <h3 className="text-lg font-black text-[#321F5C] tracking-tight">Recent Dues</h3>
                     <button onClick={() => setActiveTab('maintenance')} className="text-purple-600 text-[10px] font-black uppercase tracking-widest hover:underline">View All</button>
                   </div>
                   <div className="space-y-3">
@@ -1963,7 +1974,7 @@ export default function ResidentDashboard({
                             <CreditCard className="w-4 h-4" />
                           </div>
                           <div>
-                            <p className="text-xs font-black text-slate-900">{m.month}</p>
+                            <p className="text-xs font-black text-[#321F5C]">{m.month}</p>
                             <p className="text-[10px] font-bold text-slate-400">₹{m.amount.toLocaleString('en-IN')}</p>
                           </div>
                         </div>
@@ -1981,7 +1992,7 @@ export default function ResidentDashboard({
                 {/* Tenant Facility Bookings */}
                 <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
                   <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-lg font-black text-slate-900 tracking-tight">Facility Bookings</h3>
+                    <h3 className="text-lg font-black text-[#321F5C] tracking-tight">Facility Bookings</h3>
                     <button onClick={() => setActiveTab('bookings')} className="text-amber-600 text-[10px] font-black uppercase tracking-widest hover:underline">View All</button>
                   </div>
                   <div className="space-y-3">
@@ -1992,7 +2003,7 @@ export default function ResidentDashboard({
                             <Calendar className="w-4 h-4" />
                           </div>
                           <div>
-                            <p className="text-xs font-black text-slate-900 truncate w-24">{b.amenity_name}</p>
+                            <p className="text-xs font-black text-[#321F5C] truncate w-24">{b.amenity_name}</p>
                             <p className="text-[10px] font-bold text-slate-400">{format(new Date(b.booking_date), 'dd MMM yyyy')}</p>
                           </div>
                         </div>
@@ -2016,9 +2027,11 @@ export default function ResidentDashboard({
 
         return (
           <div className="flex flex-col gap-5">
-            {/* Professional Welcome Banner & Occupancy Distinction */}
-            <div className="bg-slate-900 text-white p-6 rounded-2xl shadow-sm border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div className="space-y-1">
+            {/* Professional Welcome Banner & Occupancy Distinction (Updated Style) */}
+            <div className="bg-gradient-to-r from-[#321F5C] via-[#5D31C7] to-[#6339CA] p-6 sm:p-8 rounded-3xl text-white shadow-xl relative overflow-hidden border border-purple-900/60 flex flex-col lg:flex-row items-center justify-between gap-6">
+              <div className="absolute top-0 right-0 w-80 h-80 bg-purple-500/10 rounded-full -mr-32 -mt-32 blur-3xl pointer-events-none"></div>
+              
+              <div className="space-y-1 relative z-10">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${
                     isOwner 
@@ -2032,108 +2045,231 @@ export default function ResidentDashboard({
                     Flat {resident.flat} (Tower {resident.tower} / Wing {wing})
                   </span>
                   <span className="text-slate-400 text-xs">•</span>
-                  <span className="text-indigo-300 text-xs font-mono font-bold">
+                  <span className="text-purple-300 text-xs font-mono font-bold">
                     {flatType} • {sqft} sq.ft.
                   </span>
                 </div>
-                <h2 className="text-2xl font-black tracking-tight text-white">
+                <h2 className="text-3xl font-black tracking-tight text-white leading-tight">
                   Welcome back, {resident.name}
                 </h2>
                 {!isOwner && (
-                  <p className="text-xs text-slate-400 font-medium">
+                  <p className="text-xs text-slate-300 font-medium">
                     Owner: <span className="font-bold text-amber-300">{linkedOwner?.name || resident.owner_name || 'Deepak Yadav'}</span>
                   </p>
                 )}
-                <p className="text-slate-400 text-xs font-medium">
+                <p className="text-slate-300 text-xs font-medium">
                   Green Park Residency • Resident Management Portal
                 </p>
               </div>
 
               {/* Quick Action Buttons */}
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap items-center gap-3 relative z-10">
                 <button
                   onClick={() => setActiveTab('documents')}
-                  className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
+                  className="px-5 py-2.5 bg-[#6339CA] hover:bg-[#5D31C7] text-white font-bold text-xs rounded-xl transition-all shadow-md shadow-purple-600/30 flex items-center gap-2 cursor-pointer uppercase tracking-wider"
                 >
-                  <FileText className="w-3.5 h-3.5" />
+                  <FileText className="w-4 h-4" />
                   <span>Upload Documents</span>
                 </button>
                 <button
                   onClick={() => setActiveTab('maintenance')}
-                  className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs rounded-xl transition-all flex items-center gap-1.5 border border-slate-700 cursor-pointer"
+                  className="px-5 py-2.5 bg-[#321F5C] hover:bg-purple-800 text-slate-200 font-bold text-xs rounded-xl transition-all border border-purple-700 flex items-center gap-2 cursor-pointer uppercase tracking-wider"
                 >
-                  <CreditCard className="w-3.5 h-3.5" />
+                  <CreditCard className="w-4 h-4" />
                   <span>Pay Maintenance</span>
-                </button>
-                <button
-                  onClick={() => setActiveTab('complaints')}
-                  className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs rounded-xl transition-all flex items-center gap-1.5 border border-slate-700 cursor-pointer"
-                >
-                  <MessageSquare className="w-3.5 h-3.5" />
-                  <span>Raise Complaint</span>
                 </button>
               </div>
             </div>
 
             <div className="space-y-6">
-              {/* Quick Summary Cards (Solid Vibrant Colors) */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {/* 6 Resident-Specific Dashboard Summary Cards - Professional Equal Height Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                
+                {/* Card 1: Maintenance Overview */}
                 <button 
                   onClick={() => setActiveTab('maintenance')}
-                  className="bg-[#2563EB] p-5 rounded-2xl shadow-lg shadow-blue-500/20 text-white text-left transition-transform hover:-translate-y-0.5 cursor-pointer group"
+                  className="bg-[#6339CA] p-6 rounded-2xl shadow-lg shadow-purple-500/10 text-white flex flex-col justify-between h-[155px] transition-all hover:scale-[1.01] text-left cursor-pointer group"
                 >
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="w-10 h-10 bg-white/20 text-white rounded-xl flex items-center justify-center font-black backdrop-blur-xs">
+                  <div className="flex items-center justify-between w-full">
+                    <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-xs">
                       <CreditCard className="w-5 h-5 text-white" />
                     </div>
                     <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg uppercase tracking-wider ${
-                      residentMaintenance.some(m => m.status === 'Unpaid') ? 'bg-red-500 text-white' : 'bg-emerald-500 text-white'
+                      residentMaintenance.some(m => m.status === 'Unpaid') ? 'bg-rose-500 text-white' : 'bg-[#FAA928] text-slate-950'
                     }`}>
-                      {residentMaintenance.some(m => m.status === 'Unpaid') ? 'DUE' : 'CLEARED'}
+                      {residentMaintenance.some(m => m.status === 'Unpaid') ? 'ACTION REQUIRED' : 'CLEARED'}
                     </span>
                   </div>
-                  <p className="text-[10px] font-black uppercase tracking-wider text-white/90 mb-0.5">Maintenance Status</p>
-                  <h3 className="text-2xl font-black text-white font-mono tracking-tight">
-                    {residentMaintenance.some(m => m.status === 'Unpaid') ? 'Payment Due' : 'All Settled'}
-                  </h3>
-                  <p className="text-xs text-white/80 font-bold mt-1">
-                    {residentMaintenance.filter(m => m.status === 'Unpaid').length} pending bills
-                  </p>
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-wider text-purple-200 mb-1">Maintenance Dues</p>
+                    <h3 className="text-xl font-black text-white tracking-tight flex items-center justify-between">
+                      <span>{residentMaintenance.some(m => m.status === 'Unpaid') ? 'Payment Due' : 'All Settled'}</span>
+                      <ChevronRight className="w-4 h-4 opacity-70 group-hover:translate-x-1 transition-transform" />
+                    </h3>
+                  </div>
                 </button>
 
+                {/* Card 2: My Complaints */}
                 <button 
                   onClick={() => setActiveTab('complaints')}
-                  className="bg-[#EA580C] p-5 rounded-2xl shadow-lg shadow-orange-500/20 text-white text-left transition-transform hover:-translate-y-0.5 cursor-pointer group"
+                  className="bg-[#321F5C] p-6 rounded-2xl shadow-lg shadow-purple-950/10 text-white flex flex-col justify-between h-[155px] transition-all hover:scale-[1.01] text-left cursor-pointer group border border-purple-800/40"
                 >
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="w-10 h-10 bg-white/20 text-white rounded-xl flex items-center justify-center font-black backdrop-blur-xs">
-                      <MessageSquare className="w-5 h-5 text-white" />
+                  <div className="flex items-center justify-between w-full">
+                    <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center backdrop-blur-xs">
+                      <MessageSquare className="w-5 h-5 text-purple-300" />
                     </div>
-                    <ChevronRight className="w-4 h-4 text-white/80 group-hover:text-white transition-colors" />
+                    <span className="text-[10px] font-black px-2.5 py-1 rounded-lg bg-purple-500/20 text-purple-200 uppercase tracking-wider">
+                      TICKETS
+                    </span>
                   </div>
-                  <p className="text-[10px] font-black uppercase tracking-wider text-white/90 mb-0.5">My Complaints</p>
-                  <h3 className="text-2xl font-black text-white font-mono tracking-tight">{myComplaints.length} Tickets</h3>
-                  <p className="text-xs text-white/80 font-bold mt-1">
-                    {myComplaints.filter(c => c.status === 'Pending').length} active in progress
-                  </p>
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-wider text-purple-300 mb-1">Complaints & Issues</p>
+                    <h3 className="text-xl font-black text-white tracking-tight flex items-center justify-between">
+                      <span>{myComplaints.length} Tickets Raised</span>
+                      <ChevronRight className="w-4 h-4 opacity-70 group-hover:translate-x-1 transition-transform" />
+                    </h3>
+                  </div>
                 </button>
 
+                {/* Card 3: My Amenity Bookings */}
                 <button 
                   onClick={() => setActiveTab('bookings')}
-                  className="bg-[#059669] p-5 rounded-2xl shadow-lg shadow-emerald-500/20 text-white text-left transition-transform hover:-translate-y-0.5 cursor-pointer group"
+                  className="bg-[#7C3AED] p-6 rounded-2xl shadow-lg shadow-purple-500/10 text-white flex flex-col justify-between h-[155px] transition-all hover:scale-[1.01] text-left cursor-pointer group"
                 >
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="w-10 h-10 bg-white/20 text-white rounded-xl flex items-center justify-center font-black backdrop-blur-xs">
+                  <div className="flex items-center justify-between w-full">
+                    <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-xs">
                       <Calendar className="w-5 h-5 text-white" />
                     </div>
-                    <ChevronRight className="w-4 h-4 text-white/80 group-hover:text-white transition-colors" />
+                    <span className="text-[10px] font-black px-2.5 py-1 rounded-lg bg-white/20 text-white uppercase tracking-wider">
+                      RESERVATIONS
+                    </span>
                   </div>
-                  <p className="text-[10px] font-black uppercase tracking-wider text-white/90 mb-0.5">Amenity Bookings</p>
-                  <h3 className="text-2xl font-black text-white font-mono tracking-tight">{residentBookings.length} Reservations</h3>
-                  <p className="text-xs text-white/80 font-bold mt-1">
-                    {residentBookings.filter(b => b.status === 'Approved').length} approved bookings
-                  </p>
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-wider text-purple-200 mb-1">Amenity Bookings</p>
+                    <h3 className="text-xl font-black text-white tracking-tight flex items-center justify-between">
+                      <span>{residentBookings.length} Active Bookings</span>
+                      <ChevronRight className="w-4 h-4 opacity-70 group-hover:translate-x-1 transition-transform" />
+                    </h3>
+                  </div>
                 </button>
+
+                {/* Card 4: My Visitor Requests */}
+                <button 
+                  onClick={() => setActiveTab('security')}
+                  className="bg-[#4C1D95] p-6 rounded-2xl shadow-lg shadow-purple-950/10 text-white flex flex-col justify-between h-[155px] transition-all hover:scale-[1.01] text-left cursor-pointer group border border-purple-800/40"
+                >
+                  <div className="flex items-center justify-between w-full">
+                    <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center backdrop-blur-xs">
+                      <Users className="w-5 h-5 text-amber-300" />
+                    </div>
+                    <span className="text-[10px] font-black px-2.5 py-1 rounded-lg bg-amber-400/20 text-amber-200 uppercase tracking-wider">
+                      GATE LOG
+                    </span>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-wider text-purple-300 mb-1">Visitor Records</p>
+                    <h3 className="text-xl font-black text-white tracking-tight flex items-center justify-between">
+                      <span>{residentVisitors.length} Visitors Logged</span>
+                      <ChevronRight className="w-4 h-4 opacity-70 group-hover:translate-x-1 transition-transform" />
+                    </h3>
+                  </div>
+                </button>
+
+                {/* Card 5: Unread Notices */}
+                <button 
+                  onClick={() => setActiveTab('notices')}
+                  className="bg-[#0F766E] p-6 rounded-2xl shadow-lg shadow-teal-900/10 text-white flex flex-col justify-between h-[155px] transition-all hover:scale-[1.01] text-left cursor-pointer group"
+                >
+                  <div className="flex items-center justify-between w-full">
+                    <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-xs">
+                      <Megaphone className="w-5 h-5 text-white" />
+                    </div>
+                    <span className="text-[10px] font-black px-2.5 py-1 rounded-lg bg-white/20 text-white uppercase tracking-wider">
+                      CIRCULARS
+                    </span>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-wider text-teal-200 mb-1">Society Notices</p>
+                    <h3 className="text-xl font-black text-white tracking-tight flex items-center justify-between">
+                      <span>{residentNotices.length} Published Notices</span>
+                      <ChevronRight className="w-4 h-4 opacity-70 group-hover:translate-x-1 transition-transform" />
+                    </h3>
+                  </div>
+                </button>
+
+                {/* Card 6: Communication Requests */}
+                <button 
+                  onClick={() => setActiveTab('communication')}
+                  className="bg-[#0369A1] p-6 rounded-2xl shadow-lg shadow-sky-900/10 text-white flex flex-col justify-between h-[155px] transition-all hover:scale-[1.01] text-left cursor-pointer group"
+                >
+                  <div className="flex items-center justify-between w-full">
+                    <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-xs">
+                      <Send className="w-5 h-5 text-white" />
+                    </div>
+                    <span className="text-[10px] font-black px-2.5 py-1 rounded-lg bg-white/20 text-white uppercase tracking-wider">
+                      DISCUSSIONS
+                    </span>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-wider text-sky-200 mb-1">Communication</p>
+                    <h3 className="text-xl font-black text-white tracking-tight flex items-center justify-between">
+                      <span>{residentComms.length} Conversations</span>
+                      <ChevronRight className="w-4 h-4 opacity-70 group-hover:translate-x-1 transition-transform" />
+                    </h3>
+                  </div>
+                </button>
+              </div>
+
+              {/* 6 Quick Action Buttons */}
+              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                  <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">Quick Resident Actions</h3>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase">One-Tap Shortcuts</span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
+                  <button
+                    onClick={() => setActiveTab('maintenance')}
+                    className="p-3 bg-purple-50 hover:bg-purple-100 text-purple-900 rounded-xl font-bold text-xs flex flex-col items-center justify-center gap-1.5 transition-all border border-purple-100 text-center cursor-pointer"
+                  >
+                    <CreditCard className="w-4 h-4 text-[#6339CA]" />
+                    <span>Pay Maintenance</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('complaints')}
+                    className="p-3 bg-orange-50 hover:bg-orange-100 text-orange-900 rounded-xl font-bold text-xs flex flex-col items-center justify-center gap-1.5 transition-all border border-orange-100 text-center cursor-pointer"
+                  >
+                    <MessageSquare className="w-4 h-4 text-orange-600" />
+                    <span>New Complaint</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('bookings')}
+                    className="p-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 rounded-xl font-bold text-xs flex flex-col items-center justify-center gap-1.5 transition-all border border-emerald-100 text-center cursor-pointer"
+                  >
+                    <Calendar className="w-4 h-4 text-emerald-600" />
+                    <span>Book Amenity</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('security')}
+                    className="p-3 bg-purple-50 hover:bg-purple-100 text-[#321F5C] rounded-xl font-bold text-xs flex flex-col items-center justify-center gap-1.5 transition-all border border-purple-200 text-center cursor-pointer"
+                  >
+                    <Users className="w-4 h-4 text-[#6339CA]" />
+                    <span>Manage Visitors</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('notices')}
+                    className="p-3 bg-teal-50 hover:bg-teal-100 text-teal-900 rounded-xl font-bold text-xs flex flex-col items-center justify-center gap-1.5 transition-all border border-teal-100 text-center cursor-pointer"
+                  >
+                    <Megaphone className="w-4 h-4 text-teal-600" />
+                    <span>View Notices</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('communication')}
+                    className="p-3 bg-sky-50 hover:bg-sky-100 text-sky-900 rounded-xl font-bold text-xs flex flex-col items-center justify-center gap-1.5 transition-all border border-sky-100 text-center cursor-pointer"
+                  >
+                    <Send className="w-4 h-4 text-sky-600" />
+                    <span>Communication</span>
+                  </button>
+                </div>
               </div>
 
               {/* Owner Documents Section on Dashboard (Requirement 3) */}
@@ -2150,19 +2286,19 @@ export default function ResidentDashboard({
                 <div className="flex items-center justify-between mb-5">
                   <div className="flex items-center gap-3">
                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                      isOwner ? 'bg-amber-50 text-amber-600' : 'bg-indigo-50 text-indigo-600'
+                      isOwner ? 'bg-amber-50 text-amber-600' : 'bg-[#6339CA]/10 text-[#6339CA]'
                     }`}>
                       {isOwner ? <Home className="w-5 h-5" /> : <Key className="w-5 h-5" />}
                     </div>
                     <div>
-                      <h3 className="text-base font-black text-slate-900 tracking-tight">
+                      <h3 className="text-base font-black text-[#321F5C] tracking-tight">
                         {isOwner ? 'Owner Profile' : 'Tenant Profile'}
                       </h3>
                       <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{resident.name}</p>
                     </div>
                   </div>
                   <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border ${
-                    isOwner ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                    isOwner ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-[#6339CA]/10 text-[#6339CA] border-[#6339CA]/20'
                   }`}>
                     {isOwner ? 'OWNER OCCUPIED' : 'TENANT OCCUPIED'}
                   </span>
@@ -2170,11 +2306,11 @@ export default function ResidentDashboard({
                 <div className="space-y-2.5 text-xs">
                   <div className="flex justify-between items-center py-1.5 border-b border-slate-100">
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Flat Number</span>
-                    <span className="font-black text-slate-900">Flat {resident.flat} (Tower {resident.tower})</span>
+                    <span className="font-black text-[#321F5C]">Flat {resident.flat} (Tower {resident.tower})</span>
                   </div>
                   <div className="flex justify-between items-center py-1.5 border-b border-slate-100">
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">BHK / Type</span>
-                    <span className="font-bold text-indigo-600">{flatType} ({sqft} sq.ft.)</span>
+                    <span className="font-bold text-[#6339CA]">{flatType} ({sqft} sq.ft.)</span>
                   </div>
                   <div className="flex justify-between items-center py-1.5 border-b border-slate-100">
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Mobile Number</span>
@@ -2196,8 +2332,8 @@ export default function ResidentDashboard({
               {/* Recent Maintenance */}
               <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                 <div className="flex items-center justify-between mb-5">
-                  <h3 className="text-base font-black text-slate-900 tracking-tight">Recent Bills</h3>
-                  <button onClick={() => setActiveTab('maintenance')} className="text-indigo-600 text-[10px] font-bold uppercase tracking-wider hover:underline">View All</button>
+                  <h3 className="text-base font-black text-[#321F5C] tracking-tight">Recent Bills</h3>
+                  <button onClick={() => setActiveTab('maintenance')} className="text-[#6339CA] text-[10px] font-bold uppercase tracking-wider hover:underline">View All</button>
                 </div>
                 <div className="space-y-2.5">
                   {residentMaintenance.slice(0, 3).map((m, index) => (
@@ -2207,7 +2343,7 @@ export default function ResidentDashboard({
                           <CreditCard className="w-3.5 h-3.5" />
                         </div>
                         <div>
-                          <p className="text-xs font-bold text-slate-900">{m.month}</p>
+                          <p className="text-xs font-bold text-[#321F5C]">{m.month}</p>
                           <p className="text-[10px] font-mono text-slate-400">₹{m.amount.toLocaleString('en-IN')}</p>
                         </div>
                       </div>
@@ -2223,7 +2359,7 @@ export default function ResidentDashboard({
                         ) : (
                           <button
                             onClick={() => handleOpenPayBill(m)}
-                            className="text-[9px] font-black uppercase text-white bg-indigo-600 hover:bg-indigo-700 px-2 py-0.5 rounded-md transition-colors shadow-2xs flex items-center gap-1"
+                            className="text-[9px] font-black uppercase text-white bg-[#6339CA] hover:bg-[#5D31C7] px-2 py-0.5 rounded-md transition-colors shadow-2xs flex items-center gap-1"
                           >
                             <CreditCard className="w-3 h-3" />
                             Pay
@@ -2239,7 +2375,7 @@ export default function ResidentDashboard({
               {/* Recent Bookings */}
               <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                 <div className="flex items-center justify-between mb-5">
-                  <h3 className="text-base font-black text-slate-900 tracking-tight">Recent Bookings</h3>
+                  <h3 className="text-base font-black text-[#321F5C] tracking-tight">Recent Bookings</h3>
                   <button onClick={() => setActiveTab('bookings')} className="text-amber-600 text-[10px] font-bold uppercase tracking-wider hover:underline">View All</button>
                 </div>
                 <div className="space-y-2.5">
@@ -2250,7 +2386,7 @@ export default function ResidentDashboard({
                           <Calendar className="w-3.5 h-3.5" />
                         </div>
                         <div>
-                          <p className="text-xs font-bold text-slate-900 truncate max-w-[100px]">{b.amenity_name}</p>
+                          <p className="text-xs font-bold text-[#321F5C] truncate max-w-[100px]">{b.amenity_name}</p>
                           <p className="text-[10px] text-slate-400">{format(new Date(b.booking_date), 'dd MMM yyyy')}</p>
                         </div>
                       </div>
@@ -2299,11 +2435,11 @@ export default function ResidentDashboard({
         return (
           <div className="flex flex-col gap-6 w-full animate-in fade-in duration-200">
             {/* Top Hero Banner & Resident Summary */}
-            <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden border border-slate-800">
-              <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="bg-gradient-to-r from-slate-900 via-[#321F5C] to-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden border border-slate-800">
+              <div className="absolute top-0 right-0 w-80 h-80 bg-[#6339CA]/100/10 rounded-full blur-3xl pointer-events-none" />
               <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 relative z-10">
                 <div className="space-y-2">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-[10px] font-black uppercase tracking-widest text-indigo-300">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-[10px] font-black uppercase tracking-widest text-white/80">
                     <Building2 className="w-3.5 h-3.5" />
                     TowerTech Resident Billing Portal
                   </div>
@@ -2316,11 +2452,11 @@ export default function ResidentDashboard({
 
                   <div className="flex flex-wrap items-center gap-3 pt-2 text-xs">
                     <span className="bg-white/10 px-3 py-1.5 rounded-xl text-slate-200 font-bold flex items-center gap-1.5 border border-white/5">
-                      <Home className="w-3.5 h-3.5 text-indigo-300" />
+                      <Home className="w-3.5 h-3.5 text-white/80" />
                       Tower {resident.tower} • Flat {resident.flat}
                     </span>
                     <span className="bg-white/10 px-3 py-1.5 rounded-xl text-slate-200 font-bold flex items-center gap-1.5 border border-white/5">
-                      <UserIcon className="w-3.5 h-3.5 text-indigo-300" />
+                      <UserIcon className="w-3.5 h-3.5 text-white/80" />
                       {profileData.occupancy_type || resident.occupancy_type || 'Owner'}
                     </span>
                     <span className="bg-white/10 px-3 py-1.5 rounded-xl text-slate-200 font-bold font-mono border border-white/5">
@@ -2334,7 +2470,7 @@ export default function ResidentDashboard({
                     <button
                       onClick={handleGenerateResidentBill}
                       disabled={generatingBill}
-                      className="px-5 py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs uppercase tracking-wider transition-all shadow-lg shadow-indigo-900/30 flex items-center justify-center gap-2 shrink-0 disabled:opacity-50"
+                      className="px-5 py-3.5 rounded-2xl bg-[#6339CA] hover:bg-[#6339CA]/100 text-white font-black text-xs uppercase tracking-wider transition-all shadow-lg shadow-indigo-900/30 flex items-center justify-center gap-2 shrink-0 disabled:opacity-50"
                     >
                       {generatingBill ? (
                         <>
@@ -2367,7 +2503,7 @@ export default function ResidentDashboard({
               {/* Stat Metric Cards inside hero banner */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mt-6 pt-6 border-t border-white/10">
                 <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-indigo-200 opacity-80">Total Outstanding</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-white/80 opacity-80">Total Outstanding</p>
                   <h4 className="text-xl sm:text-2xl font-black text-white mt-1 font-mono">
                     ₹{totalDueAmount.toLocaleString('en-IN')}
                   </h4>
@@ -2377,7 +2513,7 @@ export default function ResidentDashboard({
                 </div>
 
                 <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-indigo-200 opacity-80">Total Settled</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-white/80 opacity-80">Total Settled</p>
                   <h4 className="text-xl sm:text-2xl font-black text-white mt-1 font-mono">
                     ₹{totalPaidAmount.toLocaleString('en-IN')}
                   </h4>
@@ -2387,7 +2523,7 @@ export default function ResidentDashboard({
                 </div>
 
                 <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-indigo-200 opacity-80">Total Bills Recorded</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-white/80 opacity-80">Total Bills Recorded</p>
                   <h4 className="text-xl sm:text-2xl font-black text-white mt-1">
                     {residentMaintenance.length}
                   </h4>
@@ -2397,7 +2533,7 @@ export default function ResidentDashboard({
                 </div>
 
                 <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-indigo-200 opacity-80">Society Clearance</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-white/80 opacity-80">Society Clearance</p>
                   <h4 className="text-base sm:text-lg font-black text-white mt-1 flex items-center gap-1.5">
                     {unpaidCount === 0 ? (
                       <span className="text-emerald-400 flex items-center gap-1">
@@ -2426,7 +2562,7 @@ export default function ResidentDashboard({
                     value={billSearchTerm}
                     onChange={(e) => setBillSearchTerm(e.target.value)}
                     placeholder="Search by Bill ID, Month, or Status..."
-                    className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                    className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-xs font-bold outline-none focus:ring-2 focus:ring-[#6339CA] focus:bg-white transition-all"
                   />
                   {billSearchTerm && (
                     <button 
@@ -2443,7 +2579,7 @@ export default function ResidentDashboard({
                 <select 
                   value={maintenanceFilter.month}
                   onChange={(e) => setMaintenanceFilter({ ...maintenanceFilter, month: e.target.value })}
-                  className="px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50/50 cursor-pointer"
+                  className="px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-[#6339CA] bg-slate-50/50 cursor-pointer"
                 >
                   <option value="All">All Months</option>
                   {['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].map(m => (
@@ -2454,7 +2590,7 @@ export default function ResidentDashboard({
                 <select 
                   value={maintenanceFilter.year}
                   onChange={(e) => setMaintenanceFilter({ ...maintenanceFilter, year: e.target.value })}
-                  className="px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50/50 cursor-pointer"
+                  className="px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-[#6339CA] bg-slate-50/50 cursor-pointer"
                 >
                   <option value="All">All Years</option>
                   {['2024', '2025', '2026', '2027'].map(y => (
@@ -2465,7 +2601,7 @@ export default function ResidentDashboard({
                 <select 
                   value={maintenanceFilter.status}
                   onChange={(e) => setMaintenanceFilter({ ...maintenanceFilter, status: e.target.value })}
-                  className="px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50/50 cursor-pointer"
+                  className="px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-[#6339CA] bg-slate-50/50 cursor-pointer"
                 >
                   <option value="All">All Statuses</option>
                   <option value="Paid">Paid Only</option>
@@ -2476,7 +2612,7 @@ export default function ResidentDashboard({
                   <button
                     onClick={() => setBillsViewMode('both')}
                     className={`px-3 py-1.5 text-xs font-black rounded-lg transition-all ${
-                      billsViewMode === 'both' ? 'bg-white text-indigo-600 shadow-xs' : 'text-slate-500 hover:text-slate-800'
+                      billsViewMode === 'both' ? 'bg-white text-[#6339CA] shadow-xs' : 'text-slate-500 hover:text-slate-800'
                     }`}
                   >
                     All Views
@@ -2484,7 +2620,7 @@ export default function ResidentDashboard({
                   <button
                     onClick={() => setBillsViewMode('cards')}
                     className={`px-3 py-1.5 text-xs font-black rounded-lg transition-all ${
-                      billsViewMode === 'cards' ? 'bg-white text-indigo-600 shadow-xs' : 'text-slate-500 hover:text-slate-800'
+                      billsViewMode === 'cards' ? 'bg-white text-[#6339CA] shadow-xs' : 'text-slate-500 hover:text-slate-800'
                     }`}
                   >
                     Cards
@@ -2492,7 +2628,7 @@ export default function ResidentDashboard({
                   <button
                     onClick={() => setBillsViewMode('table')}
                     className={`px-3 py-1.5 text-xs font-black rounded-lg transition-all ${
-                      billsViewMode === 'table' ? 'bg-white text-indigo-600 shadow-xs' : 'text-slate-500 hover:text-slate-800'
+                      billsViewMode === 'table' ? 'bg-white text-[#6339CA] shadow-xs' : 'text-slate-500 hover:text-slate-800'
                     }`}
                   >
                     Ledger
@@ -2506,8 +2642,8 @@ export default function ResidentDashboard({
               <div className="space-y-4">
                 <div className="flex items-center justify-between px-1">
                   <div className="flex items-center gap-2">
-                    <Receipt className="w-4 h-4 text-indigo-600" />
-                    <h3 className="text-base font-black text-slate-900">Maintenance Invoices</h3>
+                    <Receipt className="w-4 h-4 text-[#6339CA]" />
+                    <h3 className="text-base font-black text-[#321F5C]">Maintenance Invoices</h3>
                   </div>
                   <span className="text-xs text-slate-400 font-bold">
                     {filteredMaintenance.length} Invoice{filteredMaintenance.length === 1 ? '' : 's'}
@@ -2525,15 +2661,15 @@ export default function ResidentDashboard({
                     return (
                       <div 
                         key={`bill-card-item-${m.maintenance_id || index}`}
-                        className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs hover:shadow-md hover:border-indigo-200 transition-all flex flex-col justify-between group"
+                        className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs hover:shadow-md hover:border-[#6339CA]/20 transition-all flex flex-col justify-between group"
                       >
                         <div className="space-y-4">
                           <div className="flex justify-between items-start gap-2">
                             <div>
-                              <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-100">
+                              <span className="text-[10px] font-black text-[#6339CA] uppercase tracking-widest bg-[#6339CA]/10 px-2.5 py-1 rounded-lg border border-[#6339CA]/20">
                                 {m.maintenance_id}
                               </span>
-                              <h4 className="text-lg font-black text-slate-900 mt-2 tracking-tight">{m.month} Maintenance</h4>
+                              <h4 className="text-lg font-black text-[#321F5C] mt-2 tracking-tight">{m.month} Maintenance</h4>
                               <p className="text-xs text-slate-500 font-medium">Tower {m.tower} • Flat {m.flat_no}</p>
                             </div>
                             <span className={`text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider flex items-center gap-1.5 shrink-0 ${
@@ -2549,7 +2685,7 @@ export default function ResidentDashboard({
                               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
                                 {isPaid ? 'Amount Settled' : 'Payable Total'}
                               </p>
-                              <p className="text-2xl font-black text-slate-900 font-mono mt-0.5">
+                              <p className="text-2xl font-black text-[#321F5C] font-mono mt-0.5">
                                 ₹{(isPaid ? totalPaid : totalPayable).toLocaleString('en-IN')}
                               </p>
                             </div>
@@ -2597,7 +2733,7 @@ export default function ResidentDashboard({
                           ) : (
                             <button
                               onClick={() => handleOpenPayBill(m)}
-                              className="bg-indigo-600 hover:bg-indigo-700 text-white font-black py-3 px-3 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md shadow-indigo-100"
+                              className="bg-[#6339CA] hover:bg-[#5D31C7] text-white font-black py-3 px-3 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md shadow-[#6339CA]/10"
                             >
                               <CreditCard className="w-3.5 h-3.5" />
                               Pay Now
@@ -2616,7 +2752,7 @@ export default function ResidentDashboard({
                           setBillSearchTerm('');
                           setMaintenanceFilter({ month: 'All', year: 'All', status: 'All' });
                         }}
-                        className="text-xs font-black text-indigo-600 hover:underline"
+                        className="text-xs font-black text-[#6339CA] hover:underline"
                       >
                         Reset All Filters
                       </button>
@@ -2631,7 +2767,7 @@ export default function ResidentDashboard({
               <div className="bg-white rounded-3xl shadow-xs border border-slate-200/80 overflow-hidden flex flex-col">
                 <div className="p-5 sm:p-6 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                   <div>
-                    <h3 className="text-base font-black text-slate-900">Official Society Maintenance Ledger</h3>
+                    <h3 className="text-base font-black text-[#321F5C]">Official Society Maintenance Ledger</h3>
                     <p className="text-xs text-slate-500 font-medium">Complete audited record of charges, payments, and receipt vouchers</p>
                   </div>
                   <span className="text-xs font-bold text-slate-400">
@@ -2669,16 +2805,16 @@ export default function ResidentDashboard({
 
                           return (
                             <tr key={m.id || m.maintenance_id || index} className="hover:bg-slate-50/60 transition-colors">
-                              <td className="px-3 py-3 font-black font-mono text-indigo-600">
+                              <td className="px-3 py-3 font-black font-mono text-[#6339CA]">
                                 {m.maintenance_id}
                               </td>
-                              <td className="px-3 py-3 font-bold text-slate-900">
+                              <td className="px-3 py-3 font-bold text-[#321F5C]">
                                 {m.month}
                               </td>
                               <td className="px-3 py-3 font-medium text-slate-600">
                                 Tower {m.tower} • Flat {m.flat_no}
                               </td>
-                              <td className="px-3 py-3 font-black font-mono text-slate-900">
+                              <td className="px-3 py-3 font-black font-mono text-[#321F5C]">
                                 ₹{(isPaid ? totalPaid : totalPayable).toLocaleString('en-IN')}
                                 {lateFee > 0 && !isPaid && (
                                   <span className="text-[9px] block text-amber-600 font-sans font-bold">+₹{lateFee} late fee</span>
@@ -2718,7 +2854,7 @@ export default function ResidentDashboard({
                                   ) : (
                                     <button 
                                       onClick={() => handleOpenPayBill(m)}
-                                      className="px-3.5 py-1.5 bg-indigo-600 text-white hover:bg-indigo-700 rounded-xl transition-all font-black text-[10px] uppercase tracking-wider flex items-center gap-1 shadow-xs"
+                                      className="px-3.5 py-1.5 bg-[#6339CA] text-white hover:bg-[#5D31C7] rounded-xl transition-all font-black text-[10px] uppercase tracking-wider flex items-center gap-1 shadow-xs"
                                       title="Pay Maintenance Bill"
                                     >
                                       <CreditCard className="w-3.5 h-3.5" />
@@ -2746,8 +2882,8 @@ export default function ResidentDashboard({
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
               {/* Raise Complaint Form */}
               <div className="lg:col-span-2 bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 flex flex-col">
-                <h3 className="text-xl font-black text-slate-900 mb-6 flex items-center gap-3">
-                  <Plus className="w-6 h-6 text-indigo-600" />
+                <h3 className="text-xl font-black text-[#321F5C] mb-6 flex items-center gap-3">
+                  <Plus className="w-6 h-6 text-[#6339CA]" />
                   Raise a New Complaint
                 </h3>
                 <div className="space-y-6">
@@ -2756,7 +2892,7 @@ export default function ResidentDashboard({
                     <select 
                       value={complaintCategory}
                       onChange={(e) => setComplaintCategory(e.target.value)}
-                      className="w-full px-5 py-4 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none font-bold text-sm bg-slate-50 transition-all"
+                      className="w-full px-5 py-4 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-[#6339CA]/10 focus:border-[#6339CA] outline-none font-bold text-sm bg-slate-50 transition-all"
                     >
                       <option value="">Select Category</option>
                       <option value="Electricity Issue">Electricity Issue</option>
@@ -2773,7 +2909,7 @@ export default function ResidentDashboard({
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       placeholder="Describe your issue in detail..."
-                      className="w-full px-5 py-4 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none resize-none font-medium text-sm bg-slate-50 transition-all"
+                      className="w-full px-5 py-4 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-[#6339CA]/10 focus:border-[#6339CA] outline-none resize-none font-medium text-sm bg-slate-50 transition-all"
                     ></textarea>
                   </div>
                   <div>
@@ -2788,9 +2924,9 @@ export default function ResidentDashboard({
                       />
                       <label 
                         htmlFor="media-upload"
-                        className="flex flex-col items-center justify-center gap-3 w-full px-6 py-8 rounded-2xl border-2 border-dashed border-slate-200 hover:border-indigo-500 hover:bg-indigo-50/30 cursor-pointer transition-all text-slate-500 font-bold text-sm bg-slate-50/50"
+                        className="flex flex-col items-center justify-center gap-3 w-full px-6 py-8 rounded-2xl border-2 border-dashed border-slate-200 hover:border-[#6339CA] hover:bg-[#6339CA]/5 cursor-pointer transition-all text-slate-500 font-bold text-sm bg-slate-50/50"
                       >
-                        <div className="w-12 h-12 bg-white rounded-xl shadow-sm border border-slate-100 flex items-center justify-center text-indigo-600">
+                        <div className="w-12 h-12 bg-white rounded-xl shadow-sm border border-slate-100 flex items-center justify-center text-[#6339CA]">
                           <Upload className="w-6 h-6" />
                         </div>
                         <span className="truncate max-w-[200px]">{mediaFile ? mediaFile.name : 'Click to upload media'}</span>
@@ -2801,7 +2937,7 @@ export default function ResidentDashboard({
                   <button 
                     onClick={handleSubmitComplaint}
                     disabled={submitting}
-                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-5 rounded-2xl transition-all flex items-center justify-center gap-3 disabled:opacity-50 shadow-xl shadow-indigo-100 mt-4 uppercase tracking-widest text-xs"
+                    className="w-full bg-[#6339CA] hover:bg-[#5D31C7] text-white font-black py-5 rounded-2xl transition-all flex items-center justify-center gap-3 disabled:opacity-50 shadow-xl shadow-[#6339CA]/10 mt-4 uppercase tracking-widest text-xs"
                   >
                     <Send className="w-5 h-5" />
                     {submitting ? 'Submitting...' : 'Submit Complaint'}
@@ -2813,19 +2949,19 @@ export default function ResidentDashboard({
               <div className="lg:col-span-3 bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 flex flex-col">
                 <div className="flex justify-between items-center mb-8">
                   <div>
-                    <h3 className="text-xl font-black text-slate-900">Complaint History</h3>
+                    <h3 className="text-xl font-black text-[#321F5C]">Complaint History</h3>
                     <p className="text-xs text-slate-500 font-medium mt-1">Track and view all society complaints</p>
                   </div>
                   <div className="flex bg-slate-100 p-1.5 rounded-xl border border-slate-200">
                     <button 
                       onClick={() => setViewAllComplaints(false)}
-                      className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${!viewAllComplaints ? 'bg-white text-indigo-600 shadow-md' : 'text-slate-500 hover:text-indigo-600'}`}
+                      className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${!viewAllComplaints ? 'bg-white text-[#6339CA] shadow-md' : 'text-slate-500 hover:text-[#6339CA]'}`}
                     >
                       My List
                     </button>
                     <button 
                       onClick={() => setViewAllComplaints(true)}
-                      className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${viewAllComplaints ? 'bg-white text-indigo-600 shadow-md' : 'text-slate-500 hover:text-indigo-600'}`}
+                      className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${viewAllComplaints ? 'bg-white text-[#6339CA] shadow-md' : 'text-slate-500 hover:text-[#6339CA]'}`}
                     >
                       Society
                     </button>
@@ -2833,17 +2969,17 @@ export default function ResidentDashboard({
                 </div>
                 <div className="space-y-6">
                   {(viewAllComplaints ? societyComplaints : myComplaintsSorted).map((c, index) => (
-                    <div key={c.complaint_id || c.id || `complaint-${index}`} className="bg-slate-50/50 rounded-3xl border border-slate-100 p-6 hover:bg-white hover:shadow-xl hover:shadow-slate-100 transition-all group">
+                    <div key={c.complaint_id || c.id || `complaint-${index}`} className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 hover:border-slate-300 transition-all group">
                       <div className="flex flex-col md:flex-row justify-between gap-6">
                         <div className="flex-1 space-y-4">
                           <div className="flex flex-wrap items-center gap-3">
-                            <span className="px-3 py-1 bg-indigo-600 text-white text-[10px] font-black rounded-lg uppercase tracking-widest">
+                            <span className="px-3 py-1 bg-[#6339CA] text-white text-[10px] font-black rounded-lg uppercase tracking-widest">
                               {c.complaint_id}
                             </span>
                             <span className="px-3 py-1 bg-white border border-slate-200 text-slate-600 text-[10px] font-black rounded-lg uppercase tracking-widest">
                               T-{c.tower} / {c.flat_no}
                             </span>
-                            <span className="px-3 py-1 bg-indigo-50 border border-indigo-100 text-indigo-600 text-[10px] font-black rounded-lg uppercase tracking-widest">
+                            <span className="px-3 py-1 bg-[#6339CA]/10 border border-[#6339CA]/20 text-[#6339CA] text-[10px] font-black rounded-lg uppercase tracking-widest">
                               {c.resident_name || c.name}
                             </span>
                             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
@@ -2858,7 +2994,7 @@ export default function ResidentDashboard({
                             <div className="pt-2">
                               <button 
                                 onClick={() => setSelectedImage(c.media![0].file_url)}
-                                className="flex items-center gap-2 text-indigo-600 text-[10px] font-black hover:underline group/btn"
+                                className="flex items-center gap-2 text-[#6339CA] text-[10px] font-black hover:underline group/btn"
                               >
                                 <ImageIcon className="w-3 h-3 transition-transform group-hover/btn:scale-110" />
                                 VIEW ATTACHMENT
@@ -2868,8 +3004,8 @@ export default function ResidentDashboard({
                             <p className="text-[10px] font-bold text-slate-400 italic pt-2">No Media Uploaded</p>
                           )}
                           {c.admin_comment && (c.resident_id === resident.resident_id) && (
-                            <div className="bg-indigo-50 p-4 rounded-2xl border border-indigo-100">
-                              <p className="text-[9px] font-black text-indigo-600 uppercase tracking-widest mb-1">Admin Response</p>
+                            <div className="bg-[#6339CA]/10 p-4 rounded-2xl border border-[#6339CA]/20">
+                              <p className="text-[9px] font-black text-[#6339CA] uppercase tracking-widest mb-1">Admin Response</p>
                               <p className="text-xs font-bold text-slate-700">{c.admin_comment}</p>
                             </div>
                           )}
@@ -2878,7 +3014,7 @@ export default function ResidentDashboard({
                           <span className={`px-4 py-1.5 rounded-full font-black text-[10px] uppercase tracking-widest shadow-sm flex items-center gap-1.5 ${
                             c.status === 'Done' || c.status === 'Resolved' ? 'bg-emerald-600 text-white' : 
                             c.status === 'Pending' ? 'bg-amber-500 text-white' : 
-                            c.status === 'Process' ? 'bg-indigo-600 text-white' :
+                            c.status === 'Process' ? 'bg-[#6339CA] text-white' :
                             'bg-rose-600 text-white'
                           }`}>
                             {c.status === 'Done' || c.status === 'Resolved' ? 'DONE' : 
@@ -2888,7 +3024,7 @@ export default function ResidentDashboard({
                           {c.media && c.media.length > 0 && (
                             <button 
                               onClick={() => setSelectedImage(c.media![0].file_url)}
-                              className="w-12 h-12 bg-white rounded-2xl border border-slate-200 flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:border-indigo-600 transition-all shadow-sm"
+                              className="w-12 h-12 bg-white rounded-2xl border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#6339CA] hover:border-[#6339CA] transition-all shadow-sm"
                             >
                               <ImageIcon className="w-6 h-6" />
                             </button>
@@ -2913,24 +3049,24 @@ export default function ResidentDashboard({
           <div className="flex flex-col gap-6">
             <div className="flex justify-between items-center bg-white p-4 rounded-[2rem] shadow-sm border border-slate-100 shrink-0">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600">
+                <div className="w-12 h-12 bg-[#6339CA]/10 rounded-2xl flex items-center justify-center text-[#6339CA]">
                   <Calendar className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-black text-slate-900">Amenity Booking</h3>
+                  <h3 className="text-lg font-black text-[#321F5C]">Amenity Booking</h3>
                   <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest">Book facilities and view schedules</p>
                 </div>
               </div>
               <div className="flex bg-slate-100 p-1 rounded-xl">
                 <button 
                   onClick={() => setViewAllBookings(false)}
-                  className={`px-4 py-2 text-[10px] font-black uppercase rounded-lg transition-all ${!viewAllBookings ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500'}`}
+                  className={`px-4 py-2 text-[10px] font-black uppercase rounded-lg transition-all ${!viewAllBookings ? 'bg-white text-[#6339CA] shadow-sm' : 'text-slate-500'}`}
                 >
                   Book & My List
                 </button>
                 <button 
                   onClick={() => setViewAllBookings(true)}
-                  className={`px-4 py-2 text-[10px] font-black uppercase rounded-lg transition-all ${viewAllBookings ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500'}`}
+                  className={`px-4 py-2 text-[10px] font-black uppercase rounded-lg transition-all ${viewAllBookings ? 'bg-white text-[#6339CA] shadow-sm' : 'text-slate-500'}`}
                 >
                   Society Schedule
                 </button>
@@ -2941,7 +3077,7 @@ export default function ResidentDashboard({
               {viewAllBookings ? (
                 <div className="bg-white rounded-[2rem] shadow-sm border border-slate-100 flex flex-col">
                   <div className="p-6 border-b border-slate-50 shrink-0">
-                    <h3 className="text-lg font-black text-slate-900">Society-wide Booking Schedule</h3>
+                    <h3 className="text-lg font-black text-[#321F5C]">Society-wide Booking Schedule</h3>
                     <p className="text-xs text-slate-500 font-medium">View all upcoming events and amenity availability</p>
                   </div>
                   <div className="overflow-auto flex-1 custom-scrollbar">
@@ -2965,7 +3101,7 @@ export default function ResidentDashboard({
                         ) : (
                           societyBookingsSorted.map((b, index) => (
                             <tr key={b.booking_id || b.id || `booking-all-${index}`} className="hover:bg-slate-50 transition-colors text-xs">
-                              <td className="px-8 py-6 font-black text-indigo-600">{b.booking_id}</td>
+                              <td className="px-8 py-6 font-black text-[#6339CA]">{b.booking_id}</td>
                               <td className="px-8 py-6">
                                 <p className="font-bold text-slate-800">{b.amenity_name}</p>
                                 <p className="text-[8px] text-slate-400 font-black uppercase tracking-widest">{b.amenity_type}</p>
@@ -2974,7 +3110,7 @@ export default function ResidentDashboard({
                               <td className="px-8 py-6">
                                 <div className="flex flex-col gap-0.5">
                                   <div className="flex items-center gap-2 text-slate-800 font-bold">
-                                    <Calendar className="w-3 h-3 text-indigo-600" />
+                                    <Calendar className="w-3 h-3 text-[#6339CA]" />
                                     {format(new Date(b.booking_date), 'dd MMM yyyy')}
                                   </div>
                                   <div className="flex items-center gap-2 text-slate-500 font-medium">
@@ -3032,11 +3168,11 @@ export default function ResidentDashboard({
         return (
           <div className="flex flex-col gap-6 max-w-5xl mx-auto w-full font-sans">
             {/* Top Profile Hero Card */}
-            <div className="bg-slate-900 text-white p-6 sm:p-8 rounded-3xl shadow-xl border border-slate-800 relative overflow-hidden shrink-0">
+            <div className="bg-[#321F5C] text-white p-6 sm:p-8 rounded-3xl shadow-xl border border-slate-800 relative overflow-hidden shrink-0">
               <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div className="flex items-center gap-5">
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 bg-indigo-600/30 rounded-2xl flex items-center justify-center border border-indigo-500/30 shrink-0">
-                    <UserIcon className="w-8 h-8 sm:w-10 sm:h-10 text-indigo-400" />
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 bg-[#6339CA]/30 rounded-2xl flex items-center justify-center border border-[#6339CA]/30 shrink-0">
+                    <UserIcon className="w-8 h-8 sm:w-10 sm:h-10 text-white/80" />
                   </div>
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
@@ -3059,7 +3195,7 @@ export default function ResidentDashboard({
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => setShowEditProfile(true)}
-                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-xs flex items-center gap-2"
+                    className="px-4 py-2 bg-[#6339CA] hover:bg-[#5D31C7] text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-xs flex items-center gap-2"
                   >
                     <Edit className="w-3.5 h-3.5" />
                     <span>Edit Profile</span>
@@ -3084,7 +3220,7 @@ export default function ResidentDashboard({
                       <Home className="w-5 h-5" />
                     </div>
                     <div>
-                      <h4 className="text-lg font-black text-slate-900 tracking-tight">Owner Profile Details</h4>
+                      <h4 className="text-lg font-black text-[#321F5C] tracking-tight">Owner Profile Details</h4>
                       <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Property Owner Record & Unit Information</p>
                     </div>
                   </div>
@@ -3097,11 +3233,11 @@ export default function ResidentDashboard({
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 text-xs">
                   <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100">
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Owner Name</p>
-                    <p className="font-black text-slate-900 mt-1 text-sm">{resident.name}</p>
+                    <p className="font-black text-[#321F5C] mt-1 text-sm">{resident.name}</p>
                   </div>
                   <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100">
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Flat Number</p>
-                    <p className="font-black text-slate-900 mt-1 text-sm">{resident.flat}</p>
+                    <p className="font-black text-[#321F5C] mt-1 text-sm">{resident.flat}</p>
                   </div>
                   <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100">
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Building / Wing</p>
@@ -3135,7 +3271,7 @@ export default function ResidentDashboard({
                   </div>
                   <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100">
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Flat Type</p>
-                    <p className="font-bold text-indigo-600 mt-1">{flatType}</p>
+                    <p className="font-bold text-[#6339CA] mt-1">{flatType}</p>
                   </div>
                   <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100">
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Square Feet</p>
@@ -3156,11 +3292,11 @@ export default function ResidentDashboard({
               <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-slate-200 space-y-6">
                 <div className="flex items-center justify-between pb-4 border-b border-slate-100">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 font-bold">
+                    <div className="w-10 h-10 bg-[#6339CA]/10 rounded-xl flex items-center justify-center text-[#6339CA] font-bold">
                       <Key className="w-5 h-5" />
                     </div>
                     <div>
-                      <h4 className="text-lg font-black text-slate-900 tracking-tight">Tenant Profile Details</h4>
+                      <h4 className="text-lg font-black text-[#321F5C] tracking-tight">Tenant Profile Details</h4>
                       <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Your Tenancy & Lease Documentation</p>
                     </div>
                   </div>
@@ -3173,11 +3309,11 @@ export default function ResidentDashboard({
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 text-xs">
                   <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100">
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Tenant Name</p>
-                    <p className="font-black text-slate-900 mt-1 text-sm">{resident.name}</p>
+                    <p className="font-black text-[#321F5C] mt-1 text-sm">{resident.name}</p>
                   </div>
                   <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100">
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Flat Number</p>
-                    <p className="font-black text-slate-900 mt-1 text-sm">{resident.flat}</p>
+                    <p className="font-black text-[#321F5C] mt-1 text-sm">{resident.flat}</p>
                   </div>
                   <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100">
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Building / Wing</p>
@@ -3215,7 +3351,7 @@ export default function ResidentDashboard({
                   </div>
                   <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100">
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Flat Type</p>
-                    <p className="font-bold text-indigo-600 mt-1">{flatType}</p>
+                    <p className="font-bold text-[#6339CA] mt-1">{flatType}</p>
                   </div>
                   <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100">
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Square Feet</p>
@@ -3240,8 +3376,8 @@ export default function ResidentDashboard({
 
             {/* Profile Form & Settings */}
             <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100">
-              <h4 className="text-lg font-black text-slate-900 mb-6 flex items-center gap-2">
-                <Edit className="w-5 h-5 text-indigo-600" />
+              <h4 className="text-lg font-black text-[#321F5C] mb-6 flex items-center gap-2">
+                <Edit className="w-5 h-5 text-[#6339CA]" />
                 Edit Profile Information
               </h4>
               <form onSubmit={handleUpdateProfile} className="space-y-6">
@@ -3261,7 +3397,7 @@ export default function ResidentDashboard({
                         {resident.name.charAt(0)}
                       </div>
                     )}
-                    <label className="absolute -bottom-2 -right-2 p-2.5 bg-indigo-600 text-white rounded-2xl cursor-pointer hover:bg-indigo-700 transition-all shadow-md">
+                    <label className="absolute -bottom-2 -right-2 p-2.5 bg-[#6339CA] text-white rounded-2xl cursor-pointer hover:bg-[#5D31C7] transition-all shadow-md">
                       <Upload className="w-4 h-4" />
                       <input 
                         type="file" 
@@ -3272,10 +3408,10 @@ export default function ResidentDashboard({
                     </label>
                   </div>
                   <div className="flex-1 text-center sm:text-left space-y-1">
-                    <h5 className="text-sm font-black text-slate-900 uppercase tracking-tight">Upload Profile Photo</h5>
+                    <h5 className="text-sm font-black text-[#321F5C] uppercase tracking-tight">Upload Profile Photo</h5>
                     <p className="text-xs text-slate-500 font-medium">Personalize your profile across the TowerTech resident portal. Supports JPG, PNG, GIF up to 5MB.</p>
                     <div className="pt-2">
-                      <label className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl text-xs font-black uppercase tracking-wider cursor-pointer border border-indigo-200 transition-all shadow-2xs">
+                      <label className="inline-flex items-center gap-2 px-4 py-2 bg-[#6339CA]/10 hover:bg-purple-100 text-[#6339CA] rounded-xl text-xs font-black uppercase tracking-wider cursor-pointer border border-[#6339CA]/20 transition-all shadow-2xs">
                         <Upload className="w-3.5 h-3.5" />
                         <span>Choose Profile Image</span>
                         <input 
@@ -3297,7 +3433,7 @@ export default function ResidentDashboard({
                     required
                     value={profileData.name}
                     onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
-                    className="w-full px-5 py-4 rounded-2xl border border-slate-100 bg-slate-50/50 outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-sm transition-all"
+                    className="w-full px-5 py-4 rounded-2xl border border-slate-100 bg-slate-50/50 outline-none focus:ring-2 focus:ring-[#6339CA] font-bold text-sm transition-all"
                     placeholder="Enter your name"
                   />
                 </div>
@@ -3311,12 +3447,12 @@ export default function ResidentDashboard({
                       onClick={() => setProfileData({ ...profileData, occupancy_type: 'Owner', owner_id: null })}
                       className={`p-4 rounded-2xl border text-left transition-all flex items-center gap-3.5 ${
                         profileData.occupancy_type === 'Owner'
-                          ? 'border-blue-600 bg-blue-50/70 text-blue-900 shadow-sm ring-2 ring-blue-500/20'
+                          ? 'border-purple-600 bg-[#6339CA]/10 text-purple-900 shadow-sm ring-2 ring-[#6339CA]/20'
                           : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
                       }`}
                     >
                       <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-base shrink-0 ${
-                        profileData.occupancy_type === 'Owner' ? 'bg-blue-600 text-white shadow-md shadow-blue-200' : 'bg-slate-100 text-slate-500'
+                        profileData.occupancy_type === 'Owner' ? 'bg-[#6339CA] text-white shadow-md shadow-blue-200' : 'bg-slate-100 text-slate-500'
                       }`}>
                         <Home className="w-5 h-5" />
                       </div>
@@ -3331,12 +3467,12 @@ export default function ResidentDashboard({
                       onClick={() => setProfileData({ ...profileData, occupancy_type: 'Tenant', owner_id: profileData.owner_id || availableOwners[0]?.resident_id || 'R001' })}
                       className={`p-4 rounded-2xl border text-left transition-all flex items-center gap-3.5 ${
                         profileData.occupancy_type === 'Tenant'
-                          ? 'border-indigo-600 bg-indigo-50/70 text-indigo-900 shadow-sm ring-2 ring-indigo-500/20'
+                          ? 'border-[#6339CA] bg-[#6339CA]/10 text-[#321F5C] shadow-sm ring-2 ring-[#6339CA]/20'
                           : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
                       }`}
                     >
                       <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-base shrink-0 ${
-                        profileData.occupancy_type === 'Tenant' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200' : 'bg-slate-100 text-slate-500'
+                        profileData.occupancy_type === 'Tenant' ? 'bg-[#6339CA] text-white shadow-md shadow-indigo-200' : 'bg-slate-100 text-slate-500'
                       }`}>
                         <Key className="w-5 h-5" />
                       </div>
@@ -3350,14 +3486,14 @@ export default function ResidentDashboard({
                   {/* Owner Selection for Tenant */}
                   {profileData.occupancy_type === 'Tenant' && (
                     <div className="pt-2 space-y-1.5 animate-in fade-in">
-                      <label className="text-[10px] font-black text-indigo-600 uppercase tracking-widest ml-1 flex items-center gap-1.5">
+                      <label className="text-[10px] font-black text-[#6339CA] uppercase tracking-widest ml-1 flex items-center gap-1.5">
                         <span>Select Owner</span>
                         <span className="text-[9px] text-slate-400 font-medium lowercase">(flat {resident.flat})</span>
                       </label>
                       <select
                         value={profileData.owner_id || ''}
                         onChange={(e) => setProfileData({ ...profileData, owner_id: e.target.value })}
-                        className="w-full px-5 py-3.5 rounded-2xl border border-indigo-200 bg-indigo-50/30 outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-sm text-slate-800"
+                        className="w-full px-5 py-3.5 rounded-2xl border border-[#6339CA]/20 bg-[#6339CA]/5 outline-none focus:ring-2 focus:ring-[#6339CA] font-bold text-sm text-slate-800"
                         required
                       >
                         <option value="">-- Choose Flat Owner --</option>
@@ -3382,7 +3518,7 @@ export default function ResidentDashboard({
                       type="tel"
                       value={profileData.phone}
                       onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
-                      className="w-full px-5 py-4 rounded-2xl border border-slate-100 bg-slate-50/50 outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-sm transition-all"
+                      className="w-full px-5 py-4 rounded-2xl border border-slate-100 bg-slate-50/50 outline-none focus:ring-2 focus:ring-[#6339CA] font-bold text-sm transition-all"
                       placeholder="e.g. 9876543210"
                     />
                   </div>
@@ -3392,7 +3528,7 @@ export default function ResidentDashboard({
                       type="email"
                       value={profileData.email}
                       onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
-                      className="w-full px-5 py-4 rounded-2xl border border-slate-100 bg-slate-50/50 outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-sm transition-all"
+                      className="w-full px-5 py-4 rounded-2xl border border-slate-100 bg-slate-50/50 outline-none focus:ring-2 focus:ring-[#6339CA] font-bold text-sm transition-all"
                       placeholder="e.g. resident@tower.com"
                     />
                   </div>
@@ -3412,7 +3548,7 @@ export default function ResidentDashboard({
                         className="px-3 py-1.5 bg-white border border-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center gap-1.5 hover:bg-slate-100 transition-colors shadow-sm"
                         title={showCurrentPassword ? "Hide password" : "Check / Reveal password"}
                       >
-                        {showCurrentPassword ? <EyeOff className="w-3.5 h-3.5 text-slate-500" /> : <Eye className="w-3.5 h-3.5 text-indigo-600" />}
+                        {showCurrentPassword ? <EyeOff className="w-3.5 h-3.5 text-slate-500" /> : <Eye className="w-3.5 h-3.5 text-[#6339CA]" />}
                         <span>{showCurrentPassword ? "Hide Password" : "Check Password"}</span>
                       </button>
                       <button
@@ -3431,13 +3567,13 @@ export default function ResidentDashboard({
                     </div>
                   </div>
                   <div className="flex items-center justify-between bg-white px-4 py-3 rounded-xl border border-slate-200 font-mono text-sm">
-                    <span className="font-bold text-slate-900 tracking-wider">
+                    <span className="font-bold text-[#321F5C] tracking-wider">
                       {showCurrentPassword ? currentPass : "••••••••••••"}
                     </span>
                     <button
                       type="button"
                       onClick={() => setShowChangePassword(true)}
-                      className="text-xs font-black text-indigo-600 hover:text-indigo-700 uppercase tracking-wider"
+                      className="text-xs font-black text-[#6339CA] hover:text-[#6339CA] uppercase tracking-wider"
                     >
                       Change Password
                     </button>
@@ -3455,7 +3591,7 @@ export default function ResidentDashboard({
                   <button 
                     type="submit"
                     disabled={updatingProfile}
-                    className="flex-[2] bg-indigo-600 text-white font-black py-4 rounded-2xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 disabled:opacity-50 flex items-center justify-center gap-2 uppercase tracking-widest text-xs"
+                    className="flex-[2] bg-[#6339CA] text-white font-black py-4 rounded-2xl hover:bg-[#5D31C7] transition-all shadow-lg shadow-[#6339CA]/10 disabled:opacity-50 flex items-center justify-center gap-2 uppercase tracking-widest text-xs"
                   >
                     {updatingProfile ? (
                       <>
@@ -3516,14 +3652,14 @@ export default function ResidentDashboard({
 
       {showEditProfile && renderEditProfileModal()}
       {showComplaintSuccessModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[200] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-[#321F5C]/60 backdrop-blur-md z-[200] flex items-center justify-center p-4">
           <div className="bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-300">
             <div className="p-8 text-center space-y-6">
               <div className="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
                 <CheckCircle2 className="w-10 h-10" />
               </div>
               <div>
-                <h3 className="text-2xl font-black text-slate-900 tracking-tight">Complaint Raised!</h3>
+                <h3 className="text-2xl font-black text-[#321F5C] tracking-tight">Complaint Raised!</h3>
                 <p className="text-slate-500 font-medium mt-2">Your complaint has been submitted successfully. Our team will look into it shortly.</p>
               </div>
               <button 
@@ -3562,8 +3698,13 @@ export default function ResidentDashboard({
           onConfirm={async (payData) => {
             try {
               const billId = payingBill.maintenance_id || payingBill.id!;
-              await societyService.updateMaintenanceStatus(billId, 'Paid');
-              toast.success(`Payment of ₹${payData.amount.toLocaleString()} recorded successfully!`);
+              await societyService.updateMaintenanceStatus(billId, 'Paid', {
+                total_paid: payData.amount,
+                payment_date: payData.payment_date,
+                payment_method: payData.payment_method,
+                transaction_id: payData.transaction_id
+              });
+              toast.success(`Payment of ₹${payData.amount.toLocaleString()} (Ref: ${payData.transaction_id}) recorded successfully!`);
               setPayingBill(null);
               onRefresh();
             } catch (err: unknown) {
@@ -3583,7 +3724,7 @@ export default function ResidentDashboard({
 
       {/* Image Preview Modal */}
       {selectedImage && (
-        <div className="fixed inset-0 bg-black/90 z-[200] flex items-center justify-center p-4 cursor-zoom-out"
+        <div className="fixed inset-0 bg-[#321F5C]/90 z-[200] flex items-center justify-center p-4 cursor-zoom-out"
           onClick={() => setSelectedImage(null)}
         >
           <button 

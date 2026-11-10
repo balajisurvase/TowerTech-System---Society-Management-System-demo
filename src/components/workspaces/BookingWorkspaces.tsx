@@ -104,10 +104,10 @@ export function BookAmenityWorkspace({
           </button>
           <div>
             <div className="flex items-center gap-2.5">
-              <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+              <h1 className="text-2xl font-black text-[#321F5C] tracking-tight">
                 Book Society Amenity / Facility
               </h1>
-              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold border uppercase tracking-wider bg-amber-50 text-amber-800 border-amber-200">
+              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold border uppercase tracking-wider bg-gold/10 text-gold border-gold/20">
                 Reservation
               </span>
             </div>
@@ -130,7 +130,7 @@ export function BookAmenityWorkspace({
             type="button"
             onClick={handleSubmit}
             disabled={submitting}
-            className="px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold transition-all shadow-md shadow-amber-500/25 flex items-center gap-2 cursor-pointer disabled:opacity-50"
+            className="px-6 py-2.5 rounded-xl bg-[#FAA928] hover:bg-[#FBAE17] text-slate-950 font-bold transition-all shadow-md shadow-gold/25 flex items-center gap-2 cursor-pointer disabled:opacity-50"
           >
             {submitting ? (
               <span>Reserving...</span>
@@ -149,11 +149,11 @@ export function BookAmenityWorkspace({
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="px-6 py-4 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center font-bold">
+              <div className="w-8 h-8 rounded-lg bg-gold/10 text-gold flex items-center justify-center font-bold">
                 <Sparkles className="w-4 h-4" />
               </div>
               <div>
-                <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">
+                <h3 className="text-sm font-black text-[#321F5C] uppercase tracking-wider">
                   Section 1: Select Facility
                 </h3>
                 <p className="text-[11px] text-slate-500 font-medium">Choose available society amenities</p>
@@ -172,13 +172,13 @@ export function BookAmenityWorkspace({
                     onClick={() => setSelectedAmenityId(a.id || a.amenity_id)}
                     className={`p-4 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between h-32 ${
                       isSelected
-                        ? 'border-amber-500 bg-amber-50/60 shadow-xs'
+                        ? 'border-gold bg-gold/5 shadow-xs'
                         : 'border-slate-200 hover:border-slate-300 bg-white'
                     }`}
                   >
                     <div className="flex items-start justify-between">
                       <div>
-                        <h4 className="text-sm font-black text-slate-900">{a.name}</h4>
+                        <h4 className="text-sm font-black text-[#321F5C]">{a.name}</h4>
                         <p className="text-[10px] text-slate-500 line-clamp-2 mt-0.5">{a.description}</p>
                       </div>
                       <div className={`w-4 h-4 rounded-full border-2 shrink-0 mt-0.5 flex items-center justify-center ${
@@ -202,11 +202,11 @@ export function BookAmenityWorkspace({
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="px-6 py-4 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold">
+              <div className="w-8 h-8 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center font-bold">
                 <Calendar className="w-4 h-4" />
               </div>
               <div>
-                <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">
+                <h3 className="text-sm font-black text-[#321F5C] uppercase tracking-wider">
                   Section 2: Booking Schedule & Event Particulars
                 </h3>
                 <p className="text-[11px] text-slate-500 font-medium">Select date and duration slot</p>
@@ -265,7 +265,7 @@ export function BookAmenityWorkspace({
                 <IndianRupee className="w-4 h-4" />
               </div>
               <div>
-                <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">
+                <h3 className="text-sm font-black text-[#321F5C] uppercase tracking-wider">
                   Section 3: Pricing Summary
                 </h3>
                 <p className="text-[11px] text-slate-500 font-medium">Charges and deposit details</p>
@@ -313,7 +313,7 @@ export function BookAmenityWorkspace({
             <button
               type="submit"
               disabled={submitting}
-              className="px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold transition-all shadow-md shadow-amber-500/25 flex items-center gap-2 cursor-pointer disabled:opacity-50"
+              className="px-6 py-2.5 rounded-xl bg-[#FAA928] hover:bg-[#FBAE17] text-slate-950 font-bold transition-all shadow-md shadow-gold/25 flex items-center gap-2 cursor-pointer disabled:opacity-50"
             >
               {submitting ? (
                 <span>Submitting...</span>
@@ -375,7 +375,7 @@ export function ViewBookingWorkspace({
           </button>
           <div>
             <div className="flex items-center gap-2.5">
-              <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+              <h1 className="text-2xl font-black text-[#321F5C] tracking-tight">
                 Booking #{booking.booking_id}
               </h1>
               <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border uppercase tracking-wider ${
@@ -438,7 +438,7 @@ export function ViewBookingWorkspace({
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-5 text-xs">
               <div>
                 <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Facility / Amenity</p>
-                <p className="font-black text-slate-900 mt-0.5 text-sm">{booking.amenity_name}</p>
+                <p className="font-black text-[#321F5C] mt-0.5 text-sm">{booking.amenity_name}</p>
               </div>
               <div>
                 <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Event Purpose</p>

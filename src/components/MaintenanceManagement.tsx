@@ -460,14 +460,14 @@ export default function MaintenanceManagement({
   return (
     <div className="flex flex-col gap-6 w-full font-sans">
       {/* 1. PAGE HEADER */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-gradient-to-r from-blue-50/80 via-emerald-50/50 to-slate-50 p-5 rounded-2xl border border-blue-100/90 shadow-2xs">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-gradient-to-r from-purple-50/80 via-emerald-50/50 to-slate-50 p-5 rounded-2xl border border-purple-100/90 shadow-2xs">
         <div className="flex items-center gap-3.5">
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-700 text-white flex items-center justify-center shadow-md shadow-emerald-600/20 shrink-0">
             <CreditCard className="w-6 h-6 text-white" />
           </div>
           <div>
             <div className="flex items-center gap-2.5">
-              <h2 className="text-2xl font-black text-slate-900 tracking-tight">Maintenance Management</h2>
+              <h2 className="text-2xl font-black text-[#6339CA] tracking-tight">Maintenance Management</h2>
               <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
                 {selectedMonth}
               </span>
@@ -497,7 +497,7 @@ export default function MaintenanceManagement({
             className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all uppercase tracking-wider ${
               selectedMonth === currentMonthName 
                 ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-500/30' 
-                : 'text-slate-700 hover:text-emerald-700 hover:bg-emerald-50'
+                : 'text-purple-800 hover:text-emerald-700 hover:bg-emerald-50'
             }`}
           >
             {currentMonthName.split(' ')[0]}
@@ -520,7 +520,7 @@ export default function MaintenanceManagement({
           <select
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(e.target.value)}
-            className="bg-transparent outline-none text-xs font-bold text-slate-700 cursor-pointer pr-2"
+            className="bg-transparent outline-none text-xs font-bold text-purple-800 cursor-pointer pr-2"
           >
             <option value="All">All Months</option>
             {['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].map(m => {
@@ -534,7 +534,7 @@ export default function MaintenanceManagement({
       {/* 2. SUMMARY CARDS (Solid Vibrant Colors) */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
         {/* TOTAL RESIDENTS: Solid Blue #2563EB */}
-        <div className="bg-[#2563EB] p-5 rounded-2xl shadow-lg shadow-blue-500/20 text-white flex flex-col justify-between transition-transform hover:-translate-y-0.5">
+        <div className="bg-[#2563EB] p-5 rounded-2xl shadow-lg shadow-[#6339CA]/20 text-white flex flex-col justify-between transition-transform hover:-translate-y-0.5">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-black uppercase tracking-wider text-white/90">Total Residents</span>
             <div className="w-9 h-9 rounded-xl bg-white/20 text-white flex items-center justify-center font-black backdrop-blur-xs">
@@ -608,11 +608,11 @@ export default function MaintenanceManagement({
       <div className="bg-white p-4.5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
-            <h4 className="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+            <h4 className="text-xs font-black uppercase tracking-wider text-purple-800 flex items-center gap-1.5">
               <Layers className="w-4 h-4 text-emerald-600" />
               Monthly Collection Progress ({selectedMonth})
             </h4>
-            <p className="text-sm font-extrabold text-slate-900 mt-0.5">
+            <p className="text-sm font-extrabold text-[#6339CA] mt-0.5">
               ₹{totalCollectionAmount.toLocaleString('en-IN')} <span className="text-slate-500 font-normal">collected of</span> ₹{totalExpectedAmount.toLocaleString('en-IN')}
             </p>
           </div>
@@ -644,34 +644,29 @@ export default function MaintenanceManagement({
         <div className="p-4.5 border-b border-slate-100 bg-slate-50/70 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h3 className="text-lg font-black text-slate-900 tracking-tight">Maintenance Bills</h3>
+              <h3 className="text-lg font-black text-[#6339CA] tracking-tight">Maintenance Bills</h3>
               <p className="text-xs font-medium text-slate-500">View, search and manage resident maintenance bills.</p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <button
                 onClick={() => {
-                  setBillFormData({
-                    resident_id: residents[0]?.resident_id || '',
-                    tower: residents[0]?.tower || 'A',
-                    flat_no: residents[0]?.flat || '101',
+                  setBulkFormData({
                     month: selectedMonth === 'All' ? currentMonthName : selectedMonth,
-                    amount: 2500,
-                    previous_due: 0,
-                    late_fee: 0,
+                    default_amount: 2500,
                     due_date: format(new Date(now.getFullYear(), now.getMonth(), 10), 'yyyy-MM-dd'),
                     notes: 'Monthly society maintenance charges.'
                   });
-                  setShowGenerateModal(true);
+                  setShowBulkGenerateModal(true);
                 }}
-                className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-500/20 transition-all flex items-center gap-1.5"
+                className="px-3.5 py-2 bg-[#6339CA] hover:bg-[#5D31C7] text-white rounded-xl text-xs font-bold shadow-md shadow-[#6339CA]/20 transition-all flex items-center gap-1.5"
               >
                 <Plus className="w-4 h-4" />
-                <span>+ Generate Bill</span>
+                <span>+ Generate All Bills</span>
               </button>
 
               <button
                 onClick={handleExportCSV}
-                className="px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold shadow-2xs transition-all flex items-center gap-1.5"
+                className="px-3 py-2 bg-white hover:bg-slate-100 text-purple-800 border border-slate-200 rounded-xl text-xs font-bold shadow-2xs transition-all flex items-center gap-1.5"
                 title="Export Filtered Maintenance Records"
               >
                 <Download className="w-3.5 h-3.5 text-slate-600" />
@@ -693,7 +688,7 @@ export default function MaintenanceManagement({
                   setSearchTerm(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full pl-10 pr-9 py-2 rounded-xl border border-slate-300 text-xs font-medium text-slate-800 placeholder-slate-400 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-2xs"
+                className="w-full pl-10 pr-9 py-2 rounded-xl border border-slate-300 text-xs font-medium text-purple-900 placeholder-slate-400 bg-white focus:ring-2 focus:ring-[#6339CA] focus:border-[#6339CA] outline-none transition-all shadow-2xs"
               />
               {searchTerm && (
                 <button
@@ -717,7 +712,7 @@ export default function MaintenanceManagement({
                     setStatusFilter(e.target.value as any);
                     setCurrentPage(1);
                   }}
-                  className="bg-transparent outline-none font-bold text-slate-700 cursor-pointer"
+                  className="bg-transparent outline-none font-bold text-purple-800 cursor-pointer"
                 >
                   <option value="All">All</option>
                   <option value="Paid">Paid</option>
@@ -729,14 +724,14 @@ export default function MaintenanceManagement({
 
               {/* Tower Filter */}
               <div className="flex items-center gap-1.5 bg-white px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs shadow-2xs">
-                <span className="text-[10px] font-black text-blue-600 uppercase tracking-wider">Tower</span>
+                <span className="text-[10px] font-black text-[#6339CA] uppercase tracking-wider">Tower</span>
                 <select
                   value={towerFilter}
                   onChange={(e) => {
                     setTowerFilter(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="bg-transparent outline-none font-bold text-slate-700 cursor-pointer"
+                  className="bg-transparent outline-none font-bold text-purple-800 cursor-pointer"
                 >
                   <option value="All">All</option>
                   {towers.map(t => <option key={t} value={t}>Tower {t}</option>)}
@@ -752,7 +747,7 @@ export default function MaintenanceManagement({
                     setFlatFilter(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="bg-transparent outline-none font-bold text-slate-700 cursor-pointer"
+                  className="bg-transparent outline-none font-bold text-purple-800 cursor-pointer"
                 >
                   <option value="All">All</option>
                   {flats.map(f => <option key={f} value={f}>Flat {f}</option>)}
@@ -764,7 +759,7 @@ export default function MaintenanceManagement({
                 <button
                   onClick={() => setViewMode('cards')}
                   className={`p-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
-                    viewMode === 'cards' ? 'bg-white text-indigo-600 shadow-xs' : 'text-slate-500 hover:text-slate-800'
+                    viewMode === 'cards' ? 'bg-white text-[#6339CA] shadow-xs' : 'text-slate-500 hover:text-purple-900'
                   }`}
                   title="Card Grid View"
                 >
@@ -774,7 +769,7 @@ export default function MaintenanceManagement({
                 <button
                   onClick={() => setViewMode('table')}
                   className={`p-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
-                    viewMode === 'table' ? 'bg-white text-indigo-600 shadow-xs' : 'text-slate-500 hover:text-slate-800'
+                    viewMode === 'table' ? 'bg-white text-[#6339CA] shadow-xs' : 'text-slate-500 hover:text-purple-900'
                   }`}
                   title="Table View"
                 >
@@ -793,7 +788,7 @@ export default function MaintenanceManagement({
                     setFlatFilter('All');
                     setCurrentPage(1);
                   }}
-                  className="px-2.5 py-1.5 text-[11px] font-bold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+                  className="px-2.5 py-1.5 text-[11px] font-bold text-slate-600 hover:text-[#6339CA] bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
                 >
                   Clear
                 </button>
@@ -839,20 +834,20 @@ export default function MaintenanceManagement({
 
                     {/* Resident Info */}
                     <div className="py-3.5 flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 text-[#2563EB] font-black flex items-center justify-center text-sm shrink-0">
+                      <div className="w-10 h-10 rounded-xl bg-[#6339CA]/10 border border-purple-200 text-[#2563EB] font-black flex items-center justify-center text-sm shrink-0">
                         {m.resident_name ? m.resident_name.charAt(0).toUpperCase() : 'R'}
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5">
                           <UserIcon className="w-4 h-4 text-[#2563EB] shrink-0" />
-                          <h4 className="font-black text-slate-900 text-sm truncate">{m.resident_name}</h4>
+                          <h4 className="font-black text-[#6339CA] text-sm truncate">{m.resident_name}</h4>
                         </div>
                         <p className="text-[11px] font-mono font-extrabold text-slate-500 mt-0.5">{m.resident_id}</p>
                       </div>
                     </div>
 
                     {/* Location Badge Box */}
-                    <div className="bg-slate-100/90 p-3 rounded-xl border border-slate-200 flex items-center justify-around text-xs font-black text-slate-800 mb-3.5">
+                    <div className="bg-slate-100/90 p-3 rounded-xl border border-slate-200 flex items-center justify-around text-xs font-black text-purple-900 mb-3.5">
                       <div className="flex items-center gap-1.5">
                         <Building2 className="w-4 h-4 text-[#2563EB]" />
                         <span>Tower {m.tower}</span>
@@ -871,15 +866,15 @@ export default function MaintenanceManagement({
                           <Calendar className="w-3.5 h-3.5 text-[#EA580C]" />
                           <span>Billing Month</span>
                         </span>
-                        <span className="text-xs font-extrabold text-slate-900">{m.month}</span>
+                        <span className="text-xs font-extrabold text-[#6339CA]">{m.month}</span>
                       </div>
                       <div className="flex items-center justify-between pt-1 border-t border-slate-200/80">
                         <span className="text-xs font-bold text-slate-600">Amount Due</span>
-                        <span className="text-2xl font-black text-slate-900 font-mono tracking-tight">₹{Number(m.amount).toLocaleString('en-IN')}</span>
+                        <span className="text-2xl font-black text-[#6339CA] font-mono tracking-tight">₹{Number(m.amount).toLocaleString('en-IN')}</span>
                       </div>
                       <div className="flex items-center justify-between text-[11px] font-bold pt-1.5 border-t border-slate-200/60">
-                        <span className="text-slate-500">Due Date: <strong className="text-slate-800">{m.due_date ? format(new Date(m.due_date), 'dd MMM yyyy') : '—'}</strong></span>
-                        <span className="text-slate-500">Paid: <strong className="text-slate-800">{isPaid && m.payment_date ? format(new Date(m.payment_date), 'dd MMM yyyy') : '—'}</strong></span>
+                        <span className="text-slate-500">Due Date: <strong className="text-purple-900">{m.due_date ? format(new Date(m.due_date), 'dd MMM yyyy') : '—'}</strong></span>
+                        <span className="text-slate-500">Paid: <strong className="text-purple-900">{isPaid && m.payment_date ? format(new Date(m.payment_date), 'dd MMM yyyy') : '—'}</strong></span>
                       </div>
                     </div>
 
@@ -887,9 +882,9 @@ export default function MaintenanceManagement({
                     <div className="flex items-center gap-2 pt-1.5 border-t border-slate-100">
                       <button
                         onClick={() => setSelectedBillDetails(m)}
-                        className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-extrabold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                        className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-purple-900 rounded-xl text-xs font-extrabold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                       >
-                        <Eye className="w-3.5 h-3.5 text-slate-700" />
+                        <Eye className="w-3.5 h-3.5 text-purple-800" />
                         <span>View Details</span>
                       </button>
 
@@ -959,33 +954,33 @@ export default function MaintenanceManagement({
                           isPaid ? 'bg-emerald-50/15' : m.status === 'Overdue' ? 'bg-amber-50/20' : 'bg-rose-50/15'
                         }`}
                       >
-                        <td className="px-4 py-3 font-mono font-bold text-blue-700">
+                        <td className="px-4 py-3 font-mono font-bold text-[#6339CA]">
                           {m.maintenance_id}
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-800 font-bold flex items-center justify-center text-xs shrink-0">
+                            <div className="w-8 h-8 rounded-lg bg-[#6339CA]/10 text-[#6339CA] font-bold flex items-center justify-center text-xs shrink-0">
                               {m.resident_name ? m.resident_name.charAt(0).toUpperCase() : 'R'}
                             </div>
                             <div>
-                              <p className="font-bold text-slate-900 leading-snug">{m.resident_name}</p>
+                              <p className="font-bold text-[#6339CA] leading-snug">{m.resident_name}</p>
                               <p className="text-[10.5px] font-mono text-slate-500">{m.resident_id}</p>
                             </div>
                           </div>
                         </td>
-                        <td className="px-4 py-3 font-semibold text-slate-800">
+                        <td className="px-4 py-3 font-semibold text-purple-900">
                           <span className="font-bold text-blue-900">Tower {m.tower}</span>
                           <span className="text-slate-300 mx-1.5">•</span>
                           <span className="font-bold text-purple-900">Flat {m.flat_no}</span>
                         </td>
-                        <td className="px-4 py-3 font-mono font-extrabold text-slate-900 text-sm">
+                        <td className="px-4 py-3 font-mono font-extrabold text-[#6339CA] text-sm">
                           ₹{Number(m.amount).toLocaleString('en-IN')}
                         </td>
-                        <td className="px-4 py-3 font-medium text-slate-700">
+                        <td className="px-4 py-3 font-medium text-purple-800">
                           {m.month}
                         </td>
                         <td className="px-4 py-3">
-                          <p className="font-mono text-slate-800 font-semibold">
+                          <p className="font-mono text-purple-900 font-semibold">
                             {m.due_date ? format(new Date(m.due_date), 'dd MMM yyyy') : '—'}
                           </p>
                           {isPaid && m.payment_date && (
@@ -1001,10 +996,10 @@ export default function MaintenanceManagement({
                           <div className="flex items-center justify-center gap-1.5">
                             <button
                               onClick={() => setSelectedBillDetails(m)}
-                              className="px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 shadow-2xs"
+                              className="px-2.5 py-1.5 bg-[#6339CA]/10 hover:bg-[#6339CA]/10 text-[#6339CA] border border-purple-200 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 shadow-2xs"
                               title="View Bill Details"
                             >
-                              <Eye className="w-3.5 h-3.5 text-blue-600" />
+                              <Eye className="w-3.5 h-3.5 text-[#6339CA]" />
                               <span>View</span>
                             </button>
 
@@ -1060,12 +1055,12 @@ export default function MaintenanceManagement({
               <CreditCard className="w-6 h-6" />
             </div>
             <div>
-              <h4 className="text-base font-bold text-slate-900">No maintenance bills found</h4>
+              <h4 className="text-base font-bold text-[#6339CA]">No maintenance bills found</h4>
               <p className="text-xs text-slate-500 mt-1">Try changing your search or filters, or generate new bills.</p>
             </div>
             <button
               onClick={() => setShowGenerateModal(true)}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-md transition-colors"
+              className="px-4 py-2 bg-[#6339CA] hover:bg-[#5D31C7] text-white text-xs font-bold rounded-xl shadow-md transition-colors"
             >
               + Generate Bill
             </button>
@@ -1076,13 +1071,13 @@ export default function MaintenanceManagement({
         {filteredMaintenance.length > 0 && (
           <div className="p-4 border-t border-slate-100 bg-slate-50/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
             <div className="text-slate-600 font-medium">
-              Showing <strong className="text-slate-900">{((currentPage - 1) * itemsPerPage) + 1}</strong> to <strong className="text-slate-900">{Math.min(currentPage * itemsPerPage, filteredMaintenance.length)}</strong> of <strong className="text-slate-900">{filteredMaintenance.length}</strong> records
+              Showing <strong className="text-[#6339CA]">{((currentPage - 1) * itemsPerPage) + 1}</strong> to <strong className="text-[#6339CA]">{Math.min(currentPage * itemsPerPage, filteredMaintenance.length)}</strong> of <strong className="text-[#6339CA]">{filteredMaintenance.length}</strong> records
             </div>
             <div className="flex items-center gap-1.5">
               <button
                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
-                className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg font-bold text-slate-700 hover:bg-slate-100 disabled:opacity-40 transition-colors shadow-2xs flex items-center gap-1"
+                className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg font-bold text-purple-800 hover:bg-slate-100 disabled:opacity-40 transition-colors shadow-2xs flex items-center gap-1"
               >
                 <ChevronLeft className="w-3.5 h-3.5" />
                 <span>Previous</span>
@@ -1097,8 +1092,8 @@ export default function MaintenanceManagement({
                       onClick={() => setCurrentPage(page)}
                       className={`w-8 h-8 rounded-lg font-bold transition-colors ${
                         currentPage === page
-                          ? 'bg-blue-600 text-white shadow-sm'
-                          : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
+                          ? 'bg-[#6339CA] text-white shadow-sm'
+                          : 'bg-white border border-slate-200 text-purple-800 hover:bg-slate-100'
                       }`}
                     >
                       {page}
@@ -1109,7 +1104,7 @@ export default function MaintenanceManagement({
               <button
                 onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                 disabled={currentPage === totalPages}
-                className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg font-bold text-slate-700 hover:bg-slate-100 disabled:opacity-40 transition-colors shadow-2xs flex items-center gap-1"
+                className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg font-bold text-purple-800 hover:bg-slate-100 disabled:opacity-40 transition-colors shadow-2xs flex items-center gap-1"
               >
                 <span>Next</span>
                 <ChevronRight className="w-3.5 h-3.5" />
@@ -1130,7 +1125,7 @@ export default function MaintenanceManagement({
         return (
           <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-[150] flex items-center justify-center p-4">
             <div className="bg-white rounded-3xl shadow-2xl border border-slate-100 w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200">
-              <div className="p-6 bg-gradient-to-r from-blue-600 to-indigo-700 text-white flex justify-between items-center">
+              <div className="p-6 bg-gradient-to-r from-purple-600 to-purple-700 text-white flex justify-between items-center">
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-white/20 text-white">
@@ -1154,19 +1149,19 @@ export default function MaintenanceManagement({
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <p className="text-slate-500 font-medium">Resident Name:</p>
-                      <p className="font-black text-slate-900 text-sm mt-0.5">{b.resident_name || res?.name}</p>
+                      <p className="font-black text-[#6339CA] text-sm mt-0.5">{b.resident_name || res?.name}</p>
                     </div>
                     <div>
                       <p className="text-slate-500 font-medium">Resident ID:</p>
-                      <p className="font-mono font-bold text-blue-700 mt-0.5">{b.resident_id}</p>
+                      <p className="font-mono font-bold text-[#6339CA] mt-0.5">{b.resident_id}</p>
                     </div>
                     <div>
                       <p className="text-slate-500 font-medium">Tower & Flat:</p>
-                      <p className="font-bold text-slate-900 mt-0.5">Tower {b.tower} • Flat {b.flat_no}</p>
+                      <p className="font-bold text-[#6339CA] mt-0.5">Tower {b.tower} • Flat {b.flat_no}</p>
                     </div>
                     <div>
                       <p className="text-slate-500 font-medium">Phone:</p>
-                      <p className="font-mono text-slate-700 mt-0.5">{res?.phone || '—'}</p>
+                      <p className="font-mono text-purple-800 mt-0.5">{res?.phone || '—'}</p>
                     </div>
                   </div>
                 </div>
@@ -1176,11 +1171,11 @@ export default function MaintenanceManagement({
                   <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Billing Breakdown</p>
                   <div className="flex justify-between py-1 border-b border-slate-100">
                     <span className="text-slate-600">Billing Month:</span>
-                    <strong className="text-slate-900 font-bold">{b.month}</strong>
+                    <strong className="text-[#6339CA] font-bold">{b.month}</strong>
                   </div>
                   <div className="flex justify-between py-1 border-b border-slate-100">
                     <span className="text-slate-600">Maintenance Charges:</span>
-                    <strong className="font-mono text-slate-900 font-bold">₹{Number(b.amount).toLocaleString('en-IN')}</strong>
+                    <strong className="font-mono text-[#6339CA] font-bold">₹{Number(b.amount).toLocaleString('en-IN')}</strong>
                   </div>
                   {b.late_fee ? (
                     <div className="flex justify-between py-1 border-b border-slate-100">
@@ -1188,9 +1183,9 @@ export default function MaintenanceManagement({
                       <strong className="font-mono text-rose-700 font-bold">₹{Number(b.late_fee).toLocaleString('en-IN')}</strong>
                     </div>
                   ) : null}
-                  <div className="flex justify-between py-1 text-sm bg-blue-50/70 p-2.5 rounded-xl border border-blue-200 text-blue-950">
+                  <div className="flex justify-between py-1 text-sm bg-[#6339CA]/10 p-2.5 rounded-xl border border-purple-200 text-blue-950">
                     <span className="font-black">Total Payable:</span>
-                    <strong className="font-mono font-black text-blue-700">₹{Number(b.amount).toLocaleString('en-IN')}</strong>
+                    <strong className="font-mono font-black text-[#6339CA]">₹{Number(b.amount).toLocaleString('en-IN')}</strong>
                   </div>
                 </div>
 
@@ -1198,7 +1193,7 @@ export default function MaintenanceManagement({
                 <div className="grid grid-cols-2 gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
                   <div>
                     <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Due Date</p>
-                    <p className="font-mono font-bold text-slate-800 mt-0.5">
+                    <p className="font-mono font-bold text-purple-900 mt-0.5">
                       {b.due_date ? format(new Date(b.due_date), 'dd MMMM yyyy') : '—'}
                     </p>
                   </div>
@@ -1245,7 +1240,7 @@ export default function MaintenanceManagement({
                 )}
                 <button
                   onClick={() => setSelectedBillDetails(null)}
-                  className="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-xl text-xs font-bold hover:bg-slate-100 transition-colors"
+                  className="px-4 py-2 bg-white border border-slate-200 text-purple-800 rounded-xl text-xs font-bold hover:bg-slate-100 transition-colors"
                 >
                   Close
                 </button>
@@ -1261,10 +1256,10 @@ export default function MaintenanceManagement({
       {showGenerateModal && (
         <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-[150] flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl shadow-2xl border border-slate-100 w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200">
-            <div className="p-6 bg-blue-600 text-white flex justify-between items-center">
+            <div className="p-6 bg-[#6339CA] text-white flex justify-between items-center">
               <div>
                 <h3 className="text-xl font-black">Generate Maintenance Bill</h3>
-                <p className="text-blue-100 text-xs font-medium">Issue individual bill for a resident flat</p>
+                <p className="text-white/60 text-xs font-medium">Issue individual bill for a resident flat</p>
               </div>
               <button onClick={() => setShowGenerateModal(false)} className="p-2 hover:bg-white/20 rounded-full transition-colors text-white">
                 <X className="w-5 h-5" />
@@ -1279,7 +1274,7 @@ export default function MaintenanceManagement({
                   required
                   value={billFormData.resident_id}
                   onChange={(e) => handleResidentSelectInForm(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-bold text-xs bg-white outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                  className="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-bold text-xs bg-white outline-none focus:ring-2 focus:ring-[#6339CA] cursor-pointer"
                 >
                   <option value="">-- Choose Resident --</option>
                   {residents.map(r => (
@@ -1323,7 +1318,7 @@ export default function MaintenanceManagement({
                     required
                     value={billFormData.month}
                     onChange={(e) => setBillFormData({ ...billFormData, month: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold text-xs bg-white outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold text-xs bg-white outline-none focus:ring-2 focus:ring-[#6339CA]"
                   />
                 </div>
                 <div className="space-y-1">
@@ -1333,7 +1328,7 @@ export default function MaintenanceManagement({
                     required
                     value={billFormData.due_date}
                     onChange={(e) => setBillFormData({ ...billFormData, due_date: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold text-xs bg-white outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold text-xs bg-white outline-none focus:ring-2 focus:ring-[#6339CA]"
                   />
                 </div>
               </div>
@@ -1374,9 +1369,9 @@ export default function MaintenanceManagement({
               </div>
 
               {/* Live Total Payable Display */}
-              <div className="flex justify-between items-center p-3.5 bg-blue-50 rounded-2xl border border-blue-200">
+              <div className="flex justify-between items-center p-3.5 bg-[#6339CA]/10 rounded-2xl border border-purple-200">
                 <span className="font-extrabold text-blue-900">Total Payable Amount:</span>
-                <span className="text-base font-black font-mono text-blue-700">
+                <span className="text-base font-black font-mono text-[#6339CA]">
                   ₹{(Number(billFormData.amount) + Number(billFormData.previous_due) + Number(billFormData.late_fee)).toLocaleString('en-IN')}
                 </span>
               </div>
@@ -1386,14 +1381,14 @@ export default function MaintenanceManagement({
                 <button
                   type="button"
                   onClick={() => setShowGenerateModal(false)}
-                  className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-bold hover:bg-slate-100 transition-colors"
+                  className="px-4 py-2.5 rounded-xl border border-slate-200 text-purple-800 font-bold hover:bg-slate-100 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={actionLoading}
-                  className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-md shadow-blue-500/25 disabled:opacity-50 transition-all flex items-center gap-1.5"
+                  className="px-5 py-2.5 bg-[#6339CA] hover:bg-[#5D31C7] text-white font-bold rounded-xl shadow-md shadow-[#6339CA]/25 disabled:opacity-50 transition-all flex items-center gap-1.5"
                 >
                   {actionLoading ? 'Generating...' : 'Generate Bill'}
                 </button>
@@ -1465,7 +1460,7 @@ export default function MaintenanceManagement({
                 <button
                   type="button"
                   onClick={() => setShowBulkGenerateModal(false)}
-                  className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-bold hover:bg-slate-100 transition-colors"
+                  className="px-4 py-2.5 rounded-xl border border-slate-200 text-purple-800 font-bold hover:bg-slate-100 transition-colors"
                 >
                   Cancel
                 </button>
@@ -1503,12 +1498,12 @@ export default function MaintenanceManagement({
               {/* Resident Summary Box */}
               <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 flex justify-between items-center">
                 <div>
-                  <p className="font-bold text-slate-900">{paymentBill.resident_name}</p>
+                  <p className="font-bold text-[#6339CA]">{paymentBill.resident_name}</p>
                   <p className="text-[11px] text-slate-500">{paymentBill.month}</p>
                 </div>
                 <div className="text-right">
                   <p className="text-[10px] uppercase font-bold text-slate-400">Total Due</p>
-                  <p className="font-mono font-black text-slate-900 text-base">₹{Number(paymentBill.amount).toLocaleString('en-IN')}</p>
+                  <p className="font-mono font-black text-[#6339CA] text-base">₹{Number(paymentBill.amount).toLocaleString('en-IN')}</p>
                 </div>
               </div>
 
@@ -1571,7 +1566,7 @@ export default function MaintenanceManagement({
                 <button
                   type="button"
                   onClick={() => setPaymentBill(null)}
-                  className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-bold hover:bg-slate-100 transition-colors"
+                  className="px-4 py-2.5 rounded-xl border border-slate-200 text-purple-800 font-bold hover:bg-slate-100 transition-colors"
                 >
                   Cancel
                 </button>
@@ -1596,7 +1591,7 @@ export default function MaintenanceManagement({
         <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-[160] flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl shadow-2xl border border-slate-100 w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200">
             {/* Header Actions */}
-            <div className="p-4 bg-slate-900 text-white flex justify-between items-center print:hidden">
+            <div className="p-4 bg-[#6339CA] text-white flex justify-between items-center print:hidden">
               <div className="flex items-center gap-2">
                 <Printer className="w-4 h-4 text-emerald-400" />
                 <span className="text-xs font-bold uppercase tracking-wider">Payment Receipt</span>
@@ -1616,9 +1611,9 @@ export default function MaintenanceManagement({
             </div>
 
             {/* Printable Receipt Canvas */}
-            <div className="p-8 space-y-6 text-slate-800 bg-white" id="printable-receipt">
+            <div className="p-8 space-y-6 text-purple-900 bg-white" id="printable-receipt">
               {/* Society Branding */}
-              <div className="text-center pb-4 border-b-2 border-slate-800">
+              <div className="text-center pb-4 border-b-2 border-purple-900">
                 <div className="flex items-center justify-center gap-2 mb-1">
                   <Building2 className="w-5 h-5 text-emerald-600" />
                   <h2 className="text-lg font-black tracking-tight uppercase">Green Park CHS Ltd.</h2>
@@ -1633,11 +1628,11 @@ export default function MaintenanceManagement({
               <div className="grid grid-cols-2 gap-4 text-xs">
                 <div>
                   <p className="text-slate-400 font-bold uppercase text-[10px]">Receipt No.</p>
-                  <p className="font-mono font-bold text-slate-900">REC-{receiptBill.maintenance_id}-{Date.now().toString().slice(-4)}</p>
+                  <p className="font-mono font-bold text-[#6339CA]">REC-{receiptBill.maintenance_id}-{Date.now().toString().slice(-4)}</p>
                 </div>
                 <div className="text-right">
                   <p className="text-slate-400 font-bold uppercase text-[10px]">Payment Date</p>
-                  <p className="font-mono font-bold text-slate-900">
+                  <p className="font-mono font-bold text-[#6339CA]">
                     {receiptBill.payment_date ? format(new Date(receiptBill.payment_date), 'dd MMM yyyy') : format(new Date(), 'dd MMM yyyy')}
                   </p>
                 </div>
@@ -1647,12 +1642,12 @@ export default function MaintenanceManagement({
               <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 grid grid-cols-2 gap-3 text-xs">
                 <div>
                   <p className="text-slate-400 font-bold uppercase text-[9.5px]">Received From</p>
-                  <p className="font-black text-slate-900 text-sm mt-0.5">{receiptBill.resident_name}</p>
+                  <p className="font-black text-[#6339CA] text-sm mt-0.5">{receiptBill.resident_name}</p>
                   <p className="font-mono text-slate-500 text-[10.5px]">Resident ID: {receiptBill.resident_id}</p>
                 </div>
                 <div className="text-right">
                   <p className="text-slate-400 font-bold uppercase text-[9.5px]">Unit Details</p>
-                  <p className="font-black text-slate-900 text-sm mt-0.5">Tower {receiptBill.tower} - Flat {receiptBill.flat_no}</p>
+                  <p className="font-black text-[#6339CA] text-sm mt-0.5">Tower {receiptBill.tower} - Flat {receiptBill.flat_no}</p>
                   <p className="text-slate-500 text-[10.5px]">Billing Period: {receiptBill.month}</p>
                 </div>
               </div>
@@ -1663,7 +1658,7 @@ export default function MaintenanceManagement({
                   <span>Maintenance Bill ({receiptBill.maintenance_id})</span>
                   <span className="font-mono font-bold">₹{Number(receiptBill.amount).toLocaleString('en-IN')}</span>
                 </div>
-                <div className="flex justify-between py-2 border-b-2 border-slate-800 text-base font-black">
+                <div className="flex justify-between py-2 border-b-2 border-purple-900 text-base font-black">
                   <span className="text-emerald-800">Total Amount Paid:</span>
                   <span className="font-mono text-emerald-700">
                     ₹{Number(receiptBill.total_paid || receiptBill.amount).toLocaleString('en-IN')}
@@ -1675,11 +1670,11 @@ export default function MaintenanceManagement({
               <div className="grid grid-cols-2 gap-3 text-[11px] bg-emerald-50/60 p-3 rounded-xl border border-emerald-200">
                 <div>
                   <p className="text-emerald-800 font-bold uppercase text-[9px]">Payment Method</p>
-                  <p className="font-bold text-slate-900">{receiptBill.payment_method || 'UPI Transfer'}</p>
+                  <p className="font-bold text-[#6339CA]">{receiptBill.payment_method || 'UPI Transfer'}</p>
                 </div>
                 <div className="text-right">
                   <p className="text-emerald-800 font-bold uppercase text-[9px]">Transaction / Reference</p>
-                  <p className="font-mono font-bold text-slate-900 truncate">{receiptBill.transaction_id || 'TXN-CONFIRMED'}</p>
+                  <p className="font-mono font-bold text-[#6339CA] truncate">{receiptBill.transaction_id || 'TXN-CONFIRMED'}</p>
                 </div>
               </div>
 
@@ -1702,7 +1697,7 @@ export default function MaintenanceManagement({
             <div className="p-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-2 print:hidden">
               <button
                 onClick={() => setReceiptBill(null)}
-                className="px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 transition-colors"
+                className="px-4 py-2 bg-[#6339CA] text-white rounded-xl text-xs font-bold hover:bg-purple-900 transition-colors"
               >
                 Close
               </button>
@@ -1721,16 +1716,16 @@ export default function MaintenanceManagement({
               <Trash2 className="w-6 h-6" />
             </div>
             <div>
-              <h4 className="text-base font-black text-slate-900">Delete Maintenance Record?</h4>
+              <h4 className="text-base font-black text-[#6339CA]">Delete Maintenance Record?</h4>
               <p className="text-xs text-slate-500 mt-1">
-                Are you sure you want to delete bill <strong className="text-slate-800 font-bold">{deletingBillId}</strong>? This action cannot be undone.
+                Are you sure you want to delete bill <strong className="text-purple-900 font-bold">{deletingBillId}</strong>? This action cannot be undone.
               </p>
             </div>
             <div className="flex items-center justify-center gap-2.5 pt-2">
               <button
                 type="button"
                 onClick={() => setDeletingBillId(null)}
-                className="flex-1 py-2.5 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors"
+                className="flex-1 py-2.5 rounded-xl text-xs font-bold text-purple-800 bg-slate-100 hover:bg-slate-200 transition-colors"
               >
                 Cancel
               </button>

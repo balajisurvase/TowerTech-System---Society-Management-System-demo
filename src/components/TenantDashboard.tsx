@@ -257,7 +257,7 @@ export default function TenantDashboard({
       <div className="space-y-6">
         <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-xs flex justify-between items-center">
           <div>
-            <h3 className="text-xl font-black text-slate-900">Amenity Booking for Tenants</h3>
+            <h3 className="text-xl font-black text-[#6339CA]">Amenity Booking for Tenants</h3>
             <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-1">Book society facilities & sports arenas</p>
           </div>
           <span className="px-3.5 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-purple-100 text-purple-800 border border-purple-200">
@@ -277,7 +277,7 @@ export default function TenantDashboard({
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
       {/* TENANT OCCUPANCY BANNER (Requirement 2: Clearly Differentiate Owner & Tenant in Flat Occupancy) */}
-      <div className="bg-slate-900 text-white p-6 rounded-2xl shadow-sm border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="bg-[#6339CA] text-white p-6 rounded-2xl shadow-sm border border-purple-900 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex items-center gap-5">
           <div className="relative group shrink-0">
             {photoPreview ? (
@@ -336,14 +336,14 @@ export default function TenantDashboard({
           </button>
           <button
             onClick={() => setActiveTab('profile')}
-            className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold tracking-wide transition-all border border-slate-700 flex items-center gap-2"
+            className="px-3.5 py-2 bg-purple-900 hover:bg-purple-800 text-slate-200 rounded-xl text-xs font-semibold tracking-wide transition-all border border-purple-800 flex items-center gap-2"
           >
             <UserIcon className="w-4 h-4" />
             Edit Profile
           </button>
           <button
             onClick={() => setShowGuestPassModal(true)}
-            className="px-3.5 py-2 bg-white text-slate-900 hover:bg-slate-100 rounded-xl text-xs font-semibold tracking-wide transition-all flex items-center gap-2 shadow-xs"
+            className="px-3.5 py-2 bg-white text-[#6339CA] hover:bg-slate-100 rounded-xl text-xs font-semibold tracking-wide transition-all flex items-center gap-2 shadow-xs"
           >
             <UserPlus className="w-4 h-4 text-purple-700" />
             Issue Gate Pass
@@ -362,7 +362,7 @@ export default function TenantDashboard({
                   <Key className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-slate-900">Tenant Profile Details</h3>
+                  <h3 className="text-base font-bold text-[#6339CA]">Tenant Profile Details</h3>
                   <p className="text-xs text-slate-500">Official tenant records & flat tenancy information</p>
                 </div>
               </div>
@@ -380,47 +380,47 @@ export default function TenantDashboard({
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 text-xs">
               <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
                 <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Tenant Name</p>
-                <p className="text-sm font-bold text-slate-900 mt-0.5">{resident.name}</p>
+                <p className="text-sm font-bold text-[#6339CA] mt-0.5">{resident.name}</p>
               </div>
 
               <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
                 <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Flat Number</p>
-                <p className="text-sm font-bold text-slate-900 mt-0.5">Flat {resident.flat}</p>
+                <p className="text-sm font-bold text-[#6339CA] mt-0.5">Flat {resident.flat}</p>
               </div>
 
               <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
                 <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Building / Wing</p>
-                <p className="text-sm font-bold text-slate-900 mt-0.5">{wing} (Tower {resident.tower})</p>
+                <p className="text-sm font-bold text-[#6339CA] mt-0.5">{wing} (Tower {resident.tower})</p>
               </div>
 
               <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
                 <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Mobile Number</p>
-                <p className="text-sm font-bold font-mono text-slate-900 mt-0.5">{resident.phone || '—'}</p>
+                <p className="text-sm font-bold font-mono text-[#6339CA] mt-0.5">{resident.phone || '—'}</p>
               </div>
 
               <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
                 <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Email</p>
-                <p className="text-sm font-medium text-slate-900 mt-0.5 truncate">{resident.email || '—'}</p>
+                <p className="text-sm font-medium text-[#6339CA] mt-0.5 truncate">{resident.email || '—'}</p>
               </div>
 
               <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 sm:col-span-2">
                 <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Permanent Address</p>
-                <p className="text-sm font-medium text-slate-900 mt-0.5">{resident.permanent_address || 'Permanent address on record with society office'}</p>
+                <p className="text-sm font-medium text-[#6339CA] mt-0.5">{resident.permanent_address || 'Permanent address on record with society office'}</p>
               </div>
 
               <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
                 <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Move-in Date</p>
-                <p className="text-sm font-bold text-slate-900 mt-0.5">{resident.move_in_date || '01 Jan 2024'}</p>
+                <p className="text-sm font-bold text-[#6339CA] mt-0.5">{resident.move_in_date || '01 Jan 2024'}</p>
               </div>
 
               <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
                 <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Expected Move-out Date</p>
-                <p className="text-sm font-bold text-slate-900 mt-0.5">{resident.expected_move_out_date || '31 Dec 2026'}</p>
+                <p className="text-sm font-bold text-[#6339CA] mt-0.5">{resident.expected_move_out_date || '31 Dec 2026'}</p>
               </div>
 
               <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
                 <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Owner Name</p>
-                <p className="text-sm font-bold text-indigo-700 mt-0.5">{linkedOwner.name || 'Deepak Yadav'}</p>
+                <p className="text-sm font-bold text-[#6339CA] mt-0.5">{linkedOwner.name || 'Deepak Yadav'}</p>
               </div>
 
               <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
@@ -432,7 +432,7 @@ export default function TenantDashboard({
 
               <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
                 <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">BHK</p>
-                <p className="text-sm font-bold text-slate-900 mt-0.5">{bhk}</p>
+                <p className="text-sm font-bold text-[#6339CA] mt-0.5">{bhk}</p>
               </div>
 
               <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
@@ -442,7 +442,7 @@ export default function TenantDashboard({
 
               <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
                 <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Square Feet</p>
-                <p className="text-sm font-bold text-slate-900 mt-0.5">{sqft} sq.ft.</p>
+                <p className="text-sm font-bold text-[#6339CA] mt-0.5">{sqft} sq.ft.</p>
               </div>
             </div>
           </div>
@@ -451,7 +451,7 @@ export default function TenantDashboard({
           <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-6">
             <div className="flex items-center justify-between pb-4 border-b border-slate-100">
               <div>
-                <h3 className="text-base font-bold text-slate-900">Update Profile Settings</h3>
+                <h3 className="text-base font-bold text-[#6339CA]">Update Profile Settings</h3>
                 <p className="text-xs text-slate-500">
                   Update contact information, photo & login credentials
                 </p>
@@ -464,7 +464,7 @@ export default function TenantDashboard({
             <form onSubmit={handleSaveProfile} className="space-y-6">
               {/* UPLOAD PROFILE IMAGE SECTION */}
               <div className="bg-slate-50 p-5 rounded-xl border border-slate-200 space-y-4">
-                <label className="block text-xs font-bold text-slate-800">
+                <label className="block text-xs font-bold text-purple-900">
                   Profile Photo
                 </label>
                 
@@ -485,7 +485,7 @@ export default function TenantDashboard({
 
                   <div className="flex-1 space-y-3 w-full">
                     <div>
-                      <p className="text-xs font-semibold text-slate-800">Upload New Photo</p>
+                      <p className="text-xs font-semibold text-purple-900">Upload New Photo</p>
                       <p className="text-[11px] text-slate-500">PNG or JPG, up to 5MB</p>
                     </div>
                     <label className="inline-flex items-center gap-2 px-3.5 py-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold rounded-lg cursor-pointer transition-colors shadow-xs">
@@ -505,45 +505,45 @@ export default function TenantDashboard({
               {/* PERSONAL DETAILS FIELDS */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-xs font-semibold text-purple-800 mb-1">
                     Tenant Full Name
                   </label>
                   <input 
                     type="text" 
                     value={profileData.name}
                     onChange={(e) => setProfileData(prev => ({ ...prev, name: e.target.value }))}
-                    className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 font-medium text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 font-medium text-sm text-[#6339CA] focus:outline-none focus:ring-2 focus:ring-purple-500"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-xs font-semibold text-purple-800 mb-1">
                     Phone Number
                   </label>
                   <input 
                     type="text" 
                     value={profileData.phone}
                     onChange={(e) => setProfileData(prev => ({ ...prev, phone: e.target.value }))}
-                    className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 font-medium text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 font-medium text-sm text-[#6339CA] focus:outline-none focus:ring-2 focus:ring-purple-500"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-xs font-semibold text-purple-800 mb-1">
                     Email Address
                   </label>
                   <input 
                     type="email" 
                     value={profileData.email}
                     onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
-                    className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 font-medium text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 font-medium text-sm text-[#6339CA] focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-xs font-semibold text-purple-800 mb-1">
                     Login Password
                   </label>
                   <div className="relative">
@@ -551,7 +551,7 @@ export default function TenantDashboard({
                       type={showPassword ? 'text' : 'password'} 
                       value={profileData.password}
                       onChange={(e) => setProfileData(prev => ({ ...prev, password: e.target.value }))}
-                      className="w-full px-3.5 py-2.5 pr-10 rounded-lg border border-slate-300 font-mono font-medium text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      className="w-full px-3.5 py-2.5 pr-10 rounded-lg border border-slate-300 font-mono font-medium text-sm text-[#6339CA] focus:outline-none focus:ring-2 focus:ring-purple-500"
                       required
                     />
                     <button
@@ -598,7 +598,7 @@ export default function TenantDashboard({
                       <Home className="w-5 h-5" />
                     </div>
                     <div>
-                      <h3 className="text-sm font-bold text-slate-900">Owner & Property Details</h3>
+                      <h3 className="text-sm font-bold text-[#6339CA]">Owner & Property Details</h3>
                       <p className="text-[11px] text-slate-500">Property owner records for Flat {resident.flat}</p>
                     </div>
                   </div>
@@ -610,49 +610,49 @@ export default function TenantDashboard({
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-xs">
                   <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
                     <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Owner Name</p>
-                    <p className="text-sm font-bold text-slate-900 mt-0.5">{linkedOwner.name || 'Deepak Yadav'}</p>
+                    <p className="text-sm font-bold text-[#6339CA] mt-0.5">{linkedOwner.name || 'Deepak Yadav'}</p>
                   </div>
 
                   <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
                     <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Flat Number</p>
-                    <p className="text-sm font-bold text-slate-900 mt-0.5">Flat {resident.flat}</p>
+                    <p className="text-sm font-bold text-[#6339CA] mt-0.5">Flat {resident.flat}</p>
                   </div>
 
                   <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
                     <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Building / Wing</p>
-                    <p className="text-sm font-bold text-slate-900 mt-0.5">{wing}</p>
+                    <p className="text-sm font-bold text-[#6339CA] mt-0.5">{wing}</p>
                   </div>
 
                   <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
                     <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Mobile Number</p>
-                    <p className="text-sm font-bold font-mono text-slate-900 mt-0.5">{linkedOwner.phone || '9000000021'}</p>
+                    <p className="text-sm font-bold font-mono text-[#6339CA] mt-0.5">{linkedOwner.phone || '9000000021'}</p>
                   </div>
 
                   <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
                     <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Email</p>
-                    <p className="text-sm font-medium text-slate-900 mt-0.5 truncate">{linkedOwner.email || 'owner@gvsociety.com'}</p>
+                    <p className="text-sm font-medium text-[#6339CA] mt-0.5 truncate">{linkedOwner.email || 'owner@gvsociety.com'}</p>
                   </div>
 
                   <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
                     <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Date of Possession</p>
-                    <p className="text-sm font-bold text-slate-900 mt-0.5">{(linkedOwner as any).possession_date || '15 Mar 2021'}</p>
+                    <p className="text-sm font-bold text-[#6339CA] mt-0.5">{(linkedOwner as any).possession_date || '15 Mar 2021'}</p>
                   </div>
 
                   <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
                     <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Resident Status</p>
-                    <span className="inline-block px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded font-bold text-xs mt-0.5">
+                    <span className="inline-block px-2 py-0.5 bg-[#6339CA]/10 text-[#6339CA] rounded font-bold text-xs mt-0.5">
                       {(linkedOwner as any).status || 'Active Owner'}
                     </span>
                   </div>
 
                   <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
                     <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Family Members</p>
-                    <p className="text-sm font-bold text-slate-900 mt-0.5">{(linkedOwner as any).family_members?.length || 4} Members</p>
+                    <p className="text-sm font-bold text-[#6339CA] mt-0.5">{(linkedOwner as any).family_members?.length || 4} Members</p>
                   </div>
 
                   <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
                     <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">BHK</p>
-                    <p className="text-sm font-bold text-slate-900 mt-0.5">{bhk}</p>
+                    <p className="text-sm font-bold text-[#6339CA] mt-0.5">{bhk}</p>
                   </div>
 
                   <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
@@ -662,7 +662,7 @@ export default function TenantDashboard({
 
                   <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
                     <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Square Feet</p>
-                    <p className="text-sm font-bold text-slate-900 mt-0.5">{sqft} sq.ft.</p>
+                    <p className="text-sm font-bold text-[#6339CA] mt-0.5">{sqft} sq.ft.</p>
                   </div>
                 </div>
 
@@ -678,7 +678,7 @@ export default function TenantDashboard({
                     onClick={() => {
                       setActiveTab('communication');
                     }}
-                    className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-semibold transition-colors flex items-center gap-2"
+                    className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-purple-900 rounded-xl text-xs font-semibold transition-colors flex items-center gap-2"
                   >
                     <Send className="w-3.5 h-3.5" />
                     Message Owner
@@ -690,7 +690,7 @@ export default function TenantDashboard({
               <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-sm font-bold text-slate-900">Flat Maintenance Bills</h3>
+                    <h3 className="text-sm font-bold text-[#6339CA]">Flat Maintenance Bills</h3>
                     <p className="text-[11px] text-slate-500">Bills for {wing} - Flat {resident.flat}</p>
                   </div>
                   <button 
@@ -710,11 +710,11 @@ export default function TenantDashboard({
                     {tenantMaintenance.slice(0, 3).map((bill, idx) => (
                       <div key={idx} className="flex items-center justify-between p-3 bg-slate-50/80 hover:bg-slate-50 rounded-xl border border-slate-100 transition-colors">
                         <div>
-                          <p className="text-xs font-bold text-slate-800">{bill.month} Maintenance</p>
+                          <p className="text-xs font-bold text-purple-900">{bill.month} Maintenance</p>
                           <p className="text-[11px] text-slate-500 font-medium">Due: {bill.due_date}</p>
                         </div>
                         <div className="text-right flex items-center gap-3">
-                          <span className="text-sm font-mono font-bold text-slate-900">₹{bill.amount}</span>
+                          <span className="text-sm font-mono font-bold text-[#6339CA]">₹{bill.amount}</span>
                           <span className={`px-2 py-0.5 rounded text-[11px] font-bold ${
                             bill.status === 'Paid' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
                           }`}>
@@ -731,7 +731,7 @@ export default function TenantDashboard({
               <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-sm font-bold text-slate-900">Maintenance & Repair Tickets</h3>
+                    <h3 className="text-sm font-bold text-[#6339CA]">Maintenance & Repair Tickets</h3>
                     <p className="text-[11px] text-slate-500">Raise maintenance requests to society office & owner</p>
                   </div>
                   <button
@@ -758,7 +758,7 @@ export default function TenantDashboard({
                     {complaints.filter(c => c.resident_id === resident.resident_id).slice(0, 3).map((cmp, idx) => (
                       <div key={idx} className="p-3 bg-slate-50/80 rounded-xl border border-slate-100 flex items-center justify-between">
                         <div>
-                          <p className="text-xs font-bold text-slate-800">{cmp.category}</p>
+                          <p className="text-xs font-bold text-purple-900">{cmp.category}</p>
                           <p className="text-[11px] text-slate-500 max-w-sm truncate">{cmp.description}</p>
                         </div>
                         <span className={`px-2 py-0.5 rounded text-[11px] font-bold ${
@@ -783,7 +783,7 @@ export default function TenantDashboard({
                       <ShieldCheck className="w-4 h-4" />
                     </div>
                     <div>
-                      <h3 className="text-sm font-bold text-slate-900">Guest Passes</h3>
+                      <h3 className="text-sm font-bold text-[#6339CA]">Guest Passes</h3>
                       <p className="text-[11px] text-slate-500">Visitor gate approvals</p>
                     </div>
                   </div>
@@ -812,7 +812,7 @@ export default function TenantDashboard({
               </div>
 
               {/* TENANT SOCIETY GUIDELINES */}
-              <div className="bg-slate-900 text-white rounded-2xl p-6 shadow-sm space-y-3 border border-slate-800">
+              <div className="bg-[#6339CA] text-white rounded-2xl p-6 shadow-sm space-y-3 border border-purple-900">
                 <div className="flex items-center gap-2 text-purple-400">
                   <Sparkles className="w-4 h-4" />
                   <h3 className="text-xs font-bold uppercase tracking-wider">Society Rules for Tenants</h3>
@@ -882,10 +882,10 @@ export default function TenantDashboard({
 
       {/* ISSUE GUEST PASS MODAL */}
       {showGuestPassModal && (
-        <div className="fixed inset-0 z-[999] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[999] bg-[#6339CA]/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4">
             <div className="flex justify-between items-center pb-3 border-b border-slate-100">
-              <h3 className="text-lg font-black text-slate-900">Issue Guest Entry Gate Pass</h3>
+              <h3 className="text-lg font-black text-[#6339CA]">Issue Guest Entry Gate Pass</h3>
               <button onClick={() => setShowGuestPassModal(false)} className="text-slate-400 hover:text-slate-600">
                 ✕
               </button>
@@ -899,7 +899,7 @@ export default function TenantDashboard({
                   value={guestName}
                   onChange={(e) => setGuestName(e.target.value)}
                   placeholder="e.g. Rahul Verma"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-purple-900 focus:ring-2 focus:ring-purple-500"
                   required
                 />
               </div>
@@ -911,7 +911,7 @@ export default function TenantDashboard({
                   value={guestPhone}
                   onChange={(e) => setGuestPhone(e.target.value)}
                   placeholder="e.g. 9820011223"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-purple-900 focus:ring-2 focus:ring-purple-500"
                   required
                 />
               </div>
@@ -923,7 +923,7 @@ export default function TenantDashboard({
                   value={guestVehicle}
                   onChange={(e) => setGuestVehicle(e.target.value)}
                   placeholder="e.g. MH-12-AB-1234"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-purple-900 focus:ring-2 focus:ring-purple-500"
                 />
               </div>
 
@@ -931,7 +931,7 @@ export default function TenantDashboard({
                 <button
                   type="button"
                   onClick={() => setShowGuestPassModal(false)}
-                  className="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-black uppercase tracking-widest"
+                  className="px-4 py-2 bg-slate-100 text-purple-800 rounded-xl text-xs font-black uppercase tracking-widest"
                 >
                   Cancel
                 </button>
