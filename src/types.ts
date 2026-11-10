@@ -126,7 +126,8 @@ export interface Visitor {
   purpose: string;
   entry_time?: string;
   exit_time?: string;
-  status: 'Pending' | 'Approved' | 'Inside' | 'Exited' | 'Rejected';
+  name?: string;
+  status: 'Pending' | 'Approved' | 'Inside' | 'Exited' | 'Rejected' | 'In' | 'Checked In';
   security_id?: string;
   security_user_name?: string;
   security_user_shift?: string;
@@ -164,6 +165,7 @@ export interface Complaint {
   complaint_id: string;
   resident_id: string;
   resident_name?: string;
+  name?: string;
   tower: string;
   flat_no: string | number;
   complaint_date: string;

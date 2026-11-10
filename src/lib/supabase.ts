@@ -1,34 +1,41 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
-if (!supabaseUrl || !supabaseKey) {
-  console.error('Missing Supabase environment variables: VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY must be configured.');
+export const isSupabaseConfigured = Boolean(
+  supabaseUrl && 
+  supabaseKey && 
+  !supabaseUrl.includes('your_supabase') &&
+  !supabaseKey.includes('your_supabase')
+);
+
+if (!isSupabaseConfigured) {
+  console.warn(
+    '[TowerTech] Supabase environment variables missing or incomplete. ' +
+    'Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your deployment environment.'
+  );
 }
 
-export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseKey);
-
-// Safely initialize Supabase client. If not configured, export a mock client
-// to prevent runtime crashes when the app tries to access Supabase.
-export const supabase = isSupabaseConfigured
+// Safely initialize Supabase client
+// When properly configured with real credentials, creates the active Supabase client.
+// If env vars are temporarily unset (e.g. initial build step before env injection),
+// a placeholder client is instantiated to avoid crashing the JavaScript execution.
+export const supabase: SupabaseClient = isSupabaseConfigured
   ? createClient(supabaseUrl, supabaseKey, {
       auth: {
         persistSession: true,
         autoRefreshToken: true
       }
     })
-  : ({
-      auth: {
-        signInWithPassword: async () => ({ data: null, error: new Error('Supabase not configured') }),
-        signOut: async () => {},
-        getSession: async () => ({ data: { session: null }, error: null }),
-        onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
-      },
-      from: () => ({
-        select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: null, error: null }) }) }),
-        update: () => ({ eq: () => ({ select: async () => ({ data: null, error: null }) }) }),
-        insert: () => ({ select: async () => ({ data: null, error: null }) }),
-        delete: () => ({ eq: async () => ({ error: null }) }),
-      })
-    } as any);
+  : createClient(
+      supabaseUrl || 'https://mniarauxuzqcmdrplgiz.supabase.co',
+      supabaseKey || 'sb_publishable_placeholder',
+      {
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false
+        }
+      }
+    );
+

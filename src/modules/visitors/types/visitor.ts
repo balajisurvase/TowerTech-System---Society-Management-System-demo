@@ -85,6 +85,8 @@ export interface VisitorNotification {
   title: string;
   message: string;
   category?: string;
+  type?: string;
+  read?: boolean;
   delivery_status: 'pending' | 'sent' | 'delivered' | 'read';
   created_at: string;
   read_at?: string;

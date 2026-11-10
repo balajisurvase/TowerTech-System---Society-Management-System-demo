@@ -14,7 +14,20 @@
     </noscript>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div style="display:flex; justify-content:center; align-items:center; height:100vh; background-color:#ffffff; color:#30204F; font-family:sans-serif; position: fixed; inset: 0; z-index: 9999;">
+        <div style="display:flex; flex-direction:column; align-items:center; gap:16px;">
+          <div style="width: 44px; height: 44px; border: 3.5px solid #e2e8f0; border-top-color: #6339CA; border-radius: 50%; animation: spinCircle 0.8s linear infinite;"></div>
+          <span style="font-size: 13px; font-weight: 800; letter-spacing: 0.14em; color: #30204F; text-transform: uppercase;">TowerTech</span>
+        </div>
+      </div>
+      <style>
+        @keyframes spinCircle {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      </style>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

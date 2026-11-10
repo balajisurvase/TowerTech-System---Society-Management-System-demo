@@ -923,10 +923,10 @@ export function AddEditServiceContractWorkspace({
   const [vendorName, setVendorName] = useState(editingContract?.vendor_name || '');
   const [vendorContact, setVendorContact] = useState(editingContract?.vendor_contact || '');
   const [billingCycle, setBillingCycle] = useState<'Monthly' | 'Quarterly' | 'Bi-Annual' | 'Annual'>(
-    editingContract?.billing_cycle || 'Quarterly'
+    (editingContract?.billing_cycle as any) || 'Quarterly'
   );
   const [contractAmount, setContractAmount] = useState<number>(editingContract?.contract_amount || 50000);
-  const [status, setStatus] = useState<'Active' | 'Under Renewal' | 'Terminated'>(editingContract?.status || 'Active');
+  const [status, setStatus] = useState<'Active' | 'Under Renewal' | 'Terminated'>((editingContract?.status as any) || 'Active');
   const [startDate, setStartDate] = useState(editingContract?.start_date || format(new Date(), 'yyyy-MM-dd'));
   const [endDate, setEndDate] = useState(editingContract?.end_date || format(new Date(Date.now() + 365 * 86400000), 'yyyy-MM-dd'));
   const [notes, setNotes] = useState(editingContract?.notes || '');
